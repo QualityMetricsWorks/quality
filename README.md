@@ -1,22 +1,17 @@
-# GUVEL Scrap — v0.4.0 Sprint 1 Foundation
+# GUVEL Scrap — v0.4.0 Sprint 1 / Step 3
 
-This package completes Sprint 1 steps 1 and 2.
-
-## Completed
-- Beta 0.3.2 frozen as rollback reference.
-- Official GUVEL palette sampled from logo.
-- CSS split into reusable Design System layers.
-- Existing Supabase and JavaScript logic preserved.
-- No SQL migration is required.
+This release introduces the complete GUVEL application shell and brings Chart.js visual identity into the GUVEL palette.
 
 ## Upload to GitHub
-Upload/replace:
+Replace:
 - `index.html`
-- `assets/css/`
+- `assets/css/` (complete folder)
+- `assets/js/ui.js`
+- `assets/js/app.js`
 - `assets/img/`
-- keep your existing `assets/js/` and `config.js` (the package also contains them).
 
-Do **not** upload `_frozen_v0.3.2/` to production; it is included only as a local reference.
+`config.js` and Supabase do not require changes.
 
-## Next Sprint 1 step
-Step 3 will redesign the application shell/header/navigation using these tokens and components.
+No SQL migration is required.
+
+After deploy, perform `Ctrl + Shift + R`.

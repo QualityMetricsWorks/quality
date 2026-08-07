@@ -8,45 +8,92 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="assets/css/main.css?v=0.4.0">
+  <link rel="stylesheet" href="assets/css/main.css?v=0.4.0-s1.3">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
-  <script src="config.js?v=0.3.2"></script>
-  <script type="module" src="assets/js/app.js?v=0.3.2"></script>
+  <script src="config.js?v=0.4.0-s1.3"></script>
+  <script type="module" src="assets/js/app.js?v=0.4.0-s1.3"></script>
 </head>
 <body>
-  <header class="app-header">
-    <div class="brand guvel-brand">
-      <img class="brand-logo" src="assets/img/guvel-logo.jpeg" alt="GUVEL">
-      <div class="brand-copy">
-        <strong><span class="brand-guvel">GUVEL</span> <span class="brand-product">Scrap</span></strong>
-        <small>Quality Intelligence · v0.4.0 · Sprint 1</small>
+  <header class="guvel-shell">
+    <div class="product-bar">
+      <div class="product-brand">
+        <img class="product-logo" src="assets/img/guvel-logo.jpeg" alt="GUVEL">
+        <div class="product-identity">
+          <div class="product-name"><span>GUVEL</span><strong>Scrap</strong></div>
+          <small>Smarter Quality Solutions</small>
+        </div>
+      </div>
+
+      <div class="product-context">
+        <span class="module-badge"><span class="module-dot"></span> Scrap Intelligence</span>
+        <span class="version-badge">v0.4.0</span>
+      </div>
+
+      <div class="account-area">
+        <div class="account-copy">
+          <strong id="companyContext">—</strong>
+          <span id="userEmail">—</span>
+        </div>
+        <div class="account-avatar" aria-hidden="true">U</div>
+        <button id="signOutBtn" class="btn btn-ghost btn-sm">Salir</button>
       </div>
     </div>
-    <nav class="main-nav" aria-label="Navegación principal">
-      <button class="nav-item active" data-view="dashboard">Dashboard</button>
-      <button class="nav-item" data-view="capture">Captura</button>
-      <button class="nav-item" data-view="clients">Clientes</button>
-      <button class="nav-item" data-view="parts">Números de Parte</button>
-      <button class="nav-item" data-view="machines">Máquinas</button>
-      <button class="nav-item" data-view="catalog">Catálogo</button>
-      <button class="nav-item" data-view="history">Historial</button>
-    </nav>
-    <div class="header-user">
-      <span id="companyContext">—</span>
-      <span id="userEmail">—</span>
-      <button id="signOutBtn" class="btn btn-ghost btn-sm">Salir</button>
+
+    <div class="navigation-bar">
+      <nav class="main-nav" aria-label="Navegación de GUVEL Scrap">
+        <button class="nav-item active" data-view="dashboard">
+          <span class="nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 13h6V4H4v9Zm0 7h6v-5H4v5Zm10 0h6v-9h-6v9Zm0-16v5h6V4h-6Z"/></svg></span>
+          <span>Dashboard</span>
+        </button>
+        <button class="nav-item" data-view="capture">
+          <span class="nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M5 4h14v16H5V4Zm3 3v2h8V7H8Zm0 4v2h8v-2H8Zm0 4v2h5v-2H8Z"/></svg></span>
+          <span>Captura</span>
+        </button>
+        <button class="nav-item" data-view="clients">
+          <span class="nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 20V6l8-3 8 3v14h-5v-5H9v5H4Zm4-9h2V8H8v3Zm6 0h2V8h-2v3Z"/></svg></span>
+          <span>Clientes</span>
+        </button>
+        <button class="nav-item" data-view="parts">
+          <span class="nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="m12 3 9 5-9 5-9-5 9-5Zm-7 9 7 4 7-4v5l-7 4-7-4v-5Z"/></svg></span>
+          <span>Números de Parte</span>
+        </button>
+        <button class="nav-item" data-view="machines">
+          <span class="nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M3 20V9h4l2-4h6l2 4h4v11H3Zm4-3h10v-5H7v5Zm3-8h4l-1-2h-2l-1 2Z"/></svg></span>
+          <span>Máquinas</span>
+        </button>
+        <button class="nav-item" data-view="catalog">
+          <span class="nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M5 4h14v16H5V4Zm3 3v2h8V7H8Zm0 4v2h8v-2H8Zm0 4v2h8v-2H8Z"/></svg></span>
+          <span>Catálogo</span>
+        </button>
+        <button class="nav-item" data-view="history">
+          <span class="nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 4a8 8 0 1 1-7.75 10H2l3-4 3 4H6.3A6 6 0 1 0 12 6V3l4 3-4 3V6Z"/></svg></span>
+          <span>Historial</span>
+        </button>
+      </nav>
+      <div class="nav-status">
+        <span class="sync-indicator"></span>
+        <span id="storageStatus">Conectando…</span>
+      </div>
     </div>
   </header>
 
   <main class="main-content">
-    <section class="topbar">
-      <div><p class="eyebrow">GUVEL · Scrap Intelligence</p><h1 id="pageTitle">Dashboard</h1></div>
+    <section class="topbar page-toolbar">
+      <div class="page-heading">
+        <div class="breadcrumb"><span>GUVEL Scrap</span><span>/</span><strong id="pageTitle">Dashboard</strong></div>
+        <p class="page-description">Monitoreo operativo de calidad, pérdidas y desempeño de manufactura.</p>
+      </div>
       <div class="topbar-actions">
-        <span class="sync-badge" id="storageStatus">Conectando…</span>
-        <button class="btn btn-secondary" id="refreshDataBtn">Actualizar</button>
-        <button class="btn btn-secondary" id="exportBtn">Exportar Excel</button>
+        <button class="btn btn-secondary action-btn" id="refreshDataBtn">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M17.65 6.35A8 8 0 1 0 20 12h-2a6 6 0 1 1-1.76-4.24L13 11h8V3l-3.35 3.35Z"/></svg>
+          <span>Actualizar</span>
+        </button>
+        <button class="btn btn-primary action-btn" id="exportBtn">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M11 4h2v9l3-3 1.4 1.4L12 16.8l-5.4-5.4L8 10l3 3V4ZM5 18h14v2H5v-2Z"/></svg>
+          <span>Exportar Excel</span>
+        </button>
       </div>
     </section>
 
@@ -246,9 +293,9 @@
   <footer class="app-footer">
     <div class="footer-brand">
       <img src="assets/img/guvel-logo.jpeg" alt="GUVEL">
-      <span><strong>GUVEL Scrap</strong> · Smarter Quality Solutions</span>
+      <span><strong>GUVEL Platform</strong> · Scrap Module · Smarter Quality Solutions</span>
     </div>
-    <span>v0.4.0 · Sprint 1</span>
+    <span>Design System · Sprint 1</span>
   </footer>
 
   <div id="toast" class="toast"></div>
