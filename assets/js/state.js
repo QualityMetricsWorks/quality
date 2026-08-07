@@ -1,0 +1,10 @@
+export const state={clients:[],parts:[],operations:[],defects:[],runs:[],scrapEvents:[],companyId:null,companyName:'',role:'viewer',user:null,selectedClientId:null,selectedPartId:null};
+export const getClient=id=>state.clients.find(x=>x.id===id);
+export const getPart=id=>state.parts.find(x=>x.id===id);
+export const getOperation=id=>state.operations.find(x=>x.id===id);
+export const getDefect=id=>state.defects.find(x=>x.id===id);
+export const getRun=id=>state.runs.find(x=>x.id===id);
+export const partsForClient=id=>state.parts.filter(x=>!id||x.clientId===id);
+export const operationsForPart=id=>state.operations.filter(x=>x.partId===id);
+export const defectsForPart=(partId,operationId='')=>state.defects.filter(x=>x.partId===partId&&(!operationId||!x.operationId||x.operationId===operationId));
+export const eventsForRun=id=>state.scrapEvents.filter(x=>x.runId===id);

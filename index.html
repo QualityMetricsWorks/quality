@@ -2,237 +2,166 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="Quality Summary - monitoreo industrial de producción, scrap, PPM y Pareto.">
-  <title>Quality Summary | Beta 0.2.0</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="description" content="QKC Quality Summary - Quality Intelligence Platform">
+  <title>QKC Quality Summary</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles.css?v=beta-0.2.0">
+  <link rel="stylesheet" href="assets/css/main.css?v=0.3.0">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+  <script src="config.js?v=0.3.0"></script>
+  <script type="module" src="assets/js/app.js?v=0.3.0"></script>
 </head>
 <body>
   <header class="app-header">
-    <div class="header-main">
-      <div class="brand-block">
-        <div class="brand-mark">QS</div>
-        <div>
-          <h1>Quality Summary</h1>
-          <span>Industrial Quality Intelligence</span>
-        </div>
-      </div>
-
-      <div class="header-actions">
-        <div class="storage-state"><span class="status-dot"></span><span id="storageStatus">Base local activa</span></div>
-        <button id="refreshDataBtn" class="btn btn-secondary">Actualizar</button>
-        <button id="importLocalBtn" class="btn btn-secondary">Importar 0.1.5</button>
-        <button id="loadDemoBtn" class="btn btn-secondary">Cargar demo</button>
-        <button id="exportBtn" class="btn btn-primary">Exportar Excel</button>
-        <span id="companyContext" class="user-email"></span><span id="userEmail" class="user-email"></span>
-        <button id="signOutBtn" class="btn btn-ghost" hidden>Cerrar sesión</button>
-      </div>
+    <div class="brand">
+      <div class="brand-mark">QS</div>
+      <div><strong>Quality Summary</strong><small>Quality Intelligence Platform · Beta 0.3.0</small></div>
     </div>
-
-    <nav class="top-nav" aria-label="Navegación principal">
-      <button type="button" class="nav-item active" data-view="dashboard" data-title="Dashboard">Dashboard</button>
-      <button type="button" class="nav-item" data-view="capture" data-title="Captura">Captura</button>
-      <button type="button" class="nav-item" data-view="clients" data-title="Clientes">Clientes</button>
-      <button type="button" class="nav-item" data-view="parts" data-title="Números de Parte">Números de Parte</button>
-      <button type="button" class="nav-item" data-view="catalog" data-title="Catálogo">Catálogo</button>
-      <button type="button" class="nav-item" data-view="history" data-title="Historial">Historial</button>
+    <nav class="main-nav" aria-label="Navegación principal">
+      <button class="nav-item active" data-view="dashboard">Dashboard</button>
+      <button class="nav-item" data-view="capture">Captura</button>
+      <button class="nav-item" data-view="clients">Clientes</button>
+      <button class="nav-item" data-view="parts">Números de Parte</button>
+      <button class="nav-item" data-view="catalog">Catálogo</button>
+      <button class="nav-item" data-view="history">Historial</button>
     </nav>
+    <div class="header-user">
+      <span id="companyContext">—</span>
+      <span id="userEmail">—</span>
+      <button id="signOutBtn" class="btn btn-ghost btn-sm">Salir</button>
+    </div>
   </header>
 
   <main class="main-content">
-    <section class="page-heading">
-      <div>
-        <p class="eyebrow">Quality Management System</p>
-        <h2 id="pageTitle">Dashboard</h2>
+    <section class="topbar">
+      <div><p class="eyebrow">QKC · Quality Summary</p><h1 id="pageTitle">Dashboard</h1></div>
+      <div class="topbar-actions">
+        <span class="sync-badge" id="storageStatus">Conectando…</span>
+        <button class="btn btn-secondary" id="refreshDataBtn">Actualizar</button>
+        <button class="btn btn-secondary" id="exportBtn">Exportar Excel</button>
       </div>
-      <div class="version-badge">Beta 0.2.0</div>
     </section>
 
     <section id="dashboardView" class="view active">
       <div class="filter-panel card">
-        <div class="field">
-          <label for="filterStart">Desde</label>
-          <input type="date" id="filterStart">
-        </div>
-        <div class="field">
-          <label for="filterEnd">Hasta</label>
-          <input type="date" id="filterEnd">
-        </div>
-        <div class="field">
-          <label for="filterClient">Cliente</label>
-          <select id="filterClient"><option value="">Todos</option></select>
-        </div>
-        <div class="field">
-          <label for="filterPartNumber">Número de parte</label>
-          <select id="filterPartNumber"><option value="">Todos</option></select>
-        </div>
-        <button id="clearFiltersBtn" class="btn btn-ghost">Limpiar filtros</button>
+        <div class="field"><label>Desde</label><input type="date" id="filterStart"></div>
+        <div class="field"><label>Hasta</label><input type="date" id="filterEnd"></div>
+        <div class="field"><label>Cliente</label><select id="filterClient"></select></div>
+        <div class="field"><label>Número de Parte</label><select id="filterPartNumber"></select></div>
+        <button class="btn btn-ghost" id="clearFiltersBtn">Limpiar</button>
       </div>
 
-      <div class="kpi-grid">
-        <article class="kpi-card">
-          <span>Producción total</span>
-          <strong id="kpiProduction">0</strong>
-          <small>Piezas producidas</small>
-        </article>
-        <article class="kpi-card danger">
-          <span>Scrap general</span>
-          <strong id="kpiScrap">0.00%</strong>
-          <small id="kpiScrapQty">0 piezas</small>
-        </article>
-        <article class="kpi-card warning">
-          <span>PPM general</span>
-          <strong id="kpiPpm">0</strong>
-          <small>Scrap / producción × 1,000,000</small>
-        </article>
-        <article class="kpi-card success">
-          <span>Defecto principal</span>
-          <strong id="kpiTopDefect">Sin datos</strong>
-          <small id="kpiTopDefectShare">0% del scrap</small>
-        </article>
+      <div class="kpi-grid kpi-grid-5">
+        <article class="kpi-card"><span>Producción</span><strong id="kpiProduction">0</strong><small>Piezas registradas</small></article>
+        <article class="kpi-card danger"><span>Scrap</span><strong id="kpiScrap">0.00%</strong><small id="kpiScrapQty">0 piezas</small></article>
+        <article class="kpi-card warning"><span>PPM</span><strong id="kpiPpm">0</strong><small>Scrap / producción</small></article>
+        <article class="kpi-card success"><span>Yield</span><strong id="kpiYield">100.00%</strong><small>Buenas / producción</small></article>
+        <article class="kpi-card money"><span>COPQ Scrap</span><strong id="kpiCopq">$0.00</strong><small>Costo estándar estimado</small></article>
       </div>
-
-      <div id="chartFallback" class="system-alert" hidden>Los gráficos no pudieron cargar. La captura, KPIs, tablas y exportación siguen disponibles.</div>
 
       <div class="dashboard-grid">
-        <article class="card chart-card">
-          <div class="card-header"><div><p class="eyebrow">Tendencia de pérdida</p><h3>Scrap %</h3></div></div>
-          <div class="chart-wrap"><canvas id="scrapTrendChart"></canvas></div>
-        </article>
-        <article class="card chart-card">
-          <div class="card-header"><div><p class="eyebrow">Tendencia de calidad</p><h3>PPM</h3></div></div>
-          <div class="chart-wrap"><canvas id="ppmTrendChart"></canvas></div>
-        </article>
-        <article class="card chart-card wide">
-          <div class="card-header"><div><p class="eyebrow">80 / 20</p><h3>Pareto general de defectos</h3></div><span class="industrial-tag">ANÁLISIS AUTOMÁTICO</span></div>
-          <div class="chart-wrap pareto-chart"><canvas id="paretoChart"></canvas></div>
-        </article>
+        <article class="card chart-card"><div class="card-header"><div><p class="eyebrow">Tendencia</p><h3>Scrap %</h3></div></div><div class="chart-wrap"><canvas id="scrapTrendChart"></canvas></div></article>
+        <article class="card chart-card"><div class="card-header"><div><p class="eyebrow">Tendencia</p><h3>PPM</h3></div></div><div class="chart-wrap"><canvas id="ppmTrendChart"></canvas></div></article>
+        <article class="card chart-card"><div class="card-header"><div><p class="eyebrow">Tendencia</p><h3>Yield</h3></div></div><div class="chart-wrap"><canvas id="yieldTrendChart"></canvas></div></article>
+        <article class="card chart-card"><div class="card-header"><div><p class="eyebrow">Tendencia</p><h3>COPQ Scrap</h3></div></div><div class="chart-wrap"><canvas id="copqTrendChart"></canvas></div></article>
+        <article class="card chart-card wide"><div class="card-header"><div><p class="eyebrow">Pareto 80/20</p><h3>Defectos de Scrap</h3></div></div><div class="chart-wrap"><canvas id="paretoChart"></canvas></div></article>
       </div>
 
-      <section class="section-block">
-        <div class="section-heading">
-          <div><p class="eyebrow">Concentración de pérdidas</p><h3>Top 3 productos con mayor scrap</h3></div>
-          <span class="section-note">Top 3 defectos por producto</span>
-        </div>
+      <article class="card section-card">
+        <div class="card-header"><div><p class="eyebrow">Concentración de pérdida</p><h3>Top 3 productos con mayor scrap</h3></div></div>
         <div id="topProductsGrid" class="top-products-grid"></div>
-      </section>
-
-      <article class="card table-card">
-        <div class="card-header padded">
-          <div><p class="eyebrow">Desempeño por producto</p><h3>Scrap y PPM por número de parte</h3></div>
-        </div>
-        <div class="table-scroll">
-          <table>
-            <thead><tr><th>Número de parte</th><th>Cliente</th><th>Producción</th><th>Scrap</th><th>Scrap %</th><th>PPM</th><th>Defecto principal</th></tr></thead>
-            <tbody id="partSummaryBody"></tbody>
-          </table>
-        </div>
       </article>
     </section>
 
     <section id="captureView" class="view">
-      <article class="card form-card">
-        <div class="card-header">
-          <div><p class="eyebrow">Entrada de datos</p><h3>Registrar producción y scrap</h3></div>
-          <span class="industrial-tag">QS-001</span>
-        </div>
-        <form id="productionForm" class="form-grid">
-          <div class="field"><label for="recordDate">Fecha</label><input type="date" id="recordDate" required></div>
-          <div class="field"><label for="recordShift">Turno</label><select id="recordShift" required><option value="1">Turno 1</option><option value="2">Turno 2</option><option value="3">Turno 3</option></select></div>
-          <div class="field"><label for="recordClient">Cliente</label><select id="recordClient" required></select></div>
-          <div class="field"><label for="recordPartNumber">Número de parte</label><select id="recordPartNumber" required></select></div>
-          <div class="field"><label for="recordProduced">Cantidad producida</label><input type="number" id="recordProduced" min="1" required></div>
-          <div class="field"><label for="recordScrap">Cantidad scrap</label><input type="number" id="recordScrap" min="0" value="0" required></div>
-          <div class="field"><label for="recordOperation">Operación / proceso</label><select id="recordOperation" required></select></div>
-          <div class="field"><label for="recordDefect">Defecto</label><select id="recordDefect"></select></div>
-          <div class="field full"><label for="recordNotes">Comentarios</label><textarea id="recordNotes" rows="3" placeholder="Descripción breve, causa preliminar o acción inmediata"></textarea></div>
-          <div class="form-actions full"><button type="reset" class="btn btn-secondary">Limpiar</button><button type="submit" class="btn btn-primary">Guardar registro</button></div>
+      <div class="capture-tabs">
+        <button class="capture-tab active" data-capture-tab="production">Capturar Producción</button>
+        <button class="capture-tab" data-capture-tab="scrap">Capturar Scrap</button>
+      </div>
+
+      <article id="captureProductionPanel" class="card form-card capture-panel active">
+        <div class="card-header"><div><p class="eyebrow">Corrida de producción</p><h3>Registrar producción</h3></div></div>
+        <form id="productionRunForm" class="form-grid">
+          <div class="field"><label>Fecha</label><input type="date" id="runDate" required></div>
+          <div class="field"><label>Turno</label><select id="runShift" required><option>A</option><option>B</option><option>C</option></select></div>
+          <div class="field"><label>Cliente</label><select id="runClient" required></select></div>
+          <div class="field"><label>Número de Parte</label><select id="runPart" required></select></div>
+          <div class="field"><label>Operación</label><select id="runOperation" required></select></div>
+          <div class="field"><label>Máquina</label><input id="runMachine" placeholder="Ej. TCN-010"></div>
+          <div class="field"><label>Cantidad producida</label><input type="number" id="runProduced" min="1" required></div>
+          <div class="field"><label>Tiempo programado (min)</label><input type="number" id="runPlannedMinutes" min="0" step="0.1" placeholder="Opcional · futuro OEE"></div>
+          <div class="field full"><label>Notas</label><textarea id="runNotes" rows="3"></textarea></div>
+          <div class="form-actions full"><button class="btn btn-primary" type="submit">Guardar producción</button></div>
         </form>
+      </article>
+
+      <article id="captureScrapPanel" class="card form-card capture-panel">
+        <div class="card-header"><div><p class="eyebrow">Evento de calidad</p><h3>Registrar scrap / disposición</h3></div></div>
+        <div class="info-strip" id="selectedRunSummary">Selecciona una corrida de producción.</div>
+        <form id="scrapEventForm" class="form-grid">
+          <div class="field full"><label>Corrida de producción</label><select id="scrapRun" required></select></div>
+          <div class="field"><label>Defecto</label><select id="scrapDefect" required></select></div>
+          <div class="field"><label>Cantidad</label><input type="number" id="scrapQuantity" min="1" required></div>
+          <div class="field"><label>Disposición</label><select id="scrapDisposition" required><option value="scrap">Scrap</option><option value="rework">Retrabajo</option><option value="repair">Reparación</option><option value="use_as_is">Uso como está</option><option value="supplier_return">Devuelto a proveedor</option><option value="pending">Pendiente</option></select></div>
+          <div class="field"><label>Costo adicional</label><input type="number" id="scrapExtraCost" min="0" step="0.01" value="0"></div>
+          <div class="field"><label>Motivo / causa</label><input id="scrapReason" placeholder="Opcional"></div>
+          <div class="field full"><label>Notas</label><textarea id="scrapNotes" rows="3"></textarea></div>
+          <div class="form-actions full"><button class="btn btn-primary" type="submit">Agregar evento</button></div>
+        </form>
+        <div class="subsection">
+          <div class="card-header"><div><p class="eyebrow">Corrida seleccionada</p><h3>Eventos registrados</h3></div></div>
+          <div class="table-scroll"><table><thead><tr><th>Defecto</th><th>Cantidad</th><th>Disposición</th><th>COPQ</th><th></th></tr></thead><tbody id="runScrapEventsBody"></tbody></table></div>
+        </div>
       </article>
     </section>
 
     <section id="clientsView" class="view">
-      <div class="master-detail-layout">
-        <article class="card master-panel">
-          <div class="card-header"><div><p class="eyebrow">Maestro</p><h3>Clientes</h3></div><span id="clientCount" class="count-badge">0</span></div>
-          <form id="clientForm" class="stack-form compact-form">
-            <input id="clientName" required placeholder="Nombre del cliente">
-            <input id="clientCode" placeholder="Código / abreviatura">
-            <button class="btn btn-primary">Crear cliente</button>
-          </form>
-          <div class="search-row"><input id="clientSearch" type="search" placeholder="Buscar cliente..."></div>
+      <div class="split-layout">
+        <article class="card list-panel">
+          <div class="card-header"><div><p class="eyebrow">Maestro</p><h3>Clientes <span id="clientCount" class="count-badge">0</span></h3></div></div>
+          <form id="clientForm" class="inline-form"><input id="clientName" placeholder="Nombre del cliente" required><input id="clientCode" placeholder="Código"><button class="btn btn-primary">Agregar</button></form>
+          <input id="clientSearch" class="search-input" placeholder="Buscar cliente…">
           <div id="clientList" class="entity-list"></div>
         </article>
-
-        <article class="card detail-panel" id="clientDetailPanel">
-          <div id="clientEmptyState" class="detail-empty">
-            <strong>Selecciona un cliente</strong>
-            <span>Consulta sus números de parte, producción y desempeño.</span>
-          </div>
+        <article class="card detail-panel">
+          <div id="clientEmptyState" class="empty-state">Selecciona un cliente para consultar su ficha.</div>
           <div id="clientDetail" hidden>
-            <div class="detail-heading">
-              <div><p class="eyebrow">Ficha del cliente</p><h3 id="clientDetailName">—</h3><span id="clientDetailCode" class="muted-line"></span></div>
-              <button id="deleteClientBtn" class="btn btn-danger">Eliminar cliente</button>
-            </div>
-            <div class="mini-kpi-grid">
-              <div><span>Números de parte</span><strong id="clientDetailParts">0</strong></div>
-              <div><span>Producción</span><strong id="clientDetailProduction">0</strong></div>
-              <div><span>Scrap %</span><strong id="clientDetailScrap">0.00%</strong></div>
-              <div><span>PPM</span><strong id="clientDetailPpm">0</strong></div>
-            </div>
-            <div class="detail-section">
-              <div class="section-heading compact"><h4>Números de parte</h4><button id="clientAddPartBtn" class="text-action">+ Nuevo NP</button></div>
-              <div id="clientPartsList" class="detail-list"></div>
-            </div>
+            <div class="detail-title"><div><p class="eyebrow">Cliente</p><h2 id="clientDetailName">—</h2><span id="clientDetailCode">—</span></div><button id="deleteClientBtn" class="btn btn-danger btn-sm">Eliminar</button></div>
+            <div class="mini-kpi-grid"><div><span>NP</span><strong id="clientDetailParts">0</strong></div><div><span>Producción</span><strong id="clientDetailProduction">0</strong></div><div><span>Scrap</span><strong id="clientDetailScrap">0</strong></div><div><span>PPM</span><strong id="clientDetailPpm">0</strong></div></div>
+            <div class="subsection"><div class="card-header"><h3>Números de Parte</h3><button id="clientAddPartBtn" class="btn btn-secondary btn-sm">Nuevo NP</button></div><div id="clientPartsList" class="entity-list compact"></div></div>
           </div>
         </article>
       </div>
     </section>
 
     <section id="partsView" class="view">
-      <div class="master-detail-layout">
-        <article class="card master-panel">
-          <div class="card-header"><div><p class="eyebrow">Maestro</p><h3>Números de Parte</h3></div><span id="partCount" class="count-badge">0</span></div>
-          <form id="partForm" class="stack-form compact-form">
-            <select id="partClient" required></select>
-            <input id="partNumberName" required placeholder="Número de parte">
-            <input id="partDescription" placeholder="Descripción">
-            <button class="btn btn-primary">Crear número de parte</button>
+      <div class="split-layout">
+        <article class="card list-panel">
+          <div class="card-header"><div><p class="eyebrow">Maestro</p><h3>Números de Parte <span id="partCount" class="count-badge">0</span></h3></div></div>
+          <form id="partForm" class="stack-form">
+            <select id="partClient" required></select><input id="partNumberName" placeholder="Número de parte" required><input id="partDescription" placeholder="Descripción">
+            <div class="form-row-2"><input id="partCost" type="number" min="0" step="0.0001" placeholder="Costo por pieza"><select id="partCurrency"><option>USD</option><option>MXN</option><option>EUR</option></select></div>
+            <button class="btn btn-primary">Agregar NP</button>
           </form>
-          <div class="search-row"><input id="partSearch" type="search" placeholder="Buscar número de parte..."></div>
+          <input id="partSearch" class="search-input" placeholder="Buscar número de parte…">
           <div id="partList" class="entity-list"></div>
         </article>
-
         <article class="card detail-panel">
-          <div id="partEmptyState" class="detail-empty"><strong>Selecciona un número de parte</strong><span>Consulta sus defectos, métricas e historial.</span></div>
+          <div id="partEmptyState" class="empty-state">Selecciona un número de parte para consultar su ficha.</div>
           <div id="partDetail" hidden>
-            <div class="detail-heading">
-              <div><p class="eyebrow">Ficha de producto</p><h3 id="partDetailNumber">—</h3><span id="partDetailDescription" class="muted-line"></span></div>
-              <button id="deletePartBtn" class="btn btn-danger">Eliminar NP</button>
+            <div class="detail-title"><div><p class="eyebrow">Número de Parte</p><h2 id="partDetailNumber">—</h2><span id="partDetailDescription">—</span></div><button id="deletePartBtn" class="btn btn-danger btn-sm">Eliminar</button></div>
+            <div class="mini-kpi-grid six"><div><span>Cliente</span><strong id="partDetailClient">—</strong></div><div><span>Costo</span><strong id="partDetailCost">—</strong></div><div><span>Producción</span><strong id="partDetailProduction">0</strong></div><div><span>Scrap</span><strong id="partDetailScrapQty">0</strong></div><div><span>Yield</span><strong id="partDetailYield">100%</strong></div><div><span>COPQ</span><strong id="partDetailCopq">$0</strong></div></div>
+            <div class="detail-tabs"><button class="detail-tab active" data-part-tab="operations">Operaciones</button><button class="detail-tab" data-part-tab="defects">Defectos</button><button class="detail-tab" data-part-tab="production">Producción</button><button class="detail-tab" data-part-tab="scrap">Scrap</button></div>
+            <div class="part-tab-panel active" data-part-panel="operations">
+              <form id="operationForm" class="inline-form"><input id="operationCode" placeholder="OP20" required><input id="operationName" placeholder="Nombre" required><button class="btn btn-primary">Agregar</button></form><div id="partOperationList" class="entity-list compact"></div>
             </div>
-            <div class="detail-meta"><span>Cliente</span><strong id="partDetailClient">—</strong></div>
-            <div class="mini-kpi-grid">
-              <div><span>Producción</span><strong id="partDetailProduction">0</strong></div>
-              <div><span>Scrap</span><strong id="partDetailScrapQty">0</strong></div>
-              <div><span>Scrap %</span><strong id="partDetailScrapRate">0.00%</strong></div>
-              <div><span>PPM</span><strong id="partDetailPpm">0</strong></div>
-            </div>
-            <div class="detail-section">
-              <div class="section-heading compact"><h4>Operaciones / procesos</h4></div>
-              <form id="operationForm" class="inline-form operation-inline-form">
-                <input id="operationCode" required placeholder="Código (Ej. OP20)">
-                <input id="operationName" required placeholder="Proceso (Ej. Torneado)">
-                <button class="btn btn-secondary" type="submit">Agregar</button>
-              </form>
-              <div id="partOperationList" class="detail-list"></div>
-            </div>
-            <div class="detail-section">
-              <div class="section-heading compact"><h4>Top defectos</h4><button id="partAddDefectBtn" class="text-action">+ Nuevo defecto</button></div>
-              <div id="partDefectList" class="detail-list"></div>
-            </div>
+            <div class="part-tab-panel" data-part-panel="defects"><button id="partAddDefectBtn" class="btn btn-secondary btn-sm">Nuevo defecto</button><div id="partDefectList" class="entity-list compact"></div></div>
+            <div class="part-tab-panel" data-part-panel="production"><div id="partProductionList" class="entity-list compact"></div></div>
+            <div class="part-tab-panel" data-part-panel="scrap"><div id="partScrapList" class="entity-list compact"></div></div>
           </div>
         </article>
       </div>
@@ -240,63 +169,39 @@
 
     <section id="catalogView" class="view">
       <article class="card form-card">
-        <div class="card-header"><div><p class="eyebrow">Catálogo maestro</p><h3>Defectos por número de parte</h3></div><span class="industrial-tag">DEFECT MASTER</span></div>
-        <div class="catalog-layout">
-          <form id="defectForm" class="form-grid catalog-form">
-            <div class="field"><label for="defectClient">Cliente</label><select id="defectClient" required></select></div>
-            <div class="field"><label for="defectPartNumber">Número de parte</label><select id="defectPartNumber" required></select></div>
-            <div class="field"><label for="defectOperation">Operación / proceso</label><select id="defectOperation"><option value="">General / todas</option></select></div>
-            <div class="field"><label for="defectCode">Código</label><input id="defectCode" required placeholder="Ej. D01"></div>
-            <div class="field"><label for="defectName">Defecto</label><input id="defectName" required placeholder="Ej. Rebaba"></div>
-            <div class="field"><label for="defectCategory">Categoría</label><select id="defectCategory"><option>Dimensional</option><option>Visual</option><option>Rosca</option><option>Material</option><option>Proceso</option><option>Otro</option></select></div>
-            <div class="form-actions align-end"><button class="btn btn-primary">Agregar defecto</button></div>
-          </form>
-          <div class="search-row catalog-search"><input id="defectSearch" type="search" placeholder="Buscar código, defecto o número de parte..."></div>
-          <div class="table-scroll">
-            <table>
-              <thead><tr><th>Código</th><th>Defecto</th><th>Categoría</th><th>Operación</th><th>Número de parte</th><th>Cliente</th><th></th></tr></thead>
-              <tbody id="defectTableBody"></tbody>
-            </table>
-          </div>
-        </div>
+        <div class="card-header"><div><p class="eyebrow">Maestro de calidad</p><h3>Catálogo de Defectos</h3></div></div>
+        <form id="defectForm" class="form-grid">
+          <div class="field"><label>Cliente</label><select id="defectClient" required></select></div>
+          <div class="field"><label>Número de Parte</label><select id="defectPartNumber" required></select></div>
+          <div class="field"><label>Operación</label><select id="defectOperation"></select></div>
+          <div class="field"><label>Código</label><input id="defectCode" required></div>
+          <div class="field"><label>Defecto</label><input id="defectName" required></div>
+          <div class="field"><label>Categoría</label><select id="defectCategory"><option>Dimensional</option><option>Visual</option><option>Rosca</option><option>Material</option><option>Proceso</option><option>Otro</option></select></div>
+          <div class="form-actions full"><button class="btn btn-primary">Agregar defecto</button></div>
+        </form>
       </article>
+      <article class="card table-card"><div class="card-header"><h3>Defectos configurados</h3><input id="defectSearch" class="search-input small" placeholder="Buscar…"></div><div class="table-scroll"><table><thead><tr><th>Cliente</th><th>NP</th><th>Operación</th><th>Código</th><th>Defecto</th><th>Categoría</th><th></th></tr></thead><tbody id="defectTableBody"></tbody></table></div></article>
     </section>
 
     <section id="historyView" class="view">
-      <article class="card table-card">
-        <div class="card-header padded">
-          <div><p class="eyebrow">Trazabilidad</p><h3>Historial de registros</h3></div>
-          <div class="history-actions"><input id="historySearch" type="search" placeholder="Buscar cliente, NP, defecto..."><button id="clearDataBtn" class="btn btn-danger">Eliminar registros</button></div>
-        </div>
-        <div class="table-scroll">
-          <table>
-            <thead><tr><th>Fecha</th><th>Turno</th><th>Cliente</th><th>Número de parte</th><th>Producción</th><th>Scrap</th><th>Scrap %</th><th>PPM</th><th>Defecto</th><th>Operación</th><th></th></tr></thead>
-            <tbody id="recordsBody"></tbody>
-          </table>
-        </div>
-      </article>
+      <div class="history-tabs"><button class="history-tab active" data-history-tab="production">Producción</button><button class="history-tab" data-history-tab="scrap">Scrap / Calidad</button></div>
+      <article class="card table-card history-panel active" data-history-panel="production"><div class="card-header"><div><p class="eyebrow">Trazabilidad</p><h3>Historial de Producción</h3></div><input id="productionHistorySearch" class="search-input small" placeholder="Buscar…"></div><div class="table-scroll"><table><thead><tr><th>Fecha</th><th>Turno</th><th>Cliente</th><th>NP</th><th>Operación</th><th>Máquina</th><th>Producción</th><th>Scrap</th><th>Yield</th><th></th></tr></thead><tbody id="productionHistoryBody"></tbody></table></div></article>
+      <article class="card table-card history-panel" data-history-panel="scrap"><div class="card-header"><div><p class="eyebrow">Trazabilidad</p><h3>Historial de Scrap</h3></div><input id="scrapHistorySearch" class="search-input small" placeholder="Buscar…"></div><div class="table-scroll"><table><thead><tr><th>Fecha</th><th>Cliente</th><th>NP</th><th>Operación</th><th>Defecto</th><th>Cantidad</th><th>Disposición</th><th>COPQ</th><th></th></tr></thead><tbody id="scrapHistoryBody"></tbody></table></div></article>
     </section>
   </main>
 
-  <div id="toast" class="toast" role="status" aria-live="polite"></div>
-  <div id="authOverlay" class="auth-overlay" hidden>
-    <section class="auth-card">
-      <div class="auth-brand"><div class="brand-mark">QS</div><div><h2>Quality Summary</h2><span>Beta 0.2.0 · Secure Multi-tenant</span></div></div>
-      <p>Inicia sesión para acceder a la base de datos compartida.</p>
-      <form id="loginForm" class="auth-form">
-        <label>Correo<input id="loginEmail" type="email" autocomplete="username" required></label>
-        <label>Contraseña<input id="loginPassword" type="password" autocomplete="current-password" required></label>
-        <button class="btn btn-primary" type="submit">Iniciar sesión</button>
-      </form>
-      <div id="authMessage" class="auth-message">Los usuarios se administran desde Supabase Auth.</div>
-    </section>
+  <div id="toast" class="toast"></div>
+
+  <div id="authOverlay" class="auth-overlay">
+    <form id="loginForm" class="login-card">
+      <div class="login-brand"><div class="brand-mark">QS</div><div><strong>Quality Summary</strong><small>Quality Intelligence Platform</small></div></div>
+      <p class="eyebrow">Acceso seguro</p><h2>Iniciar sesión</h2>
+      <div class="field"><label>Correo</label><input type="email" id="loginEmail" required></div>
+      <div class="field"><label>Contraseña</label><input type="password" id="loginPassword" required></div>
+      <button class="btn btn-primary btn-block">Ingresar</button>
+      <p id="authMessage" class="auth-message"></p>
+      <small class="version-note">Beta 0.3.0 · Supabase · Multiempresa</small>
+    </form>
   </div>
-
-
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="config.js?v=beta-0.2.0"></script>
-  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
-  <script src="app.js?v=beta-0.2.0" defer></script>
 </body>
 </html>
