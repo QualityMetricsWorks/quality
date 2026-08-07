@@ -1,15 +1,22 @@
-# GUVEL Scrap — Beta 0.3.2
+# GUVEL Scrap — v0.4.0 Sprint 1 Foundation
 
-Esta versión conserva toda la funcionalidad de Beta 0.3.1 y agrega la identidad oficial de GUVEL.
+This package completes Sprint 1 steps 1 and 2.
 
-- Producto: GUVEL Scrap
-- Marca: GUVEL
-- Tagline: Smarter Quality Solutions
-- Logo en header, login y footer
-- Sin cambios de base de datos
-- No requiere SQL nuevo
+## Completed
+- Beta 0.3.2 frozen as rollback reference.
+- Official GUVEL palette sampled from logo.
+- CSS split into reusable Design System layers.
+- Existing Supabase and JavaScript logic preserved.
+- No SQL migration is required.
 
-## Subir a GitHub
-- index.html
-- config.js
-- carpeta assets/ completa
+## Upload to GitHub
+Upload/replace:
+- `index.html`
+- `assets/css/`
+- `assets/img/`
+- keep your existing `assets/js/` and `config.js` (the package also contains them).
+
+Do **not** upload `_frozen_v0.3.2/` to production; it is included only as a local reference.
+
+## Next Sprint 1 step
+Step 3 will redesign the application shell/header/navigation using these tokens and components.
