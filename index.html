@@ -14,24 +14,25 @@
   <div class="app-shell">
     <aside class="sidebar">
       <div class="brand">
-        <div class="brand-mark">QS</div>
+        <div class="brand-mark"><span>QS</span></div>
         <div>
           <h1>Quality Summary</h1>
-          <span>Scrap Intelligence</span>
+          <span>Industrial Quality Intelligence</span>
         </div>
       </div>
 
       <nav class="nav-menu" aria-label="Navegación principal">
-        <button class="nav-item active" data-view="dashboard">Dashboard</button>
-        <button class="nav-item" data-view="capture">Captura diaria</button>
-        <button class="nav-item" data-view="catalogs">Catálogos</button>
-        <button class="nav-item" data-view="records">Registros</button>
+        <button class="nav-item active" data-view="dashboard" data-title="Dashboard de Scrap"><span class="nav-index">01</span><span>Dashboard</span></button>
+        <button class="nav-item" data-view="capture" data-title="Captura diaria"><span class="nav-index">02</span><span>Captura diaria</span></button>
+        <button class="nav-item" data-view="catalogs" data-title="Catálogos maestros"><span class="nav-index">03</span><span>Catálogos</span></button>
+        <button class="nav-item" data-view="records" data-title="Historial de registros"><span class="nav-index">04</span><span>Registros</span></button>
       </nav>
 
       <div class="sidebar-footer">
         <span class="status-dot"></span>
-        <span id="storageStatus">Modo prototipo local</span>
+        <span id="storageStatus">Inicializando...</span>
       </div>
+      <div class="version-badge"><span id="appVersion">Beta 0.1</span><small>Quality Summary</small></div>
     </aside>
 
     <main class="main-content">
@@ -83,12 +84,14 @@
             <strong id="kpiPpm">0</strong>
             <small>Scrap / producción × 1,000,000</small>
           </article>
-          <article class="kpi-card">
+          <article class="kpi-card success">
             <span>Principal contribuyente</span>
             <strong id="kpiTopDefect">Sin datos</strong>
             <small id="kpiTopDefectShare">0% del scrap</small>
           </article>
         </div>
+
+        <div id="chartFallback" class="system-alert" hidden>Los gráficos no pudieron cargar, pero la captura, los KPIs, las tablas y la exportación continúan disponibles.</div>
 
         <div class="dashboard-grid">
           <article class="card chart-card wide">
@@ -113,6 +116,20 @@
           </article>
         </div>
 
+
+        <article class="card table-card pareto-detail-card">
+          <div class="card-header">
+            <div><p class="eyebrow">Priorización de pérdidas</p><h3>Detalle Pareto 80/20</h3></div>
+            <span class="industrial-tag">ANÁLISIS AUTOMÁTICO</span>
+          </div>
+          <div class="table-scroll">
+            <table>
+              <thead><tr><th>Ranking</th><th>Código</th><th>Defecto</th><th>Scrap</th><th>Contribución</th><th>Acumulado</th><th>Clasificación</th></tr></thead>
+              <tbody id="paretoBody"></tbody>
+            </table>
+          </div>
+        </article>
+
         <article class="card table-card">
           <div class="card-header">
             <div><p class="eyebrow">Desempeño</p><h3>Scrap y PPM por número de parte</h3></div>
@@ -128,7 +145,7 @@
 
       <section id="captureView" class="view">
         <article class="card form-card">
-          <div class="card-header"><div><p class="eyebrow">Entrada de datos</p><h3>Registrar producción y scrap</h3></div></div>
+          <div class="card-header"><div><p class="eyebrow">Entrada de datos</p><h3>Registrar producción y scrap</h3><span class="industrial-tag">FORMATO QS-001</span></div></div>
           <form id="productionForm" class="form-grid">
             <div class="field"><label for="recordDate">Fecha</label><input type="date" id="recordDate" required></div>
             <div class="field"><label for="recordShift">Turno</label><select id="recordShift" required><option value="1">Turno 1</option><option value="2">Turno 2</option><option value="3">Turno 3</option></select></div>
@@ -147,12 +164,12 @@
       <section id="catalogsView" class="view">
         <div class="catalog-grid">
           <article class="card form-card">
-            <div class="card-header"><h3>Unidades de negocio</h3></div>
+            <div class="card-header"><h3>Unidades de negocio</h3><span class="catalog-code">CAT-01</span></div>
             <form id="businessUnitForm" class="inline-form"><input id="businessUnitName" required placeholder="Ej. SPX"><button class="btn btn-primary">Agregar</button></form>
             <ul id="businessUnitList" class="catalog-list"></ul>
           </article>
           <article class="card form-card">
-            <div class="card-header"><h3>Números de parte</h3></div>
+            <div class="card-header"><h3>Números de parte</h3><span class="catalog-code">CAT-02</span></div>
             <form id="partForm" class="stack-form">
               <select id="partBusinessUnit" required></select>
               <input id="partNumberName" required placeholder="Número de parte">
@@ -162,7 +179,7 @@
             <ul id="partList" class="catalog-list"></ul>
           </article>
           <article class="card form-card">
-            <div class="card-header"><h3>Catálogo de defectos por NP</h3></div>
+            <div class="card-header"><h3>Catálogo de defectos por NP</h3><span class="catalog-code">CAT-03</span></div>
             <form id="defectForm" class="stack-form">
               <select id="defectPartNumber" required></select>
               <input id="defectCode" required placeholder="Código de defecto">
