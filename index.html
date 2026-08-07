@@ -8,24 +8,25 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="assets/css/main.css?v=0.3.0">
+  <link rel="stylesheet" href="assets/css/main.css?v=0.3.1">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
-  <script src="config.js?v=0.3.0"></script>
-  <script type="module" src="assets/js/app.js?v=0.3.0"></script>
+  <script src="config.js?v=0.3.1"></script>
+  <script type="module" src="assets/js/app.js?v=0.3.1"></script>
 </head>
 <body>
   <header class="app-header">
     <div class="brand">
       <div class="brand-mark">QS</div>
-      <div><strong>Quality Summary</strong><small>Quality Intelligence Platform · Beta 0.3.0</small></div>
+      <div><strong>Quality Summary</strong><small>Quality Intelligence Platform · Beta 0.3.1</small></div>
     </div>
     <nav class="main-nav" aria-label="Navegación principal">
       <button class="nav-item active" data-view="dashboard">Dashboard</button>
       <button class="nav-item" data-view="capture">Captura</button>
       <button class="nav-item" data-view="clients">Clientes</button>
       <button class="nav-item" data-view="parts">Números de Parte</button>
+      <button class="nav-item" data-view="machines">Máquinas</button>
       <button class="nav-item" data-view="catalog">Catálogo</button>
       <button class="nav-item" data-view="history">Historial</button>
     </nav>
@@ -91,7 +92,7 @@
           <div class="field"><label>Cliente</label><select id="runClient" required></select></div>
           <div class="field"><label>Número de Parte</label><select id="runPart" required></select></div>
           <div class="field"><label>Operación</label><select id="runOperation" required></select></div>
-          <div class="field"><label>Máquina</label><input id="runMachine" placeholder="Ej. TCN-010"></div>
+          <div class="field"><label>Máquina</label><select id="runMachine" required></select></div>
           <div class="field"><label>Cantidad producida</label><input type="number" id="runProduced" min="1" required></div>
           <div class="field"><label>Tiempo programado (min)</label><input type="number" id="runPlannedMinutes" min="0" step="0.1" placeholder="Opcional · futuro OEE"></div>
           <div class="field full"><label>Notas</label><textarea id="runNotes" rows="3"></textarea></div>
@@ -101,9 +102,24 @@
 
       <article id="captureScrapPanel" class="card form-card capture-panel">
         <div class="card-header"><div><p class="eyebrow">Evento de calidad</p><h3>Registrar scrap / disposición</h3></div></div>
-        <div class="info-strip" id="selectedRunSummary">Selecciona una corrida de producción.</div>
+        <form id="scrapMatchForm" class="form-grid match-grid">
+          <div class="field"><label>Fecha</label><input type="date" id="scrapDate" required></div>
+          <div class="field"><label>Turno</label><select id="scrapShift" required><option>A</option><option>B</option><option>C</option></select></div>
+          <div class="field"><label>Cliente</label><select id="scrapClient" required></select></div>
+          <div class="field"><label>Número de Parte</label><select id="scrapPart" required></select></div>
+          <div class="field"><label>Operación</label><select id="scrapOperation" required></select></div>
+          <div class="field"><label>Máquina</label><select id="scrapMachine" required></select></div>
+          <div class="field"><label>Producción reportada</label><input type="number" id="scrapProducedMatch" min="1" placeholder="Opcional para afinar match"></div>
+          <div class="form-actions"><button type="button" class="btn btn-secondary" id="findProductionBtn">Buscar producción</button></div>
+        </form>
+
+        <div class="match-result" id="matchResult">
+          <div class="info-strip" id="selectedRunSummary">Completa los datos para localizar la corrida de producción.</div>
+          <div id="matchedRunsList" class="entity-list compact"></div>
+        </div>
+
         <form id="scrapEventForm" class="form-grid">
-          <div class="field full"><label>Corrida de producción</label><select id="scrapRun" required></select></div>
+          <input type="hidden" id="scrapRun">
           <div class="field"><label>Defecto</label><select id="scrapDefect" required></select></div>
           <div class="field"><label>Cantidad</label><input type="number" id="scrapQuantity" min="1" required></div>
           <div class="field"><label>Disposición</label><select id="scrapDisposition" required><option value="scrap">Scrap</option><option value="rework">Retrabajo</option><option value="repair">Reparación</option><option value="use_as_is">Uso como está</option><option value="supplier_return">Devuelto a proveedor</option><option value="pending">Pendiente</option></select></div>
@@ -153,15 +169,49 @@
         <article class="card detail-panel">
           <div id="partEmptyState" class="empty-state">Selecciona un número de parte para consultar su ficha.</div>
           <div id="partDetail" hidden>
-            <div class="detail-title"><div><p class="eyebrow">Número de Parte</p><h2 id="partDetailNumber">—</h2><span id="partDetailDescription">—</span></div><button id="deletePartBtn" class="btn btn-danger btn-sm">Eliminar</button></div>
+            <div class="detail-title"><div><p class="eyebrow">Número de Parte</p><h2 id="partDetailNumber">—</h2><span id="partDetailDescription">—</span></div><div class="detail-actions"><button id="editPartBtn" class="btn btn-secondary btn-sm">Editar</button><button id="deletePartBtn" class="btn btn-danger btn-sm">Eliminar</button></div></div>
+            <form id="partEditForm" class="edit-panel" hidden>
+              <div class="form-grid">
+                <div class="field"><label>Descripción</label><input id="editPartDescription"></div>
+                <div class="field"><label>Costo por pieza</label><input id="editPartCost" type="number" min="0" step="0.0001"></div>
+                <div class="field"><label>Moneda</label><select id="editPartCurrency"><option>USD</option><option>MXN</option><option>EUR</option></select></div>
+                <div class="form-actions"><button class="btn btn-primary">Guardar cambios</button></div>
+              </div>
+            </form>
             <div class="mini-kpi-grid six"><div><span>Cliente</span><strong id="partDetailClient">—</strong></div><div><span>Costo</span><strong id="partDetailCost">—</strong></div><div><span>Producción</span><strong id="partDetailProduction">0</strong></div><div><span>Scrap</span><strong id="partDetailScrapQty">0</strong></div><div><span>Yield</span><strong id="partDetailYield">100%</strong></div><div><span>COPQ</span><strong id="partDetailCopq">$0</strong></div></div>
-            <div class="detail-tabs"><button class="detail-tab active" data-part-tab="operations">Operaciones</button><button class="detail-tab" data-part-tab="defects">Defectos</button><button class="detail-tab" data-part-tab="production">Producción</button><button class="detail-tab" data-part-tab="scrap">Scrap</button></div>
+            <div class="detail-tabs"><button class="detail-tab active" data-part-tab="operations">Operaciones</button><button class="detail-tab" data-part-tab="machines">Máquinas</button><button class="detail-tab" data-part-tab="defects">Defectos</button><button class="detail-tab" data-part-tab="production">Producción</button><button class="detail-tab" data-part-tab="scrap">Scrap</button></div>
             <div class="part-tab-panel active" data-part-panel="operations">
               <form id="operationForm" class="inline-form"><input id="operationCode" placeholder="OP20" required><input id="operationName" placeholder="Nombre" required><button class="btn btn-primary">Agregar</button></form><div id="partOperationList" class="entity-list compact"></div>
+            </div>
+            <div class="part-tab-panel" data-part-panel="machines">
+              <form id="partMachineForm" class="inline-form"><select id="partMachineSelect" required></select><span></span><button class="btn btn-primary">Vincular máquina</button></form><div id="partMachineList" class="entity-list compact"></div>
             </div>
             <div class="part-tab-panel" data-part-panel="defects"><button id="partAddDefectBtn" class="btn btn-secondary btn-sm">Nuevo defecto</button><div id="partDefectList" class="entity-list compact"></div></div>
             <div class="part-tab-panel" data-part-panel="production"><div id="partProductionList" class="entity-list compact"></div></div>
             <div class="part-tab-panel" data-part-panel="scrap"><div id="partScrapList" class="entity-list compact"></div></div>
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <section id="machinesView" class="view">
+      <div class="split-layout">
+        <article class="card list-panel">
+          <div class="card-header"><div><p class="eyebrow">Recursos productivos</p><h3>Máquinas <span id="machineCount" class="count-badge">0</span></h3></div></div>
+          <form id="machineForm" class="stack-form">
+            <input id="machineCode" placeholder="Código · Ej. CMV-005" required>
+            <input id="machineName" placeholder="Descripción / nombre">
+            <button class="btn btn-primary">Agregar máquina</button>
+          </form>
+          <input id="machineSearch" class="search-input" placeholder="Buscar máquina…">
+          <div id="machineList" class="entity-list"></div>
+        </article>
+        <article class="card detail-panel">
+          <div id="machineEmptyState" class="empty-state">Selecciona una máquina para consultar sus productos vinculados.</div>
+          <div id="machineDetail" hidden>
+            <div class="detail-title"><div><p class="eyebrow">Máquina</p><h2 id="machineDetailCode">—</h2><span id="machineDetailName">—</span></div><button id="deleteMachineBtn" class="btn btn-danger btn-sm">Eliminar</button></div>
+            <div class="mini-kpi-grid"><div><span>NP vinculados</span><strong id="machineDetailParts">0</strong></div><div><span>Producción</span><strong id="machineDetailProduction">0</strong></div><div><span>Scrap</span><strong id="machineDetailScrap">0</strong></div><div><span>Yield</span><strong id="machineDetailYield">100%</strong></div></div>
+            <div class="subsection"><div class="card-header"><h3>Números de Parte vinculados</h3></div><div id="machinePartsList" class="entity-list compact"></div></div>
           </div>
         </article>
       </div>
@@ -200,7 +250,7 @@
       <div class="field"><label>Contraseña</label><input type="password" id="loginPassword" required></div>
       <button class="btn btn-primary btn-block">Ingresar</button>
       <p id="authMessage" class="auth-message"></p>
-      <small class="version-note">Beta 0.3.0 · Supabase · Multiempresa</small>
+      <small class="version-note">Beta 0.3.1 · Supabase · Multiempresa</small>
     </form>
   </div>
 </body>

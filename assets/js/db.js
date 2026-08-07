@@ -16,20 +16,24 @@ export async function loadIdentity(user){
  state.companyName=c?.name||'Organización';
 }
 export async function loadAll(){
- const [c,p,o,d,r,s]=await Promise.all([
+ const [c,p,o,d,m,pm,r,s]=await Promise.all([
   db.from('clients').select('*').order('name'),
   db.from('part_numbers').select('*').order('number'),
   db.from('operations').select('*').order('code'),
   db.from('defects').select('*').order('code'),
+  db.from('machines').select('*').order('code'),
+  db.from('part_machines').select('*'),
   db.from('production_runs').select('*').order('run_date',{ascending:false}),
   db.from('scrap_events').select('*').order('created_at',{ascending:false})
  ]);
- const err=[c,p,o,d,r,s].find(x=>x.error)?.error;if(err)throw err;
+ const err=[c,p,o,d,m,pm,r,s].find(x=>x.error)?.error;if(err)throw err;
  state.clients=c.data.map(x=>({id:x.id,name:x.name,code:x.code||''}));
  state.parts=p.data.map(x=>({id:x.id,clientId:x.client_id,number:x.number,description:x.description||'',costPerPiece:Number(x.cost_per_piece||0),currency:x.currency||'USD'}));
  state.operations=o.data.map(x=>({id:x.id,partId:x.part_id,code:x.code,name:x.name}));
  state.defects=d.data.map(x=>({id:x.id,partId:x.part_id,operationId:x.operation_id||'',code:x.code,name:x.name,category:x.category||''}));
- state.runs=r.data.map(x=>({id:x.id,date:x.run_date,shift:x.shift,clientId:x.client_id,partId:x.part_id,operationId:x.operation_id,machine:x.machine||'',produced:Number(x.produced||0),plannedMinutes:Number(x.planned_minutes||0),notes:x.notes||'',createdAt:x.created_at}));
+ state.machines=m.data.map(x=>({id:x.id,code:x.code,name:x.name||''}));
+ state.partMachines=pm.data.map(x=>({id:x.id,partId:x.part_id,machineId:x.machine_id}));
+ state.runs=r.data.map(x=>({id:x.id,date:x.run_date,shift:x.shift,clientId:x.client_id,partId:x.part_id,operationId:x.operation_id,machineId:x.machine_id||'',machine:x.machine||'',produced:Number(x.produced||0),plannedMinutes:Number(x.planned_minutes||0),notes:x.notes||'',createdAt:x.created_at}));
  state.scrapEvents=s.data.map(x=>({id:x.id,runId:x.production_run_id,defectId:x.defect_id,quantity:Number(x.quantity||0),disposition:x.disposition,reason:x.reason||'',extraCost:Number(x.extra_cost||0),notes:x.notes||'',createdAt:x.created_at}));
  state.selectedClientId=state.selectedClientId||state.clients[0]?.id||null;state.selectedPartId=state.selectedPartId||state.parts[0]?.id||null;
 }
@@ -38,11 +42,18 @@ export async function insertClient(x){return check(await db.from('clients').inse
 export async function deleteClient(id){check(await db.from('clients').delete().eq('id',id))}
 export async function insertPart(x){return check(await db.from('part_numbers').insert({...common(),client_id:x.clientId,number:x.number,description:x.description||null,cost_per_piece:x.costPerPiece||0,currency:x.currency||'USD'}).select().single())}
 export async function deletePart(id){check(await db.from('part_numbers').delete().eq('id',id))}
+
+export async function updatePart(id,x){return check(await db.from('part_numbers').update({description:x.description||null,cost_per_piece:x.costPerPiece||0,currency:x.currency||'USD'}).eq('id',id).select().single())}
+export async function insertMachine(x){return check(await db.from('machines').insert({...common(),code:x.code,name:x.name||null}).select().single())}
+export async function deleteMachine(id){check(await db.from('machines').delete().eq('id',id))}
+export async function linkPartMachine(partId,machineId){return check(await db.from('part_machines').upsert({...common(),part_id:partId,machine_id:machineId},{onConflict:'part_id,machine_id'}).select().single())}
+export async function unlinkPartMachine(partId,machineId){check(await db.from('part_machines').delete().eq('part_id',partId).eq('machine_id',machineId))}
+
 export async function insertOperation(x){return check(await db.from('operations').insert({...common(),part_id:x.partId,code:x.code,name:x.name}).select().single())}
 export async function deleteOperation(id){check(await db.from('operations').delete().eq('id',id))}
 export async function insertDefect(x){return check(await db.from('defects').insert({...common(),part_id:x.partId,operation_id:x.operationId||null,code:x.code,name:x.name,category:x.category||null}).select().single())}
 export async function deleteDefect(id){check(await db.from('defects').delete().eq('id',id))}
-export async function insertRun(x){return check(await db.from('production_runs').insert({...common(),run_date:x.date,shift:x.shift,client_id:x.clientId,part_id:x.partId,operation_id:x.operationId,machine:x.machine||null,produced:x.produced,planned_minutes:x.plannedMinutes||null,notes:x.notes||null}).select().single())}
+export async function insertRun(x){return check(await db.from('production_runs').insert({...common(),run_date:x.date,shift:x.shift,client_id:x.clientId,part_id:x.partId,operation_id:x.operationId,machine_id:x.machineId||null,machine:x.machine||null,produced:x.produced,planned_minutes:x.plannedMinutes||null,notes:x.notes||null}).select().single())}
 export async function deleteRun(id){check(await db.from('production_runs').delete().eq('id',id))}
 export async function insertScrapEvent(x){return check(await db.from('scrap_events').insert({...common(),production_run_id:x.runId,defect_id:x.defectId,quantity:x.quantity,disposition:x.disposition,reason:x.reason||null,extra_cost:x.extraCost||0,notes:x.notes||null}).select().single())}
 export async function deleteScrapEvent(id){check(await db.from('scrap_events').delete().eq('id',id))}
