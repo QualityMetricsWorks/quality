@@ -28,3 +28,25 @@ button,input,select,textarea{font:inherit}button{cursor:pointer}.app-header{posi
 .detail-actions{display:flex;gap:7px}.edit-panel{margin:14px 0;padding:14px;background:#f8fafc;border:1px solid var(--line);border-left:3px solid var(--orange)}
 .match-grid{padding-bottom:14px;border-bottom:1px solid var(--line);margin-bottom:14px}.match-result{margin-bottom:14px}
 .match-result .entity-item.active{border-color:var(--blue);background:#edf3ff}.machine-link-badge{display:inline-block;padding:2px 6px;background:#eef3fb;color:var(--blue);font-size:9px;font-weight:800}
+
+/* GUVEL BRANDING · Beta 0.3.2 */
+.guvel-brand{min-width:230px}
+.brand-logo{width:42px;height:42px;object-fit:contain;background:#fff;border:1px solid #e4e8ef;padding:2px}
+.brand-copy strong{display:flex;align-items:baseline;gap:5px;font-size:15px;letter-spacing:.02em}
+.brand-guvel{color:var(--blue);font-weight:800}
+.brand-product{color:var(--orange);font-weight:800}
+.brand-copy small{margin-top:3px}
+.app-header{border-top:3px solid var(--blue);position:sticky}
+.app-header::after{content:"";position:absolute;left:0;top:0;width:84px;height:3px;background:var(--orange)}
+.nav-item.active{background:linear-gradient(to bottom,transparent 92%,rgba(236,107,30,.06) 92%)}
+.guvel-login-brand{align-items:center}
+.login-logo{width:58px;height:58px;object-fit:contain;background:#fff;border:1px solid var(--line);padding:3px}
+.guvel-login-brand strong{font-size:16px;color:var(--blue)}
+.guvel-login-brand small{margin-top:4px}
+.login-card{border-top-color:var(--blue);position:relative}
+.login-card::before{content:"";position:absolute;left:0;top:-4px;width:32%;height:4px;background:var(--orange)}
+.app-footer{max-width:1540px;margin:0 auto 24px;padding:13px 30px;display:flex;align-items:center;justify-content:space-between;gap:14px;color:var(--muted);font-size:10px;border-top:1px solid var(--line)}
+.footer-brand{display:flex;align-items:center;gap:8px}
+.footer-brand img{width:24px;height:24px;object-fit:contain;background:#fff}
+.footer-brand strong{color:var(--blue)}
+@media(max-width:760px){.brand-logo{width:36px;height:36px}.app-footer{padding:12px 16px;flex-direction:column;align-items:flex-start}}

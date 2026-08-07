@@ -4,22 +4,25 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <meta name="description" content="QKC Quality Summary - Quality Intelligence Platform">
-  <title>QKC Quality Summary</title>
+  <title>GUVEL Scrap</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="assets/css/main.css?v=0.3.1">
+  <link rel="stylesheet" href="assets/css/main.css?v=0.3.2">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
-  <script src="config.js?v=0.3.1"></script>
-  <script type="module" src="assets/js/app.js?v=0.3.1"></script>
+  <script src="config.js?v=0.3.2"></script>
+  <script type="module" src="assets/js/app.js?v=0.3.2"></script>
 </head>
 <body>
   <header class="app-header">
-    <div class="brand">
-      <div class="brand-mark">QS</div>
-      <div><strong>Quality Summary</strong><small>Quality Intelligence Platform · Beta 0.3.1</small></div>
+    <div class="brand guvel-brand">
+      <img class="brand-logo" src="assets/img/guvel-logo.jpeg" alt="GUVEL">
+      <div class="brand-copy">
+        <strong><span class="brand-guvel">GUVEL</span> <span class="brand-product">Scrap</span></strong>
+        <small>Quality Intelligence · Beta 0.3.2</small>
+      </div>
     </div>
     <nav class="main-nav" aria-label="Navegación principal">
       <button class="nav-item active" data-view="dashboard">Dashboard</button>
@@ -39,7 +42,7 @@
 
   <main class="main-content">
     <section class="topbar">
-      <div><p class="eyebrow">QKC · Quality Summary</p><h1 id="pageTitle">Dashboard</h1></div>
+      <div><p class="eyebrow">GUVEL · Scrap Intelligence</p><h1 id="pageTitle">Dashboard</h1></div>
       <div class="topbar-actions">
         <span class="sync-badge" id="storageStatus">Conectando…</span>
         <button class="btn btn-secondary" id="refreshDataBtn">Actualizar</button>
@@ -240,17 +243,25 @@
     </section>
   </main>
 
+  <footer class="app-footer">
+    <div class="footer-brand">
+      <img src="assets/img/guvel-logo.jpeg" alt="GUVEL">
+      <span><strong>GUVEL Scrap</strong> · Smarter Quality Solutions</span>
+    </div>
+    <span>Beta 0.3.2</span>
+  </footer>
+
   <div id="toast" class="toast"></div>
 
   <div id="authOverlay" class="auth-overlay">
     <form id="loginForm" class="login-card">
-      <div class="login-brand"><div class="brand-mark">QS</div><div><strong>Quality Summary</strong><small>Quality Intelligence Platform</small></div></div>
+      <div class="login-brand guvel-login-brand"><img class="login-logo" src="assets/img/guvel-logo.jpeg" alt="GUVEL"><div><strong>GUVEL Scrap</strong><small>Smarter Quality Solutions</small></div></div>
       <p class="eyebrow">Acceso seguro</p><h2>Iniciar sesión</h2>
       <div class="field"><label>Correo</label><input type="email" id="loginEmail" required></div>
       <div class="field"><label>Contraseña</label><input type="password" id="loginPassword" required></div>
       <button class="btn btn-primary btn-block">Ingresar</button>
       <p id="authMessage" class="auth-message"></p>
-      <small class="version-note">Beta 0.3.1 · Supabase · Multiempresa</small>
+      <small class="version-note">GUVEL Scrap · Beta 0.3.2 · Multiempresa</small>
     </form>
   </div>
 </body>
