@@ -1,0 +1,14 @@
+SUBIR A LA RAÍZ DE GITHUB:
+- index.html
+- styles.css
+- app.js
+- config.js
+- README.md
+
+SOLO PARA SUPABASE / RESPALDO:
+- supabase_schema.sql
+- bootstrap_first_company.sql
+
+COPIAS TXT DE JAVASCRIPT:
+- app.txt
+- config.txt

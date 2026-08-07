@@ -4,11 +4,11 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="description" content="Quality Summary - monitoreo industrial de producción, scrap, PPM y Pareto.">
-  <title>Quality Summary | Beta 0.1.5</title>
+  <title>Quality Summary | Beta 0.2.0</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles.css?v=beta-0.1.5">
+  <link rel="stylesheet" href="styles.css?v=beta-0.2.0">
 </head>
 <body>
   <header class="app-header">
@@ -23,8 +23,12 @@
 
       <div class="header-actions">
         <div class="storage-state"><span class="status-dot"></span><span id="storageStatus">Base local activa</span></div>
+        <button id="refreshDataBtn" class="btn btn-secondary">Actualizar</button>
+        <button id="importLocalBtn" class="btn btn-secondary">Importar 0.1.5</button>
         <button id="loadDemoBtn" class="btn btn-secondary">Cargar demo</button>
         <button id="exportBtn" class="btn btn-primary">Exportar Excel</button>
+        <span id="companyContext" class="user-email"></span><span id="userEmail" class="user-email"></span>
+        <button id="signOutBtn" class="btn btn-ghost" hidden>Cerrar sesión</button>
       </div>
     </div>
 
@@ -44,7 +48,7 @@
         <p class="eyebrow">Quality Management System</p>
         <h2 id="pageTitle">Dashboard</h2>
       </div>
-      <div class="version-badge">Beta 0.1.5</div>
+      <div class="version-badge">Beta 0.2.0</div>
     </section>
 
     <section id="dashboardView" class="view active">
@@ -142,8 +146,8 @@
           <div class="field"><label for="recordPartNumber">Número de parte</label><select id="recordPartNumber" required></select></div>
           <div class="field"><label for="recordProduced">Cantidad producida</label><input type="number" id="recordProduced" min="1" required></div>
           <div class="field"><label for="recordScrap">Cantidad scrap</label><input type="number" id="recordScrap" min="0" value="0" required></div>
+          <div class="field"><label for="recordOperation">Operación / proceso</label><select id="recordOperation" required></select></div>
           <div class="field"><label for="recordDefect">Defecto</label><select id="recordDefect"></select></div>
-          <div class="field"><label for="recordOperation">Operación / proceso</label><input type="text" id="recordOperation" placeholder="Ej. OP20 / Torneado"></div>
           <div class="field full"><label for="recordNotes">Comentarios</label><textarea id="recordNotes" rows="3" placeholder="Descripción breve, causa preliminar o acción inmediata"></textarea></div>
           <div class="form-actions full"><button type="reset" class="btn btn-secondary">Limpiar</button><button type="submit" class="btn btn-primary">Guardar registro</button></div>
         </form>
@@ -217,6 +221,15 @@
               <div><span>PPM</span><strong id="partDetailPpm">0</strong></div>
             </div>
             <div class="detail-section">
+              <div class="section-heading compact"><h4>Operaciones / procesos</h4></div>
+              <form id="operationForm" class="inline-form operation-inline-form">
+                <input id="operationCode" required placeholder="Código (Ej. OP20)">
+                <input id="operationName" required placeholder="Proceso (Ej. Torneado)">
+                <button class="btn btn-secondary" type="submit">Agregar</button>
+              </form>
+              <div id="partOperationList" class="detail-list"></div>
+            </div>
+            <div class="detail-section">
               <div class="section-heading compact"><h4>Top defectos</h4><button id="partAddDefectBtn" class="text-action">+ Nuevo defecto</button></div>
               <div id="partDefectList" class="detail-list"></div>
             </div>
@@ -232,6 +245,7 @@
           <form id="defectForm" class="form-grid catalog-form">
             <div class="field"><label for="defectClient">Cliente</label><select id="defectClient" required></select></div>
             <div class="field"><label for="defectPartNumber">Número de parte</label><select id="defectPartNumber" required></select></div>
+            <div class="field"><label for="defectOperation">Operación / proceso</label><select id="defectOperation"><option value="">General / todas</option></select></div>
             <div class="field"><label for="defectCode">Código</label><input id="defectCode" required placeholder="Ej. D01"></div>
             <div class="field"><label for="defectName">Defecto</label><input id="defectName" required placeholder="Ej. Rebaba"></div>
             <div class="field"><label for="defectCategory">Categoría</label><select id="defectCategory"><option>Dimensional</option><option>Visual</option><option>Rosca</option><option>Material</option><option>Proceso</option><option>Otro</option></select></div>
@@ -240,7 +254,7 @@
           <div class="search-row catalog-search"><input id="defectSearch" type="search" placeholder="Buscar código, defecto o número de parte..."></div>
           <div class="table-scroll">
             <table>
-              <thead><tr><th>Código</th><th>Defecto</th><th>Categoría</th><th>Número de parte</th><th>Cliente</th><th></th></tr></thead>
+              <thead><tr><th>Código</th><th>Defecto</th><th>Categoría</th><th>Operación</th><th>Número de parte</th><th>Cliente</th><th></th></tr></thead>
               <tbody id="defectTableBody"></tbody>
             </table>
           </div>
@@ -265,9 +279,24 @@
   </main>
 
   <div id="toast" class="toast" role="status" aria-live="polite"></div>
+  <div id="authOverlay" class="auth-overlay" hidden>
+    <section class="auth-card">
+      <div class="auth-brand"><div class="brand-mark">QS</div><div><h2>Quality Summary</h2><span>Beta 0.2.0 · Secure Multi-tenant</span></div></div>
+      <p>Inicia sesión para acceder a la base de datos compartida.</p>
+      <form id="loginForm" class="auth-form">
+        <label>Correo<input id="loginEmail" type="email" autocomplete="username" required></label>
+        <label>Contraseña<input id="loginPassword" type="password" autocomplete="current-password" required></label>
+        <button class="btn btn-primary" type="submit">Iniciar sesión</button>
+      </form>
+      <div id="authMessage" class="auth-message">Los usuarios se administran desde Supabase Auth.</div>
+    </section>
+  </div>
 
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="config.js?v=beta-0.2.0"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
-  <script src="app.js?v=beta-0.1.5" defer></script>
+  <script src="app.js?v=beta-0.2.0" defer></script>
 </body>
 </html>

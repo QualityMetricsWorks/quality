@@ -1,57 +1,147 @@
 'use strict';
 
-const STORAGE_KEY = 'qualitySummaryData_v2';
-const LEGACY_STORAGE_KEY = 'qualitySummaryData_v1';
-const initialState = { clients: [], parts: [], defects: [], records: [] };
-let state = loadState();
+const LEGACY_KEYS = ['qualitySummaryData_v2','qualitySummaryData_v1'];
+const initialState = { clients: [], parts: [], operations: [], defects: [], records: [] };
+let state = structuredClone(initialState);
+let lastSyncedState = structuredClone(initialState);
 let charts = {};
 let selectedClientId = null;
 let selectedPartId = null;
+let db = null;
+let currentUser = null;
+let currentCompanyId = null;
+let currentCompanyName = '';
+let currentRole = 'viewer';
+let syncQueue = Promise.resolve();
 
 const $ = (id) => document.getElementById(id);
 const number = (value) => new Intl.NumberFormat('es-MX').format(Number(value) || 0);
 const percent = (value) => `${(Number(value) || 0).toFixed(2)}%`;
 const today = () => new Date().toISOString().slice(0, 10);
-const uid = () => (crypto?.randomUUID ? crypto.randomUUID() : `${Date.now()}-${Math.random().toString(16).slice(2)}`);
-const escapeHtml = (value = '') => String(value).replace(/[&<>'"]/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#039;','"':'&quot;'}[ch]));
-
-function loadState() {
-  try {
-    const current = JSON.parse(localStorage.getItem(STORAGE_KEY));
-    if (current) return normalizeState(current);
-
-    const legacy = JSON.parse(localStorage.getItem(LEGACY_STORAGE_KEY));
-    if (legacy) {
-      const migrated = migrateLegacyState(legacy);
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(migrated));
-      return migrated;
-    }
-  } catch (error) {
-    console.warn('No fue posible leer la base local:', error);
-  }
-  return structuredClone(initialState);
-}
+const uid = () => crypto.randomUUID();
+const escapeHtml = (value = '') => String(value).replace(/[&<>'\"]/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#039;','\"':'&quot;'}[ch]));
 
 function normalizeState(raw) {
   return {
-    clients: Array.isArray(raw.clients) ? raw.clients : [],
-    parts: Array.isArray(raw.parts) ? raw.parts : [],
-    defects: Array.isArray(raw.defects) ? raw.defects : [],
-    records: Array.isArray(raw.records) ? raw.records : []
+    clients: Array.isArray(raw?.clients) ? raw.clients : [],
+    parts: Array.isArray(raw?.parts) ? raw.parts : [],
+    operations: Array.isArray(raw?.operations) ? raw.operations : [],
+    defects: Array.isArray(raw?.defects) ? raw.defects : [],
+    records: Array.isArray(raw?.records) ? raw.records : []
   };
 }
 
 function migrateLegacyState(legacy) {
-  const clients = (legacy.businessUnits || []).map(x => ({ id: x.id, name: x.name, code: x.code || '' }));
+  const clients = (legacy.businessUnits || legacy.clients || []).map(x => ({ id: x.id, name: x.name, code: x.code || '' }));
   const parts = (legacy.parts || []).map(x => ({ ...x, clientId: x.clientId || x.businessUnitId || '' }));
   const records = (legacy.records || []).map(x => ({ ...x, clientId: x.clientId || x.businessUnitId || '' }));
-  return { clients, parts, defects: legacy.defects || [], records };
+  return { clients, parts, operations: legacy.operations || [], defects: legacy.defects || [], records };
+}
+
+function mapDbState(clients, parts, operations, defects, records) {
+  return {
+    clients: clients.map(x => ({id:x.id,name:x.name,code:x.code||''})),
+    parts: parts.map(x => ({id:x.id,clientId:x.client_id,number:x.number,description:x.description||''})),
+    operations: operations.map(x => ({id:x.id,partId:x.part_id,code:x.code,name:x.name})),
+    defects: defects.map(x => ({id:x.id,partId:x.part_id,operationId:x.operation_id||'',code:x.code,name:x.name,category:x.category||''})),
+    records: records.map(x => ({id:x.id,date:x.record_date,shift:x.shift,clientId:x.client_id,partId:x.part_id,produced:x.produced,scrap:x.scrap,defectId:x.defect_id||'',operationId:x.operation_id||'',operation:x.operation_label||'',notes:x.notes||''}))
+  };
+}
+
+function toDbRow(table, x) {
+  const company_id = currentCompanyId;
+  if (table==='clients') return {id:x.id,company_id,name:x.name,code:x.code||null};
+  if (table==='parts') return {id:x.id,company_id,client_id:x.clientId,number:x.number,description:x.description||null};
+  if (table==='operations') return {id:x.id,company_id,part_id:x.partId,code:x.code,name:x.name};
+  if (table==='defects') return {id:x.id,company_id,part_id:x.partId,operation_id:x.operationId||null,code:x.code,name:x.name,category:x.category||null};
+  const op=getOperation(x.operationId);
+  return {id:x.id,company_id,record_date:x.date,shift:String(x.shift),client_id:x.clientId,part_id:x.partId,produced:Number(x.produced),scrap:Number(x.scrap),defect_id:x.defectId||null,operation_id:x.operationId||null,operation_label:op ? `${op.code} · ${op.name}` : (x.operation||null),notes:x.notes||null};
+}
+
+async function loadIdentity() {
+  const {data:profile,error}=await db.from('profiles').select('company_id, role, display_name').eq('user_id',currentUser.id).single();
+  if(error) throw new Error('Tu usuario no está asignado a una empresa. Ejecuta el bootstrap de Supabase para vincularlo.');
+  currentCompanyId=profile.company_id;
+  currentRole=profile.role||'viewer';
+  const {data:company,error:companyError}=await db.from('companies').select('name').eq('id',currentCompanyId).single();
+  if(companyError) throw companyError;
+  currentCompanyName=company?.name||'Organización';
+  if($('companyContext')) $('companyContext').textContent=currentCompanyName;
+}
+
+async function loadRemoteState() {
+  if(!currentCompanyId) await loadIdentity();
+  const [c,p,o,d,r] = await Promise.all([
+    db.from('clients').select('*').order('name'),
+    db.from('part_numbers').select('*').order('number'),
+    db.from('operations').select('*').order('code'),
+    db.from('defects').select('*').order('code'),
+    db.from('production_records').select('*').order('record_date',{ascending:true})
+  ]);
+  const err = c.error||p.error||o.error||d.error||r.error;
+  if (err) throw err;
+  state = mapDbState(c.data,p.data,o.data,d.data,r.data);
+  lastSyncedState = structuredClone(state);
+  selectedClientId = state.clients[0]?.id || null;
+  selectedPartId = state.parts[0]?.id || null;
+  renderAll();
+}
+
+function changedRows(current, previous) {
+  const prev = new Map(previous.map(x=>[x.id,JSON.stringify(x)]));
+  return current.filter(x => prev.get(x.id)!==JSON.stringify(x));
+}
+function deletedIds(current, previous) {
+  const ids = new Set(current.map(x=>x.id));
+  return previous.filter(x=>!ids.has(x.id)).map(x=>x.id);
+}
+
+async function syncState() {
+  if (!db || !currentUser || !currentCompanyId) return;
+  $('storageStatus').textContent='Sincronizando…';
+  const defs=[['clients','clients'],['parts','part_numbers'],['operations','operations'],['defects','defects'],['records','production_records']];
+  for (const [key,table] of defs) {
+    const up=changedRows(state[key],lastSyncedState[key]).map(x=>toDbRow(key,x));
+    if (up.length) { const {error}=await db.from(table).upsert(up); if(error) throw error; }
+  }
+  for (const [key,table] of [...defs].reverse()) {
+    const del=deletedIds(state[key],lastSyncedState[key]);
+    if (del.length) { const {error}=await db.from(table).delete().in('id',del); if(error) throw error; }
+  }
+  lastSyncedState=structuredClone(state);
+  $('storageStatus').textContent='Supabase sincronizado';
 }
 
 function saveState() {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
-  $('storageStatus').textContent = 'Base local activa';
+  syncQueue = syncQueue.then(syncState).catch(err => { console.error(err); $('storageStatus').textContent='Error de sincronización'; toast(`Error: ${err.message}`); });
 }
+
+async function importLocalData() {
+  let raw=null;
+  for (const key of LEGACY_KEYS) { try { const v=JSON.parse(localStorage.getItem(key)); if(v){ raw=v; break; } } catch{} }
+  if (!raw) return toast('No se encontraron datos locales de versiones anteriores.');
+  const legacy = raw.businessUnits ? migrateLegacyState(raw) : normalizeState(raw);
+  if (!confirm(`Importar ${legacy.clients.length} clientes, ${legacy.parts.length} NP y ${legacy.records.length} registros a ${currentCompanyName}?`)) return;
+  const cmap={}, pmap={}, dmap={}, omap={};
+  for(const c of legacy.clients){ const id=uid(); cmap[c.id]=id; state.clients.push({id,name:c.name,code:c.code||''}); }
+  for(const p of legacy.parts){ const id=uid(); pmap[p.id]=id; if(cmap[p.clientId]) state.parts.push({id,clientId:cmap[p.clientId],number:p.number,description:p.description||''}); }
+  const opKey=(partId,label)=>`${partId}|${String(label||'General').trim().toLowerCase()}`;
+  for(const r of legacy.records||[]){
+    if(!pmap[r.partId]) continue;
+    const label=(r.operation||'General').trim()||'General';
+    const key=opKey(r.partId,label);
+    if(!omap[key]){ const id=uid(); omap[key]=id; state.operations.push({id,partId:pmap[r.partId],code:label.toUpperCase().replace(/\s+/g,'-').slice(0,20),name:label}); }
+  }
+  for(const d of legacy.defects||[]){ const id=uid(); dmap[d.id]=id; if(pmap[d.partId]) state.defects.push({id,partId:pmap[d.partId],operationId:'',code:d.code,name:d.name,category:d.category||''}); }
+  for(const r of legacy.records||[]){ if(cmap[r.clientId]&&pmap[r.partId]){ const key=opKey(r.partId,r.operation||'General'); state.records.push({id:uid(),date:r.date,shift:r.shift,clientId:cmap[r.clientId],partId:pmap[r.partId],produced:Number(r.produced),scrap:Number(r.scrap),defectId:dmap[r.defectId]||'',operationId:omap[key]||'',operation:r.operation||'',notes:r.notes||''}); }}
+  saveState(); renderAll(); toast('Importación iniciada.');
+}
+
+async function signIn(email,password){
+  const {error}=await db.auth.signInWithPassword({email,password});
+  if(error) throw error;
+}
+async function signOut(){ await db.auth.signOut(); }
 
 function toast(message) {
   const el = $('toast');
@@ -64,6 +154,7 @@ function toast(message) {
 function getClient(id) { return state.clients.find(x => x.id === id); }
 function getPart(id) { return state.parts.find(x => x.id === id); }
 function getDefect(id) { return state.defects.find(x => x.id === id); }
+function getOperation(id) { return state.operations.find(x => x.id === id); }
 
 function groupBy(items, keyFn) {
   return items.reduce((acc, item) => {
@@ -95,9 +186,14 @@ function partsForClient(clientId) {
   return state.parts.filter(p => !clientId || p.clientId === clientId).sort((a,b) => a.number.localeCompare(b.number));
 }
 
-function defectsForPart(partId) {
-  return state.defects.filter(d => d.partId === partId).sort((a,b) => `${a.code}${a.name}`.localeCompare(`${b.code}${b.name}`));
+function operationsForPart(partId) {
+  return state.operations.filter(o => o.partId === partId).sort((a,b) => `${a.code}${a.name}`.localeCompare(`${b.code}${b.name}`));
 }
+
+function defectsForPart(partId, operationId = '') {
+  return state.defects.filter(d => d.partId === partId && (!operationId || !d.operationId || d.operationId === operationId)).sort((a,b) => `${a.code}${a.name}`.localeCompare(`${b.code}${b.name}`));
+}
+
 
 function populateSelects() {
   const clients = [...state.clients].sort((a,b) => a.name.localeCompare(b.name));
@@ -120,20 +216,36 @@ function updateCaptureParts() {
   const clientId = $('recordClient').value;
   const parts = partsForClient(clientId);
   populateSelect($('recordPartNumber'), parts, parts.length ? 'Seleccionar número de parte' : 'Sin números de parte', p => p.number);
+  updateCaptureOperations();
+}
+
+function updateCaptureOperations() {
+  const partId = $('recordPartNumber').value;
+  const ops = operationsForPart(partId);
+  populateSelect($('recordOperation'), ops, ops.length ? 'Seleccionar operación' : 'Sin operaciones configuradas', o => `${o.code} · ${o.name}`);
   updateCaptureDefects();
 }
 
 function updateCaptureDefects() {
   const partId = $('recordPartNumber').value;
-  const defects = defectsForPart(partId);
+  const operationId = $('recordOperation').value;
+  const defects = defectsForPart(partId, operationId);
   populateSelect($('recordDefect'), defects, defects.length ? 'Seleccionar defecto' : 'Sin defectos configurados', d => `${d.code} · ${d.name}`);
 }
+
 
 function updateCatalogParts() {
   const clientId = $('defectClient').value;
   const parts = partsForClient(clientId);
   populateSelect($('defectPartNumber'), parts, parts.length ? 'Seleccionar número de parte' : 'Sin números de parte', p => p.number);
+  updateCatalogOperations();
 }
+
+function updateCatalogOperations() {
+  const partId = $('defectPartNumber').value;
+  populateSelect($('defectOperation'), operationsForPart(partId), 'General / todas', o => `${o.code} · ${o.name}`);
+}
+
 
 function filteredRecords() {
   const start = $('filterStart').value;
@@ -352,6 +464,7 @@ function renderPartDetail() {
   const metrics = calculateMetrics(records);
   const defects = defectRowsForRecords(records);
   const configured = defectsForPart(part.id);
+  const operations = operationsForPart(part.id);
 
   $('partDetailNumber').textContent = part.number;
   $('partDetailDescription').textContent = part.description || 'Sin descripción';
@@ -360,6 +473,8 @@ function renderPartDetail() {
   $('partDetailScrapQty').textContent = number(metrics.scrap);
   $('partDetailScrapRate').textContent = percent(metrics.scrapRate);
   $('partDetailPpm').textContent = number(Math.round(metrics.ppm));
+
+  $('partOperationList').innerHTML = operations.length ? operations.map(o => `<div class="detail-list-row"><div><strong>${escapeHtml(o.code)} · ${escapeHtml(o.name)}</strong></div><button class="icon-btn" data-delete-operation="${o.id}" title="Eliminar">×</button></div>`).join('') : '<div class="empty">Este producto todavía no tiene operaciones configuradas.</div>';
 
   const qtyMap = Object.fromEntries(defects.map(d => [d.id, d.qty]));
   $('partDefectList').innerHTML = configured.length ? configured.map(d => `<div class="detail-list-row"><div><strong>${escapeHtml(d.code)} · ${escapeHtml(d.name)}</strong><br><small>${escapeHtml(d.category || 'Sin categoría')}</small></div><strong>${number(qtyMap[d.id] || 0)} scrap</strong></div>`).join('') : '<div class="empty">Este producto todavía no tiene defectos configurados.</div>';
@@ -375,8 +490,8 @@ function renderDefectCatalog() {
 
   $('defectTableBody').innerHTML = rows.length ? rows.map(d => {
     const part = getPart(d.partId);
-    return `<tr><td><strong>${escapeHtml(d.code)}</strong></td><td>${escapeHtml(d.name)}</td><td>${escapeHtml(d.category || '—')}</td><td>${escapeHtml(part?.number || 'N/D')}</td><td>${escapeHtml(getClient(part?.clientId)?.name || 'N/D')}</td><td><button class="icon-btn" data-delete-defect="${d.id}" title="Eliminar">×</button></td></tr>`;
-  }).join('') : '<tr><td colspan="6" class="empty">No hay defectos en el catálogo.</td></tr>';
+    return `<tr><td><strong>${escapeHtml(d.code)}</strong></td><td>${escapeHtml(d.name)}</td><td>${escapeHtml(d.category || '—')}</td><td>${escapeHtml(getOperation(d.operationId)?.code || 'General')}</td><td>${escapeHtml(part?.number || 'N/D')}</td><td>${escapeHtml(getClient(part?.clientId)?.name || 'N/D')}</td><td><button class="icon-btn" data-delete-defect="${d.id}" title="Eliminar">×</button></td></tr>`;
+  }).join('') : '<tr><td colspan="7" class="empty">No hay defectos en el catálogo.</td></tr>';
 }
 
 function renderHistory() {
@@ -385,12 +500,12 @@ function renderHistory() {
     const part = getPart(r.partId);
     const client = getClient(r.clientId);
     const defect = getDefect(r.defectId);
-    return `${r.date} ${client?.name || ''} ${part?.number || ''} ${defect?.name || ''} ${r.operation || ''}`.toLowerCase().includes(query);
+    return `${r.date} ${client?.name || ''} ${part?.number || ''} ${defect?.name || ''} ${getOperation(r.operationId)?.name || r.operation || ''}`.toLowerCase().includes(query);
   });
 
   $('recordsBody').innerHTML = rows.length ? rows.map(r => {
     const metrics = calculateMetrics([r]);
-    return `<tr><td>${r.date}</td><td>${escapeHtml(r.shift)}</td><td>${escapeHtml(getClient(r.clientId)?.name || 'N/D')}</td><td><strong>${escapeHtml(getPart(r.partId)?.number || 'N/D')}</strong></td><td>${number(r.produced)}</td><td>${number(r.scrap)}</td><td>${percent(metrics.scrapRate)}</td><td>${number(Math.round(metrics.ppm))}</td><td>${escapeHtml(getDefect(r.defectId)?.name || '—')}</td><td>${escapeHtml(r.operation || '—')}</td><td><button class="icon-btn" data-delete-record="${r.id}" title="Eliminar">×</button></td></tr>`;
+    return `<tr><td>${r.date}</td><td>${escapeHtml(r.shift)}</td><td>${escapeHtml(getClient(r.clientId)?.name || 'N/D')}</td><td><strong>${escapeHtml(getPart(r.partId)?.number || 'N/D')}</strong></td><td>${number(r.produced)}</td><td>${number(r.scrap)}</td><td>${percent(metrics.scrapRate)}</td><td>${number(Math.round(metrics.ppm))}</td><td>${escapeHtml(getDefect(r.defectId)?.name || '—')}</td><td>${escapeHtml(getOperation(r.operationId)?.code || r.operation || '—')}</td><td><button class="icon-btn" data-delete-record="${r.id}" title="Eliminar">×</button></td></tr>`;
   }).join('') : '<tr><td colspan="11" class="empty">No hay registros capturados.</td></tr>';
 }
 
@@ -413,7 +528,7 @@ function exportExcel() {
       'Código defecto': defect?.code || '',
       Defecto: defect?.name || '',
       Categoría: defect?.category || '',
-      Operación: r.operation || '',
+      Operación: getOperation(r.operationId) ? `${getOperation(r.operationId).code} · ${getOperation(r.operationId).name}` : (r.operation || ''),
       Comentarios: r.notes || ''
     };
   });
@@ -452,10 +567,11 @@ function exportExcel() {
 }
 
 function loadDemo() {
-  if ((state.clients.length || state.records.length) && !confirm('Esto reemplazará los datos actuales por información demo.')) return;
+  if ((state.clients.length || state.records.length) && !confirm('Esto reemplazará los datos actuales por información demo dentro de tu empresa.')) return;
 
   const c1 = uid(), c2 = uid(), c3 = uid();
   const p1 = uid(), p2 = uid(), p3 = uid(), p4 = uid();
+  const o1 = uid(), o2 = uid(), o3 = uid(), o4 = uid();
   const d1 = uid(), d2 = uid(), d3 = uid(), d4 = uid(), d5 = uid(), d6 = uid(), d7 = uid();
 
   state = {
@@ -470,14 +586,20 @@ function loadDemo() {
       { id: p3, clientId: c2, number: 'GHD12273AA', description: 'Housing' },
       { id: p4, clientId: c3, number: 'CB40515', description: 'Machined Casting' }
     ],
+    operations: [
+      { id:o1, partId:p1, code:'OP30', name:'Acabado' },
+      { id:o2, partId:p2, code:'OP20', name:'Maquinado' },
+      { id:o3, partId:p3, code:'OP20', name:'Roscado' },
+      { id:o4, partId:p4, code:'OP10', name:'Maquinado' }
+    ],
     defects: [
-      { id: d1, partId: p1, code: 'D01', name: 'Runout fuera de especificación', category: 'Dimensional' },
-      { id: d2, partId: p1, code: 'D02', name: 'Rebaba en keyway', category: 'Visual' },
-      { id: d3, partId: p1, code: 'D03', name: 'Daño superficial', category: 'Visual' },
-      { id: d4, partId: p2, code: 'D01', name: 'Diámetro sobremedida', category: 'Dimensional' },
-      { id: d5, partId: p2, code: 'D02', name: 'Rosca dañada', category: 'Rosca' },
-      { id: d6, partId: p3, code: 'D01', name: 'Rosca fuera de especificación', category: 'Rosca' },
-      { id: d7, partId: p4, code: 'D01', name: 'Porosidad', category: 'Material' }
+      { id: d1, partId: p1, operationId:o1, code: 'D01', name: 'Runout fuera de especificación', category: 'Dimensional' },
+      { id: d2, partId: p1, operationId:o1, code: 'D02', name: 'Rebaba en keyway', category: 'Visual' },
+      { id: d3, partId: p1, operationId:o1, code: 'D03', name: 'Daño superficial', category: 'Visual' },
+      { id: d4, partId: p2, operationId:o2, code: 'D01', name: 'Diámetro sobremedida', category: 'Dimensional' },
+      { id: d5, partId: p2, operationId:o2, code: 'D02', name: 'Rosca dañada', category: 'Rosca' },
+      { id: d6, partId: p3, operationId:o3, code: 'D01', name: 'Rosca fuera de especificación', category: 'Rosca' },
+      { id: d7, partId: p4, operationId:o4, code: 'D01', name: 'Porosidad', category: 'Material' }
     ],
     records: []
   };
@@ -488,10 +610,10 @@ function loadDemo() {
     dt.setDate(base.getDate() - i);
     const date = dt.toISOString().slice(0, 10);
     state.records.push(
-      { id: uid(), date, shift: '1', clientId: c1, partId: p1, produced: 900 + Math.round(Math.random()*300), scrap: 4 + Math.round(Math.random()*10), defectId: [d1,d1,d2,d3][Math.floor(Math.random()*4)], operation: 'OP30', notes: '' },
-      { id: uid(), date, shift: '2', clientId: c1, partId: p2, produced: 650 + Math.round(Math.random()*220), scrap: 2 + Math.round(Math.random()*7), defectId: Math.random() > .35 ? d4 : d5, operation: 'OP20', notes: '' },
-      { id: uid(), date, shift: '1', clientId: c2, partId: p3, produced: 500 + Math.round(Math.random()*170), scrap: 1 + Math.round(Math.random()*5), defectId: d6, operation: 'Roscado', notes: '' },
-      { id: uid(), date, shift: '2', clientId: c3, partId: p4, produced: 420 + Math.round(Math.random()*140), scrap: Math.round(Math.random()*5), defectId: d7, operation: 'OP10', notes: '' }
+      { id: uid(), date, shift: '1', clientId: c1, partId: p1, produced: 900 + Math.round(Math.random()*300), scrap: 4 + Math.round(Math.random()*10), defectId: [d1,d1,d2,d3][Math.floor(Math.random()*4)], operationId:o1, operation:'Acabado', notes: '' },
+      { id: uid(), date, shift: '2', clientId: c1, partId: p2, produced: 650 + Math.round(Math.random()*220), scrap: 2 + Math.round(Math.random()*7), defectId: Math.random() > .35 ? d4 : d5, operationId:o2, operation:'Maquinado', notes: '' },
+      { id: uid(), date, shift: '1', clientId: c2, partId: p3, produced: 500 + Math.round(Math.random()*170), scrap: 1 + Math.round(Math.random()*5), defectId: d6, operationId:o3, operation:'Roscado', notes: '' },
+      { id: uid(), date, shift: '2', clientId: c3, partId: p4, produced: 420 + Math.round(Math.random()*140), scrap: Math.round(Math.random()*5), defectId: d7, operationId:o4, operation:'Maquinado', notes: '' }
     );
   }
 
@@ -524,8 +646,10 @@ function initEvents() {
   });
 
   $('recordClient').addEventListener('change', updateCaptureParts);
-  $('recordPartNumber').addEventListener('change', updateCaptureDefects);
+  $('recordPartNumber').addEventListener('change', updateCaptureOperations);
+  $('recordOperation').addEventListener('change', updateCaptureDefects);
   $('defectClient').addEventListener('change', updateCatalogParts);
+  $('defectPartNumber').addEventListener('change', updateCatalogOperations);
 
   $('exportBtn').addEventListener('click', exportExcel);
   $('loadDemoBtn').addEventListener('click', loadDemo);
@@ -560,17 +684,29 @@ function initEvents() {
     toast('Número de parte creado.');
   });
 
+  $('operationForm').addEventListener('submit', e => {
+    e.preventDefault();
+    const partId = selectedPartId;
+    if (!partId) return toast('Selecciona un número de parte.');
+    const code = $('operationCode').value.trim();
+    const name = $('operationName').value.trim();
+    if (state.operations.some(o => o.partId === partId && o.code.toLowerCase() === code.toLowerCase())) return toast('Ese código de operación ya existe para el NP.');
+    state.operations.push({ id: uid(), partId, code, name });
+    e.target.reset(); saveState(); renderAll(); toast('Operación agregada.');
+  });
+
   $('defectForm').addEventListener('submit', e => {
     e.preventDefault();
     const partId = $('defectPartNumber').value;
     if (!partId) return toast('Selecciona un número de parte.');
     const code = $('defectCode').value.trim();
     if (state.defects.some(d => d.partId === partId && d.code.toLowerCase() === code.toLowerCase())) return toast('Ese código de defecto ya existe para el NP.');
-    state.defects.push({ id: uid(), partId, code, name: $('defectName').value.trim(), category: $('defectCategory').value });
+    state.defects.push({ id: uid(), partId, operationId: $('defectOperation').value || '', code, name: $('defectName').value.trim(), category: $('defectCategory').value });
     e.target.reset();
     $('defectClient').value = getPart(partId)?.clientId || '';
     updateCatalogParts();
     $('defectPartNumber').value = partId;
+    updateCatalogOperations();
     saveState();
     renderAll();
     toast('Defecto agregado.');
@@ -583,6 +719,7 @@ function initEvents() {
     const produced = Number($('recordProduced').value);
     const scrap = Number($('recordScrap').value);
     if (!clientId || !partId) return toast('Selecciona cliente y número de parte.');
+    if (!$('recordOperation').value) return toast('Selecciona una operación / proceso.');
     if (scrap > produced) return toast('El scrap no puede ser mayor que la producción.');
     if (scrap > 0 && !$('recordDefect').value) return toast('Selecciona el defecto asociado al scrap.');
 
@@ -595,7 +732,8 @@ function initEvents() {
       produced,
       scrap,
       defectId: $('recordDefect').value,
-      operation: $('recordOperation').value.trim(),
+      operationId: $('recordOperation').value,
+      operation: getOperation($('recordOperation').value)?.name || '',
       notes: $('recordNotes').value.trim()
     });
 
@@ -646,6 +784,7 @@ function initEvents() {
     if (state.records.some(r => r.partId === part.id)) return toast('El NP tiene registros históricos y no puede eliminarse.');
     if (!confirm(`¿Eliminar el NP ${part.number} y sus defectos?`)) return;
     state.defects = state.defects.filter(d => d.partId !== part.id);
+    state.operations = state.operations.filter(o => o.partId !== part.id);
     state.parts = state.parts.filter(p => p.id !== part.id);
     selectedPartId = null;
     saveState(); renderAll(); toast('Número de parte eliminado.');
@@ -681,6 +820,15 @@ function initEvents() {
       return;
     }
 
+    const deleteOperationBtn = e.target.closest('[data-delete-operation]');
+    if (deleteOperationBtn) {
+      const id = deleteOperationBtn.dataset.deleteOperation;
+      if (state.records.some(r => r.operationId === id) || state.defects.some(d => d.operationId === id)) return toast('La operación está ligada a defectos o historial.');
+      state.operations = state.operations.filter(o => o.id !== id);
+      saveState(); renderAll(); toast('Operación eliminada.');
+      return;
+    }
+
     const deleteDefectBtn = e.target.closest('[data-delete-defect]');
     if (deleteDefectBtn) {
       const id = deleteDefectBtn.dataset.deleteDefect;
@@ -699,12 +847,45 @@ function initEvents() {
   });
 }
 
-function init() {
+async function init() {
   $('recordDate').value = today();
-  selectedClientId = state.clients[0]?.id || null;
-  selectedPartId = state.parts[0]?.id || null;
   initEvents();
-  renderAll();
+
+  const cfg=window.QUALITY_SUMMARY_CONFIG||{};
+  if (!cfg.supabaseUrl || !cfg.supabasePublishableKey || !window.supabase) {
+    $('authOverlay').hidden=false;
+    $('authMessage').textContent='Configura config.js con la URL y Publishable Key de Supabase.';
+    $('storageStatus').textContent='Supabase no configurado';
+    return;
+  }
+  db=window.supabase.createClient(cfg.supabaseUrl,cfg.supabasePublishableKey);
+
+  $('loginForm').addEventListener('submit', async e=>{
+    e.preventDefault();
+    $('authMessage').textContent='Ingresando…';
+    try { await signIn($('loginEmail').value.trim(),$('loginPassword').value); }
+    catch(err){ $('authMessage').textContent=err.message; }
+  });
+  $('signOutBtn').addEventListener('click',signOut);
+  $('importLocalBtn').addEventListener('click',importLocalData);
+  $('refreshDataBtn').addEventListener('click', async()=>{ try{await loadRemoteState();toast('Datos actualizados.');}catch(e){toast(e.message);} });
+
+  db.auth.onAuthStateChange(async (_event,session)=>{
+    currentUser=session?.user||null;
+    $('authOverlay').hidden=!!currentUser;
+    $('signOutBtn').hidden=!currentUser;
+    $('userEmail').textContent=currentUser?.email||'';
+    if(currentUser){
+      $('storageStatus').textContent='Conectando a Supabase…';
+      try{ await loadRemoteState(); $('storageStatus').textContent='Supabase sincronizado'; }
+      catch(err){ console.error(err); $('storageStatus').textContent='Error de conexión'; toast(err.message); }
+    } else {
+      currentCompanyId=null; currentCompanyName=''; currentRole='viewer'; if($('companyContext')) $('companyContext').textContent=''; state=structuredClone(initialState); lastSyncedState=structuredClone(initialState); renderAll();
+    }
+  });
+
+  const {data:{session}}=await db.auth.getSession();
+  if(!session) $('authOverlay').hidden=false;
 }
 
 init();
