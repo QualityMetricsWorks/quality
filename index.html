@@ -8,14 +8,14 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="assets/css/main.css?v=0.5.0">
+  <link rel="stylesheet" href="assets/css/main.css?v=1.0.0">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.6/dist/JsBarcode.all.min.js"></script>
   <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
-  <script src="config.js?v=0.5.0"></script>
-  <script type="module" src="assets/js/app.js?v=0.5.0"></script>
+  <script src="config.js?v=1.0.0"></script>
+  <script type="module" src="assets/js/app.js?v=1.0.0"></script>
 </head>
 <body>
   <header class="guvel-shell">
@@ -23,14 +23,14 @@
       <div class="product-brand">
         <img class="product-logo" src="assets/img/guvel-logo.jpeg" alt="GUVEL">
         <div class="product-identity">
-          <div class="product-name"><span>GUVEL</span><strong>Scrap</strong></div>
+          <div class="product-name"><span class="brand-gu">GU</span><span class="brand-vel">VEL</span><strong>General System</strong></div>
           <small>Smarter Quality Solutions</small>
         </div>
       </div>
 
       <div class="product-context">
         <span class="module-badge"><span class="module-dot"></span> Production & Quality</span>
-        <span class="version-badge">v0.5.0</span>
+        <span class="version-badge">v1.0.0</span>
       </div>
 
       <div class="account-area">
@@ -89,14 +89,14 @@
     <section class="topbar page-toolbar">
       <div class="page-heading">
         <div class="breadcrumb"><span>GUVEL General System</span><span>/</span><strong id="pageTitle">Dashboard</strong></div>
-        <p class="page-description">Monitoreo operativo de calidad, pérdidas y desempeño de manufactura.</p>
+        <p class="page-description">Gestión General Operativo</p>
       </div>
       <div class="topbar-actions">
         <button class="btn btn-secondary action-btn" id="refreshDataBtn">
           <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M17.65 6.35A8 8 0 1 0 20 12h-2a6 6 0 1 1-1.76-4.24L13 11h8V3l-3.35 3.35Z"/></svg>
           <span>Actualizar</span>
         </button>
-        <button class="btn btn-primary action-btn" id="exportBtn">
+        <button class="btn btn-primary action-btn history-only-action" id="exportBtn" hidden>
           <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M11 4h2v9l3-3 1.4 1.4L12 16.8l-5.4-5.4L8 10l3 3V4ZM5 18h14v2H5v-2Z"/></svg>
           <span>Exportar Excel</span>
         </button>
@@ -104,34 +104,51 @@
     </section>
 
     <section id="dashboardView" class="view active">
-      <div class="filter-panel card">
-        <div class="field"><label>Desde</label><input type="date" id="filterStart"></div>
-        <div class="field"><label>Hasta</label><input type="date" id="filterEnd"></div>
+      <div class="dashboard-tabs" role="tablist">
+        <button class="dashboard-tab active" data-dashboard-tab="general">General</button>
+        <button class="dashboard-tab" data-dashboard-tab="production">Producción</button>
+        <button class="dashboard-tab" data-dashboard-tab="scrap">Scrap</button>
+        <button class="dashboard-tab" data-dashboard-tab="maintenance">Mantenimiento</button>
+      </div>
+      <div class="filter-panel card dashboard-filter-panel">
+        <div class="field"><label>Periodo</label><select id="filterPeriod"><option value="current">Actual</option><option value="previous_week">Semana anterior</option><option value="previous_day">Día anterior</option><option value="previous_month">Mes anterior</option><option value="previous_quarter">Trimestre anterior</option><option value="previous_half">Semestre anterior</option><option value="previous_year">Año anterior</option><option value="custom">Personalizado</option></select></div>
+        <div class="field custom-date-field"><label>Desde</label><input type="date" id="filterStart"></div>
+        <div class="field custom-date-field"><label>Hasta</label><input type="date" id="filterEnd"></div>
         <div class="field"><label>Cliente</label><select id="filterClient"></select></div>
         <div class="field"><label>Número de Parte</label><select id="filterPartNumber"></select></div>
+        <div class="field maintenance-filter" hidden><label>Máquina</label><select id="filterMachine"></select></div>
         <button class="btn btn-ghost" id="clearFiltersBtn">Limpiar</button>
       </div>
-
-      <div class="kpi-grid kpi-grid-5">
-        <article class="kpi-card"><span>Producción</span><strong id="kpiProduction">0</strong><small>Piezas registradas</small></article>
-        <article class="kpi-card danger"><span>Scrap</span><strong id="kpiScrap">0.00%</strong><small id="kpiScrapQty">0 piezas</small></article>
-        <article class="kpi-card warning"><span>PPM</span><strong id="kpiPpm">0</strong><small>Scrap / producción</small></article>
-        <article class="kpi-card success"><span>Yield</span><strong id="kpiYield">100.00%</strong><small>Buenas / producción</small></article>
-        <article class="kpi-card money"><span>COPQ Scrap</span><strong id="kpiCopq">$0.00</strong><small>Costo estándar estimado</small></article>
+      <div class="dashboard-panel active" data-dashboard-panel="general">
+        <div class="kpi-grid kpi-grid-6">
+          <article class="kpi-card info"><span>OEE</span><strong id="kpiOee">—</strong><small id="kpiOeeNote">Requiere tiempo ciclo configurado</small></article>
+          <article class="kpi-card"><span>Producción</span><strong id="kpiProduction">0</strong><small>Piezas registradas</small></article>
+          <article class="kpi-card danger"><span>Scrap</span><strong id="kpiScrap">0.00%</strong><small id="kpiScrapQty">0 piezas</small></article>
+          <article class="kpi-card warning"><span>PPM</span><strong id="kpiPpm">0</strong><small>Scrap / producción</small></article>
+          <article class="kpi-card success"><span>Yield</span><strong id="kpiYield">100.00%</strong><small>Buenas / producción</small></article>
+          <article class="kpi-card money"><span>COPQ Scrap</span><strong id="kpiCopq">$0.00</strong><small>Costo estándar estimado</small></article>
+        </div>
+        <div class="dashboard-grid">
+          <article class="card chart-card"><div class="card-header"><div><p class="eyebrow">Tendencia</p><h3>Scrap %</h3></div></div><div class="chart-wrap"><canvas id="scrapTrendChart"></canvas></div></article>
+          <article class="card chart-card"><div class="card-header"><div><p class="eyebrow">Tendencia</p><h3>PPM</h3></div></div><div class="chart-wrap"><canvas id="ppmTrendChart"></canvas></div></article>
+          <article class="card chart-card"><div class="card-header"><div><p class="eyebrow">Tendencia</p><h3>Yield</h3></div></div><div class="chart-wrap"><canvas id="yieldTrendChart"></canvas></div></article>
+          <article class="card chart-card"><div class="card-header"><div><p class="eyebrow">Tendencia</p><h3>COPQ Scrap</h3></div></div><div class="chart-wrap"><canvas id="copqTrendChart"></canvas></div></article>
+        </div>
+        <article class="card section-card"><div class="card-header"><div><p class="eyebrow">Concentración de pérdida</p><h3>Top 3 productos con mayor scrap</h3></div></div><div id="topProductsGrid" class="top-products-grid"></div></article>
       </div>
-
-      <div class="dashboard-grid">
-        <article class="card chart-card"><div class="card-header"><div><p class="eyebrow">Tendencia</p><h3>Scrap %</h3></div></div><div class="chart-wrap"><canvas id="scrapTrendChart"></canvas></div></article>
-        <article class="card chart-card"><div class="card-header"><div><p class="eyebrow">Tendencia</p><h3>PPM</h3></div></div><div class="chart-wrap"><canvas id="ppmTrendChart"></canvas></div></article>
-        <article class="card chart-card"><div class="card-header"><div><p class="eyebrow">Tendencia</p><h3>Yield</h3></div></div><div class="chart-wrap"><canvas id="yieldTrendChart"></canvas></div></article>
-        <article class="card chart-card"><div class="card-header"><div><p class="eyebrow">Tendencia</p><h3>COPQ Scrap</h3></div></div><div class="chart-wrap"><canvas id="copqTrendChart"></canvas></div></article>
-        <article class="card chart-card wide"><div class="card-header"><div><p class="eyebrow">Pareto 80/20</p><h3>Defectos de Scrap</h3></div></div><div class="chart-wrap"><canvas id="paretoChart"></canvas></div></article>
+      <div class="dashboard-panel" data-dashboard-panel="production">
+        <div class="section-intro"><p class="eyebrow">Producción</p><h2>Desempeño de Producción</h2><p>Volumen producido y comportamiento por periodo.</p></div>
+        <div class="dashboard-grid"><article class="card chart-card wide"><div class="card-header"><h3>Producción por día</h3></div><div class="chart-wrap"><canvas id="productionTrendChart"></canvas></div></article></div>
       </div>
-
-      <article class="card section-card">
-        <div class="card-header"><div><p class="eyebrow">Concentración de pérdida</p><h3>Top 3 productos con mayor scrap</h3></div></div>
-        <div id="topProductsGrid" class="top-products-grid"></div>
-      </article>
+      <div class="dashboard-panel" data-dashboard-panel="scrap">
+        <div class="section-intro"><p class="eyebrow">Calidad</p><h2>Scrap</h2><p>Distribución de pérdidas por defecto y producto.</p></div>
+        <div class="dashboard-grid"><article class="card chart-card"><div class="card-header"><h3>Scrap por defecto</h3></div><div class="chart-wrap"><canvas id="scrapDefectPieChart"></canvas></div></article><article class="card chart-card"><div class="card-header"><h3>Scrap por Número de Parte</h3></div><div class="chart-wrap"><canvas id="scrapPartPieChart"></canvas></div></article></div>
+      </div>
+      <div class="dashboard-panel" data-dashboard-panel="maintenance">
+        <div class="section-intro"><p class="eyebrow">Mantenimiento</p><h2>Tiempos Muertos</h2><p>Distribución de paros registrados durante producción.</p></div>
+        <div class="kpi-grid"><article class="kpi-card warning"><span>Tiempo muerto</span><strong id="kpiDowntime">0 min</strong><small>Periodo seleccionado</small></article><article class="kpi-card"><span>Eventos</span><strong id="kpiDowntimeEvents">0</strong><small>Paros registrados</small></article></div>
+        <div class="dashboard-grid"><article class="card chart-card"><div class="card-header"><h3>Paros por motivo</h3></div><div class="chart-wrap"><canvas id="downtimeReasonPieChart"></canvas></div></article><article class="card chart-card"><div class="card-header"><h3>Paros por máquina</h3></div><div class="chart-wrap"><canvas id="downtimeMachinePieChart"></canvas></div></article></div>
+      </div>
     </section>
 
     <section id="captureView" class="view">
@@ -140,11 +157,6 @@
           <span class="mode-kicker">Principal</span>
           <strong>Escaneo de Producción</strong>
           <small>NP → Lote → Cantidad → Recursos → Personal → Confirmar</small>
-        </button>
-        <button class="capture-mode-card" data-capture-mode="manual">
-          <span class="mode-kicker">Respaldo</span>
-          <strong>Captura Manual / Parcial</strong>
-          <small>Para parciales, contingencias o etiquetas no disponibles</small>
         </button>
         <button class="capture-mode-card" data-capture-mode="scrap">
           <span class="mode-kicker">Calidad</span>
@@ -169,7 +181,7 @@
               <li data-step="5"><span>5</span><div><strong>Personal</strong><small>Supervisor y operador</small></div></li>
               <li data-step="6"><span>6</span><div><strong>Confirmar</strong><small>Preview y validación</small></div></li>
             </ol>
-            <button id="resetTraceBtn" class="btn btn-ghost btn-block">Reiniciar captura</button>
+            <button id="resetTraceBtn" class="btn btn-ghost btn-block">Cancelar captura</button>
           </aside>
 
           <div class="trace-workspace card">
@@ -220,35 +232,13 @@
               <div class="trace-title"><p class="eyebrow">Paso 6 de 6</p><h2>Confirma la producción</h2><p>GUVEL valida la información antes de crear o finalizar la corrida.</p></div>
               <div id="traceValidation" class="validation-stack"></div>
               <div id="tracePreview" class="trace-preview"></div>
-              <label class="confirm-check"><input type="checkbox" id="traceConfirmCheck"><span>Confirmo que la información mostrada corresponde al envío físico.</span></label>
+              <div class="downtime-capture-box"><div class="card-header"><div><p class="eyebrow">Opcional</p><h3>Tiempos muertos de la corrida</h3></div></div><div class="downtime-entry"><select id="traceDowntimeReason"></select><input id="traceDowntimeMinutes" type="number" min="1" placeholder="Minutos"><button type="button" id="addTraceDowntimeBtn" class="btn btn-secondary">Agregar paro</button></div><div id="traceDowntimeList" class="downtime-chip-list"></div></div><label class="confirm-check"><input type="checkbox" id="traceConfirmCheck"><span>Confirmo que la información mostrada corresponde al envío físico.</span></label>
               <div class="trace-footer-actions"><button class="btn btn-ghost trace-back" data-back-step="5">Atrás</button><button id="traceConfirmBtn" class="btn btn-primary">Confirmar producción</button></div>
             </div>
           </div>
         </div>
       </article>
-
-      <article id="captureManualPanel" class="capture-mode-panel">
-        <div class="card form-card">
-          <div class="card-header"><div><p class="eyebrow">Contingencia / Parcial</p><h3>Captura Manual</h3></div><span class="manual-warning">Uso controlado</span></div>
-          <div class="info-strip">GUVEL permite máximo <strong>1 parcial abierto por NP + Operación + Máquina + Turno</strong>. Una captura posterior actualiza el mismo parcial en lugar de duplicar producción.</div>
-          <form id="manualProductionForm" class="form-grid">
-            <div class="field"><label>Cliente</label><select id="manualClient" required></select></div>
-            <div class="field"><label>Número de Parte</label><select id="manualPart" required></select></div>
-            <div class="field"><label>Operación</label><select id="manualOperation" required></select></div>
-            <div class="field"><label>Máquina</label><select id="manualMachine" required></select></div>
-            <div class="field"><label>Lote</label><input id="manualLot" placeholder="Opcional para parcial"></div>
-            <div class="field"><label>Cantidad acumulada</label><input id="manualQuantity" type="number" min="1" required></div>
-            <div class="field"><label>Supervisor</label><select id="manualSupervisor" required></select></div>
-            <div class="field"><label>Operador</label><select id="manualOperator" required></select></div>
-            <div class="field"><label>Estado</label><select id="manualStatus"><option value="partial">Parcial abierto</option><option value="completed">Corrida terminada</option></select></div>
-            <div class="field full"><label>Motivo de captura manual</label><textarea id="manualReason" rows="3" required placeholder="Ej. Etiqueta dañada, parcial al cierre de turno..."></textarea></div>
-            <div id="manualPartialNotice" class="full"></div>
-            <div class="form-actions full"><button class="btn btn-primary">Registrar / Actualizar producción</button></div>
-          </form>
-        </div>
-      </article>
-
-      <article id="captureScrapPanel" class="capture-mode-panel">
+<article id="captureScrapPanel" class="capture-mode-panel">
         <div class="card form-card">
           <div class="card-header"><div><p class="eyebrow">Evento de calidad</p><h3>Registrar Scrap</h3></div></div>
           <form id="scrapMatchForm" class="form-grid match-grid">
@@ -268,7 +258,7 @@
             <div class="field"><label>Costo adicional</label><input type="number" id="scrapExtraCost" min="0" step="0.01" value="0"></div>
             <div class="field"><label>Motivo / causa</label><input id="scrapReason" placeholder="Opcional"></div>
             <div class="field full"><label>Notas</label><textarea id="scrapNotes" rows="3"></textarea></div>
-            <div class="form-actions full"><button class="btn btn-primary" type="submit">Agregar evento</button></div>
+            <div class="form-actions full"><button class="btn btn-ghost" type="button" id="cancelScrapBtn">Cancelar</button><button class="btn btn-primary" type="submit">Agregar evento</button></div>
           </form>
           <div class="subsection"><div class="card-header"><div><p class="eyebrow">Corrida seleccionada</p><h3>Eventos registrados</h3></div></div><div class="table-scroll"><table><thead><tr><th>Defecto</th><th>Cantidad</th><th>Disposición</th><th>COPQ</th><th></th></tr></thead><tbody id="runScrapEventsBody"></tbody></table></div></div>
         </div>
@@ -323,7 +313,7 @@
                 <div class="field"><label>Descripción</label><input id="editPartDescription"></div>
                 <div class="field"><label>Costo por pieza</label><input id="editPartCost" type="number" min="0" step="0.0001"></div>
                 <div class="field"><label>Moneda</label><select id="editPartCurrency"><option>USD</option><option>MXN</option><option>EUR</option></select></div>
-                <div class="form-actions"><button class="btn btn-primary">Guardar cambios</button></div>
+                <div class="form-actions"><button type="button" id="cancelPartEditBtn" class="btn btn-ghost">Salir</button><button class="btn btn-primary">Guardar cambios</button></div>
               </div>
             </form>
             <div class="mini-kpi-grid six"><div><span>Cliente</span><strong id="partDetailClient">—</strong></div><div><span>Costo</span><strong id="partDetailCost">—</strong></div><div><span>Producción</span><strong id="partDetailProduction">0</strong></div><div><span>Scrap</span><strong id="partDetailScrapQty">0</strong></div><div><span>Yield</span><strong id="partDetailYield">100%</strong></div><div><span>COPQ</span><strong id="partDetailCopq">$0</strong></div></div>
@@ -400,25 +390,22 @@
     </section>
 
     <section id="catalogView" class="view">
-      <article class="card form-card">
-        <div class="card-header"><div><p class="eyebrow">Maestro de calidad</p><h3>Catálogo de Defectos</h3></div></div>
-        <form id="defectForm" class="form-grid">
-          <div class="field"><label>Cliente</label><select id="defectClient" required></select></div>
-          <div class="field"><label>Número de Parte</label><select id="defectPartNumber" required></select></div>
-          <div class="field"><label>Operación</label><select id="defectOperation"></select></div>
-          <div class="field"><label>Código</label><input id="defectCode" required></div>
-          <div class="field"><label>Defecto</label><input id="defectName" required></div>
-          <div class="field"><label>Categoría</label><select id="defectCategory"><option>Dimensional</option><option>Visual</option><option>Rosca</option><option>Material</option><option>Proceso</option><option>Otro</option></select></div>
-          <div class="form-actions full"><button class="btn btn-primary">Agregar defecto</button></div>
-        </form>
-      </article>
-      <article class="card table-card"><div class="card-header"><h3>Defectos configurados</h3><input id="defectSearch" class="search-input small" placeholder="Buscar…"></div><div class="table-scroll"><table><thead><tr><th>Cliente</th><th>NP</th><th>Operación</th><th>Código</th><th>Defecto</th><th>Categoría</th><th></th></tr></thead><tbody id="defectTableBody"></tbody></table></div></article>
+      <div class="dashboard-tabs catalog-tabs"><button class="dashboard-tab active" data-catalog-tab="defects">Defectos</button><button class="dashboard-tab" data-catalog-tab="downtime">Paros</button></div>
+      <div class="catalog-panel active" data-catalog-panel="defects">
+        <article class="card form-card"><div class="card-header"><div><p class="eyebrow">Maestro de calidad</p><h3>Catálogo de Defectos</h3></div></div><form id="defectForm" class="form-grid"><div class="field"><label>Cliente</label><select id="defectClient" required></select></div><div class="field"><label>Número de Parte</label><select id="defectPartNumber" required></select></div><div class="field"><label>Operación</label><select id="defectOperation"></select></div><div class="field"><label>Código</label><input id="defectCode" required></div><div class="field"><label>Defecto</label><input id="defectName" required></div><div class="field"><label>Categoría</label><select id="defectCategory"><option>Dimensional</option><option>Visual</option><option>Rosca</option><option>Material</option><option>Proceso</option><option>Otro</option></select></div><div class="form-actions full"><button type="button" class="btn btn-ghost form-cancel-btn">Cancelar</button><button class="btn btn-primary">Agregar defecto</button></div></form></article>
+        <article class="card table-card"><div class="card-header"><h3>Defectos configurados</h3><input id="defectSearch" class="search-input small" placeholder="Buscar…"></div><div class="table-scroll"><table><thead><tr><th>Cliente</th><th>NP</th><th>Operación</th><th>Código</th><th>Defecto</th><th>Categoría</th><th></th></tr></thead><tbody id="defectTableBody"></tbody></table></div></article>
+      </div>
+      <div class="catalog-panel" data-catalog-panel="downtime">
+        <article class="card form-card"><div class="card-header"><div><p class="eyebrow">Maestro de mantenimiento</p><h3>Catálogo de Paros</h3></div></div><form id="downtimeReasonForm" class="form-grid"><div class="field"><label>Código</label><input id="downtimeCode" required placeholder="DT-001"></div><div class="field"><label>Motivo de paro</label><input id="downtimeName" required placeholder="Cambio de herramienta"></div><div class="field"><label>Categoría</label><select id="downtimeCategory"><option>Máquina</option><option>Herramienta</option><option>Material</option><option>Calidad</option><option>Setup</option><option>Personal</option><option>Logística</option><option>Otro</option></select></div><div class="form-actions full"><button type="button" class="btn btn-ghost form-cancel-btn">Cancelar</button><button class="btn btn-primary">Agregar paro</button></div></form></article>
+        <article class="card table-card"><div class="card-header"><h3>Paros configurados</h3><input id="downtimeSearch" class="search-input small" placeholder="Buscar…"></div><div class="table-scroll"><table><thead><tr><th>Código</th><th>Motivo</th><th>Categoría</th><th></th></tr></thead><tbody id="downtimeTableBody"></tbody></table></div></article>
+      </div>
     </section>
 
     <section id="historyView" class="view">
-      <div class="history-tabs"><button class="history-tab active" data-history-tab="production">Producción</button><button class="history-tab" data-history-tab="scrap">Scrap / Calidad</button></div>
+      <div class="history-tabs"><button class="history-tab active" data-history-tab="production">Producción</button><button class="history-tab" data-history-tab="scrap">Scrap / Calidad</button><button class="history-tab" data-history-tab="downtime">Tiempos Muertos</button></div>
       <article class="card table-card history-panel active" data-history-panel="production"><div class="card-header"><div><p class="eyebrow">Trazabilidad</p><h3>Historial de Producción</h3></div><input id="productionHistorySearch" class="search-input small" placeholder="Buscar…"></div><div class="table-scroll"><table><thead><tr><th>Fecha/Hora</th><th>Turno</th><th>Lote</th><th>Cliente</th><th>NP</th><th>Operación</th><th>Máquina</th><th>Operador</th><th>Estado</th><th>Producción</th><th>Scrap</th><th>Yield</th><th></th></tr></thead><tbody id="productionHistoryBody"></tbody></table></div></article>
       <article class="card table-card history-panel" data-history-panel="scrap"><div class="card-header"><div><p class="eyebrow">Trazabilidad</p><h3>Historial de Scrap</h3></div><input id="scrapHistorySearch" class="search-input small" placeholder="Buscar…"></div><div class="table-scroll"><table><thead><tr><th>Fecha</th><th>Cliente</th><th>NP</th><th>Operación</th><th>Defecto</th><th>Cantidad</th><th>Disposición</th><th>COPQ</th><th></th></tr></thead><tbody id="scrapHistoryBody"></tbody></table></div></article>
+    <article class="card table-card history-panel" data-history-panel="downtime"><div class="card-header"><div><p class="eyebrow">Mantenimiento</p><h3>Historial de Tiempos Muertos</h3></div></div><div class="table-scroll"><table><thead><tr><th>Fecha</th><th>Cliente</th><th>NP</th><th>Máquina</th><th>Paro</th><th>Minutos</th></tr></thead><tbody id="downtimeHistoryBody"></tbody></table></div></article>
     </section>
   </main>
 
@@ -440,7 +427,7 @@
       <div class="field"><label>Contraseña</label><input type="password" id="loginPassword" required></div>
       <button class="btn btn-primary btn-block">Ingresar</button>
       <p id="authMessage" class="auth-message"></p>
-      <small class="version-note">GUVEL General System · v0.5.0 · Sprint 1 · Multiempresa</small>
+      <small class="version-note">GUVEL General System · v1.0.0 · Sprint 1 · Multiempresa</small>
     </form>
   </div>
 </body>

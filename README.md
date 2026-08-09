@@ -1,45 +1,12 @@
-# GUVEL General System — v0.5.0
+# GUVEL General System v1.0.0
 
-## Major release
-GUVEL Scrap evolves into **GUVEL General System** and introduces a production traceability workflow designed to reduce manual-selection errors.
+Primera versión estable. Incluye dashboards General / Producción / Scrap / Mantenimiento, captura guiada de producción, tiempos muertos, catálogo de defectos y paros, trazabilidad, exportación desde Historial y navegación GUVEL consolidada.
 
-## New production flow
-1. Scan Part Number barcode.
-2. Scan Lot.
-3. Scan Quantity.
-4. Confirm Operation + linked Machine.
-5. Select Supervisor + Operator from controlled Personnel catalog.
-6. Preview + validation.
-7. Confirm.
-8. Supabase assigns server timestamp, local production date and shift automatically.
+## Actualización desde v0.5.0
+1. Ejecutar `sql/migrate_v0.5.0_to_v1.0.0.sql` una sola vez en Supabase.
+2. Reemplazar `index.html` y la carpeta `assets/` en GitHub.
+3. Mantener `config.js` actual.
+4. Esperar el deployment de GitHub Pages y hacer recarga forzada.
 
-## Manual / partial fallback
-Manual capture remains available. The database enforces a maximum of one open partial per:
-`Part Number + Operation + Machine + Production Date + Shift`.
-
-If a partial already exists, a new partial submission updates its cumulative quantity instead of creating duplicate production. A completed scan can finalize the same partial.
-
-## Barcode
-Part Number detail now renders a Code 128 barcode whose payload is exactly the Part Number (no URL).
-Labels generated outside GUVEL also work if the barcode payload matches the Part Number.
-
-## Personnel
-New controlled personnel catalog:
-- Employee Number
-- Full Name
-- Operator
-- Supervisor
-- Both
-
-## Camera
-Camera scanning uses `html5-qrcode`. GitHub Pages is HTTPS, so browser camera permissions can be used. USB barcode readers continue to work as keyboard input.
-
-## Before uploading
-Run `sql/migrate_to_v0.5.0_traceability.sql` once in Supabase SQL Editor.
-
-Then upload:
-- `index.html`
-- `assets/`
-- `config.js`
-
-No need to recreate the Supabase project.
+## Nota OEE
+El KPI queda preparado pero muestra `—` hasta definir tiempo ciclo ideal / estándar de operación. No se fabrica un OEE artificial con datos insuficientes.

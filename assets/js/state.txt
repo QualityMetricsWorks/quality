@@ -1,4 +1,4 @@
-export const state={clients:[],parts:[],operations:[],defects:[],machines:[],partMachines:[],personnel:[],runs:[],scrapEvents:[],companyId:null,companyName:'',role:'viewer',user:null,selectedClientId:null,selectedPartId:null,selectedMachineId:null,selectedPersonnelId:null};
+export const state={clients:[],parts:[],operations:[],defects:[],machines:[],partMachines:[],personnel:[],downtimeReasons:[],downtimeEvents:[],runs:[],scrapEvents:[],companyId:null,companyName:'',role:'viewer',user:null,selectedClientId:null,selectedPartId:null,selectedMachineId:null,selectedPersonnelId:null};
 export const getClient=id=>state.clients.find(x=>x.id===id);
 export const getPart=id=>state.parts.find(x=>x.id===id);
 export const getOperation=id=>state.operations.find(x=>x.id===id);
@@ -15,3 +15,6 @@ export const partsForMachine=machineId=>state.partMachines.filter(x=>x.machineId
 
 export const getPersonnel=id=>state.personnel.find(x=>x.id===id);
 export const activePersonnelByRole=role=>state.personnel.filter(x=>x.active!==false&&(x.role===role||x.role==='both'));
+
+export const getDowntimeReason=id=>state.downtimeReasons.find(x=>x.id===id);
+export const downtimeForRun=id=>state.downtimeEvents.filter(x=>x.runId===id);
