@@ -4,6 +4,7 @@ import * as api from './db.js';
 import * as ui from './ui.js';
 import {metricsForRuns,copqForEvent} from './metrics.js';
 import {initTraceability,renderBarcode,printBarcode} from './traceability.js';
+import {initI18n,applyLanguage} from './i18n.js';
 
 let db;
 const canWrite=()=>['admin','editor','operator'].includes(state.role);
@@ -13,10 +14,10 @@ function setView(view){
  $(`${view}View`)?.classList.add('active');
  document.querySelectorAll('.nav-item').forEach(x=>x.classList.toggle('active',x.dataset.view===view));
  $('exportBtn').hidden=view!=='history';
- $('pageTitle').textContent=({dashboard:'Dashboard',capture:'Captura',clients:'Clientes',parts:'Números de Parte',machines:'Máquinas',personnel:'Personal',catalog:'Catálogo',history:'Historial',settings:'Configuración'})[view]||view;
+ $('pageTitle').textContent=({dashboard:'Dashboard',capture:'Captura',clients:'Clientes',parts:'Números de Parte',machines:'Máquinas',personnel:'Personal',catalog:'Catálogo',runs:'Corridas',history:'Historial',settings:'Configuración'})[view]||view;
 }
 async function reload(msg='Sistema Actualizado'){
- await api.loadAll();ui.renderAll();$('storageStatus').textContent='Sistema Actualizado';if(msg)toast(msg);
+ await api.loadAll();ui.renderAll();applyLanguage();$('storageStatus').textContent='Sistema Actualizado';if(msg)toast(msg);
 }
 async function run(fn,msg='Guardado correctamente'){
  try{$('storageStatus').textContent='Sincronizando…';await fn();await reload(msg)}
@@ -119,13 +120,14 @@ function initEvents(){
  $('downtimeReasonForm').addEventListener('submit',e=>{e.preventDefault();run(()=>api.insertDowntimeReason({code:$('downtimeCode').value.trim(),name:$('downtimeName').value.trim(),category:$('downtimeCategory').value,downtimeType:$('downtimeType').value})).then(()=>e.target.reset())});
 
  // Searches
- $('clientSearch').addEventListener('input',ui.renderClients);$('partSearch').addEventListener('input',ui.renderParts);$('machineSearch').addEventListener('input',ui.renderMachines);$('personnelSearch').addEventListener('input',ui.renderPersonnel);$('defectSearch').addEventListener('input',ui.renderCatalog);$('downtimeSearch').addEventListener('input',ui.renderDowntimeCatalog);$('productionHistorySearch').addEventListener('input',ui.renderHistory);$('scrapHistorySearch').addEventListener('input',ui.renderHistory);
+ $('clientSearch').addEventListener('input',ui.renderClients);$('partSearch').addEventListener('input',ui.renderParts);$('machineSearch').addEventListener('input',ui.renderMachines);$('personnelSearch').addEventListener('input',ui.renderPersonnel);$('defectSearch').addEventListener('input',ui.renderCatalog);$('downtimeSearch').addEventListener('input',ui.renderDowntimeCatalog);$('runSearch').addEventListener('input',ui.renderRuns);$('productionHistorySearch').addEventListener('input',ui.renderHistory);$('scrapHistorySearch').addEventListener('input',ui.renderHistory);
  document.querySelectorAll('.form-cancel-btn').forEach(b=>b.addEventListener('click',()=>b.closest('form')?.reset()));
 
  document.body.addEventListener('click',e=>{
-  const t=e.target.closest('[data-client-id],[data-part-id],[data-open-part],[data-machine-id],[data-personnel-id],[data-match-run],[data-match-downtime-run],[data-unlink-machine],[data-delete-operation],[data-delete-defect],[data-delete-run],[data-delete-scrap],[data-delete-downtime-reason],[data-delete-cycle-time],[data-delete-shift]');
+  const t=e.target.closest('[data-client-id],[data-part-id],[data-run-id],[data-open-part],[data-machine-id],[data-personnel-id],[data-match-run],[data-match-downtime-run],[data-unlink-machine],[data-delete-operation],[data-delete-defect],[data-delete-run],[data-delete-scrap],[data-delete-downtime-reason],[data-delete-cycle-time],[data-delete-shift]');
   if(!t)return;
   if(t.dataset.clientId){state.selectedClientId=t.dataset.clientId;ui.renderClients()}
+  if(t.dataset.runId){state.selectedRunId=t.dataset.runId;ui.renderRuns();applyLanguage()}
   if(t.dataset.partId){state.selectedPartId=t.dataset.partId;ui.renderParts()}
   if(t.dataset.openPart){state.selectedPartId=t.dataset.openPart;setView('parts');ui.renderParts()}
   if(t.dataset.machineId){state.selectedMachineId=t.dataset.machineId;ui.renderMachines()}
@@ -162,7 +164,7 @@ function exportExcel(){
 }
 
 async function startSession(user){
- try{await api.loadIdentity(user);await api.loadAll();$('authOverlay').classList.add('hidden');$('companyContext').textContent=state.companyName;$('userEmail').textContent=user.email;$('storageStatus').textContent='Sistema Actualizado';document.querySelectorAll('.admin-only').forEach(x=>x.hidden=state.role!=='admin');ui.renderAll()}
+ try{await api.loadIdentity(user);await api.loadAll();$('authOverlay').classList.add('hidden');$('companyContext').textContent=state.companyName;$('userEmail').textContent=user.email;$('storageStatus').textContent='Sistema Actualizado';document.querySelectorAll('.admin-only').forEach(x=>x.hidden=state.role!=='admin');ui.renderAll();applyLanguage()}
  catch(e){console.error(e);toast(e.message);$('authOverlay').classList.remove('hidden')}
 }
 function iso(d){return d.toISOString().slice(0,10)}
@@ -178,7 +180,7 @@ function applyPeriod(v){
  $('filterStart').value=iso(s);$('filterEnd').value=iso(e)
 }
 async function init(){
- db=api.initDb();initEvents();window.GUVEL_RENDER_BARCODE=renderBarcode;initTraceability(()=>reload('Producción registrada'));applyPeriod('current');
+ db=api.initDb();initI18n();initEvents();window.GUVEL_RENDER_BARCODE=renderBarcode;initTraceability(()=>reload('Producción registrada'));applyPeriod('current');
  const {data:{session}}=await db.auth.getSession();if(session?.user)await startSession(session.user);
  db.auth.onAuthStateChange(async(event,session)=>{if(event==='SIGNED_OUT'){$('authOverlay').classList.remove('hidden');location.reload()}else if(session?.user)await startSession(session.user)});
 }

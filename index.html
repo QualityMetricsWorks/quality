@@ -8,14 +8,14 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="assets/css/main.css?v=1.0.2">
+  <link rel="stylesheet" href="assets/css/main.css?v=1.0.3">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.6/dist/JsBarcode.all.min.js"></script>
   <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
-  <script src="config.js?v=1.0.2"></script>
-  <script type="module" src="assets/js/app.js?v=1.0.2"></script>
+  <script src="config.js?v=1.0.3"></script>
+  <script type="module" src="assets/js/app.js?v=1.0.3"></script>
 </head>
 <body>
   <header class="guvel-shell">
@@ -30,7 +30,12 @@
 
       <div class="product-context">
         <span class="module-badge"><span class="module-dot"></span> Production & Quality</span>
-        <span class="version-badge">v1.0.2</span>
+        <span class="version-badge">v1.0.3</span>
+        <div class="language-switch" aria-label="Language">
+          <button class="lang-btn active" data-lang="es">ES</button>
+          <span></span>
+          <button class="lang-btn" data-lang="en">EN</button>
+        </div>
       </div>
 
       <div class="account-area">
@@ -72,6 +77,10 @@
         <button class="nav-item" data-view="catalog">
           <span class="nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M5 4h14v16H5V4Zm3 3v2h8V7H8Zm0 4v2h8v-2H8Zm0 4v2h8v-2H8Z"/></svg></span>
           <span>Catálogo</span>
+        </button>
+        <button class="nav-item" data-view="runs">
+          <span class="nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 4h16v4H4V4Zm0 6h16v10H4V10Zm3 3v2h4v-2H7Zm0 4v1h7v-1H7Z"/></svg></span>
+          <span>Corridas</span>
         </button>
         <button class="nav-item" data-view="history">
           <span class="nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 4a8 8 0 1 1-7.75 10H2l3-4 3 4H6.3A6 6 0 1 0 12 6V3l4 3-4 3V6Z"/></svg></span>
@@ -460,6 +469,67 @@
       </div>
     </section>
 
+    <section id="runsView" class="view">
+      <div class="section-intro">
+        <p class="eyebrow">Production Run</p>
+        <h2>Corridas de Producción</h2>
+        <p>Cada corrida concentra la trazabilidad de producción, calidad, mantenimiento, máquina, lote y personal.</p>
+      </div>
+      <div class="split-layout runs-layout">
+        <article class="card list-panel">
+          <div class="card-header"><div><p class="eyebrow">Trazabilidad</p><h3>Corridas <span id="runCount" class="count-badge">0</span></h3></div></div>
+          <input id="runSearch" class="search-input" placeholder="Buscar lote, NP, máquina, operador…">
+          <div id="runList" class="entity-list run-list"></div>
+        </article>
+        <article class="card detail-panel run-detail-panel">
+          <div id="runEmptyState" class="empty-state">Selecciona una corrida para consultar su trazabilidad completa.</div>
+          <div id="runDetail" hidden>
+            <div class="run-detail-header">
+              <div>
+                <p class="eyebrow">Production Run</p>
+                <h2 id="runDetailCode">—</h2>
+                <div class="run-status-line"><span id="runDetailStatus" class="run-status">—</span><span id="runDetailMethod">—</span></div>
+              </div>
+              <div class="run-header-meta"><span>Lote</span><strong id="runDetailLot">—</strong></div>
+            </div>
+
+            <div class="mini-kpi-grid six run-kpis">
+              <div><span>Producción</span><strong id="runDetailProduction">0</strong></div>
+              <div><span>Scrap</span><strong id="runDetailScrap">0</strong></div>
+              <div><span>Yield</span><strong id="runDetailYield">100%</strong></div>
+              <div><span>PPM</span><strong id="runDetailPpm">0</strong></div>
+              <div><span>COPQ</span><strong id="runDetailCopq">$0</strong></div>
+              <div><span>Tiempo Muerto</span><strong id="runDetailDowntime">0 min</strong></div>
+            </div>
+
+            <div class="run-info-grid">
+              <div class="run-info-block"><span>Cliente</span><strong id="runDetailClient">—</strong></div>
+              <div class="run-info-block"><span>Número de Parte</span><strong id="runDetailPart">—</strong></div>
+              <div class="run-info-block"><span>Operación</span><strong id="runDetailOperation">—</strong></div>
+              <div class="run-info-block"><span>Máquina</span><strong id="runDetailMachine">—</strong></div>
+              <div class="run-info-block"><span>CT Ideal</span><strong id="runDetailCycle">—</strong></div>
+              <div class="run-info-block"><span>Turno</span><strong id="runDetailShift">—</strong></div>
+              <div class="run-info-block"><span>Operador</span><strong id="runDetailOperator">—</strong></div>
+              <div class="run-info-block"><span>Supervisor</span><strong id="runDetailSupervisor">—</strong></div>
+              <div class="run-info-block"><span>Registrado</span><strong id="runDetailCreated">—</strong></div>
+              <div class="run-info-block"><span>Completado</span><strong id="runDetailCompleted">—</strong></div>
+            </div>
+
+            <div class="run-section-grid">
+              <section class="run-subsection">
+                <div class="card-header"><div><p class="eyebrow">Calidad</p><h3>Eventos de Calidad</h3></div></div>
+                <div id="runQualityList" class="entity-list compact"></div>
+              </section>
+              <section class="run-subsection">
+                <div class="card-header"><div><p class="eyebrow">Mantenimiento</p><h3>Tiempos Muertos</h3></div></div>
+                <div id="runDowntimeList" class="entity-list compact"></div>
+              </section>
+            </div>
+          </div>
+        </article>
+      </div>
+    </section>
+
     <section id="settingsView" class="view">
       <div class="section-intro"><p class="eyebrow">Administración</p><h2>Configuración Operativa</h2><p>Define los turnos y el tiempo planificado que GUVEL utilizará para calcular OEE.</p></div>
       <div class="split-layout settings-layout">
@@ -514,7 +584,7 @@
       <div class="field"><label>Contraseña</label><input type="password" id="loginPassword" required></div>
       <button class="btn btn-primary btn-block">Ingresar</button>
       <p id="authMessage" class="auth-message"></p>
-      <small class="version-note">GUVEL General System · v1.0.2 · Sprint 1 · Multiempresa</small>
+      <small class="version-note">GUVEL General System · v1.0.3 · Sprint 1 · Multiempresa</small>
     </form>
   </div>
 </body>

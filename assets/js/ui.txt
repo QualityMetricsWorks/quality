@@ -3,7 +3,7 @@ import {state,getClient,getPart,getOperation,getDefect,getRun,getMachine,getPers
 import {metricsForRuns,filteredRuns,defectPareto,topProducts,scrapQtyForRun,copqForEvent,oeeMetrics} from './metrics.js';
 let charts={};
 export function populateSelect(el,items,placeholder,label){if(!el)return;const v=el.value;el.innerHTML=`<option value="">${esc(placeholder)}</option>`+items.map(x=>`<option value="${x.id}">${esc(label(x))}</option>`).join('');if([...el.options].some(o=>o.value===v))el.value=v}
-export function renderAll(){renderSelects();renderDashboard();renderClients();renderParts();renderMachines();renderPersonnel();renderCatalog();renderDowntimeCatalog();renderSettings();renderHistory();renderRunScrapEvents()}
+export function renderAll(){renderSelects();renderDashboard();renderClients();renderParts();renderMachines();renderPersonnel();renderCatalog();renderDowntimeCatalog();renderRuns();renderSettings();renderHistory();renderRunScrapEvents()}
 export function renderSelects(){
  const clientSelects=['filterClient','scrapClient','downtimeClient','partClient','defectClient'];clientSelects.forEach(id=>populateSelect($(id),state.clients,id==='filterClient'?'Todos los clientes':'Selecciona cliente',x=>x.code?`${x.code} · ${x.name}`:x.name));
  updateFilterParts();updateScrapParts();updateDowntimeParts();updateDefectParts();updatePartMachineSelect();populateSelect($('filterMachine'),state.machines,'Todas las máquinas',x=>x.code);
@@ -121,6 +121,30 @@ export function renderCatalog(){
  const q=($('defectSearch')?.value||'').toLowerCase();const rows=state.defects.filter(d=>`${d.code} ${d.name} ${d.category} ${getPart(d.partId)?.number}`.toLowerCase().includes(q));$('defectTableBody').innerHTML=rows.map(d=>{const p=getPart(d.partId);return `<tr><td>${esc(getClient(p?.clientId)?.name||'—')}</td><td>${esc(p?.number||'—')}</td><td>${esc(getOperation(d.operationId)?.code||'General')}</td><td>${esc(d.code)}</td><td>${esc(d.name)}</td><td>${esc(d.category||'—')}</td><td><button class="icon-btn" data-delete-defect="${d.id}">×</button></td></tr>`}).join('')||'<tr><td colspan="7" class="empty-state">Sin defectos.</td></tr>';
 }
 export function renderDowntimeCatalog(){const q=($('downtimeSearch')?.value||'').toLowerCase();const rows=state.downtimeReasons.filter(x=>`${x.code} ${x.name} ${x.category} ${x.downtimeType}`.toLowerCase().includes(q));$('downtimeTableBody').innerHTML=rows.map(x=>`<tr><td>${esc(x.code)}</td><td>${esc(x.name)}</td><td>${esc(x.category||'—')}</td><td><span class="type-badge ${x.downtimeType==='planned'?'planned':'unplanned'}">${x.downtimeType==='planned'?'Planeado':'No planeado'}</span></td><td><button class="icon-btn" data-delete-downtime-reason="${x.id}">×</button></td></tr>`).join('')||'<tr><td colspan="5" class="empty-state">Sin paros configurados.</td></tr>'}
+const runCode=r=>`PR-${String(r.id||'').replaceAll('-','').slice(0,8).toUpperCase()}`;
+export function renderRuns(){
+ const count=$('runCount');if(!count)return;count.textContent=state.runs.length;
+ const q=($('runSearch')?.value||'').toLowerCase();
+ const rows=[...state.runs].sort((a,b)=>String(b.createdAt||b.date).localeCompare(String(a.createdAt||a.date))).filter(r=>{
+  const p=getPart(r.partId),m=getMachine(r.machineId),op=getOperation(r.operationId),oper=getPersonnel(r.operatorId);
+  return `${runCode(r)} ${r.lotNumber||''} ${p?.number||''} ${m?.code||''} ${op?.code||''} ${oper?.fullName||''}`.toLowerCase().includes(q);
+ });
+ $('runList').innerHTML=rows.map(r=>`<button class="entity-item ${r.id===state.selectedRunId?'active':''}" data-run-id="${r.id}"><span><strong>${esc(runCode(r))} · ${esc(r.lotNumber||'Sin lote')}</strong><small>${esc(getPart(r.partId)?.number||'—')} · ${esc(getMachine(r.machineId)?.code||'—')} · ${new Date(r.createdAt||r.date).toLocaleString('es-MX')}</small></span><span>›</span></button>`).join('')||'<div class="empty-state">Sin corridas.</div>';
+ renderRunDetail();
+}
+export function renderRunDetail(){
+ const r=getRun(state.selectedRunId),empty=$('runEmptyState'),detail=$('runDetail');if(!r){empty.hidden=false;detail.hidden=true;return}
+ empty.hidden=true;detail.hidden=false;
+ const p=getPart(r.partId),m=getMachine(r.machineId),op=getOperation(r.operationId),met=metricsForRuns([r]);
+ const quality=state.scrapEvents.filter(x=>x.runId===r.id),downtime=state.downtimeEvents.filter(x=>x.runId===r.id);
+ const mins=downtime.reduce((s,x)=>s+Number(x.minutes||0),0);
+ const ct=state.cycleTimes.find(x=>x.partId===r.partId&&x.operationId===r.operationId&&x.machineId===r.machineId);
+ $('runDetailCode').textContent=runCode(r);$('runDetailStatus').textContent=r.status||'completed';$('runDetailStatus').className=`run-status ${r.status||'completed'}`;$('runDetailMethod').textContent=r.captureMethod||'—';$('runDetailLot').textContent=r.lotNumber||'—';
+ $('runDetailProduction').textContent=number(met.produced);$('runDetailScrap').textContent=number(met.scrap);$('runDetailYield').textContent=percent(met.yieldRate);$('runDetailPpm').textContent=number(Math.round(met.ppm));$('runDetailCopq').textContent=money(met.copq,p?.currency||'USD');$('runDetailDowntime').textContent=`${number(mins)} min`;
+ $('runDetailClient').textContent=getClient(r.clientId)?.name||'—';$('runDetailPart').textContent=p?.number||'—';$('runDetailOperation').textContent=op?`${op.code} · ${op.name}`:'—';$('runDetailMachine').textContent=m?.code||r.machine||'—';$('runDetailCycle').textContent=ct?`${Number(ct.idealCycleSeconds).toFixed(2)} s`:'No configurado';$('runDetailShift').textContent=r.shift||'—';$('runDetailOperator').textContent=getPersonnel(r.operatorId)?.fullName||'—';$('runDetailSupervisor').textContent=getPersonnel(r.supervisorId)?.fullName||'—';$('runDetailCreated').textContent=r.createdAt?new Date(r.createdAt).toLocaleString('es-MX'):'—';$('runDetailCompleted').textContent=r.completedAt?new Date(r.completedAt).toLocaleString('es-MX'):'—';
+ $('runQualityList').innerHTML=quality.map(e=>`<div class="entity-item"><span><strong>${esc(getDefect(e.defectId)?.name||'—')}</strong><small>${esc(dispositionLabel(e.disposition))}</small></span><strong>${number(e.quantity)}</strong></div>`).join('')||'<div class="empty-state">Sin eventos de calidad.</div>';
+ $('runDowntimeList').innerHTML=downtime.map(e=>`<div class="entity-item"><span><strong>${esc(getDowntimeReason(e.reasonId)?.name||'—')}</strong><small>${e.eventType==='planned'?'Planned':'Unplanned'}</small></span><strong>${number(e.minutes)} min</strong></div>`).join('')||'<div class="empty-state">Sin tiempos muertos.</div>';
+}
 export function renderSettings(){
  const el=$('shiftList');if(!el)return;
  el.innerHTML=state.shiftSchedules.map(s=>`<div class="entity-item"><span><strong>${esc(s.code)} · ${esc(s.name)}</strong><small>${esc(String(s.startTime).slice(0,5))} → ${esc(String(s.endTime).slice(0,5))} · ${number(s.breakMinutes)} min excluidos</small></span><button class="icon-btn" data-delete-shift="${s.id}">×</button></div>`).join('')||'<div class="empty-state">Sin turnos configurados.</div>';

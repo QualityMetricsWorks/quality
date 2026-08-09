@@ -1,50 +1,47 @@
-# GUVEL General System v1.0.2
+# GUVEL General System v1.0.3
 
-## OEE activated
-GUVEL now calculates:
-- Availability
-- Performance
-- Quality
-- OEE
+## ES / EN
+A language selector is now displayed beside the version:
+`ES | EN`.
 
-### Planned Production Time
-For each unique `Machine + Date + Shift` represented in the filtered production:
-`Shift duration - configured breaks - Planned downtime events`.
+The selected language is persisted in browser storage and restored on the next visit. The translation layer is centralized in:
+`assets/js/i18n.js`.
 
-### Availability
-`(Planned Production Time - Unplanned Downtime) / Planned Production Time`
+This avoids maintaining separate HTML pages for Spanish and English.
 
-### Performance
-`Σ(Ideal Cycle Time × Total Pieces) / Operating Time`
+## Production Runs
+New **Corridas / Runs** module.
 
-### Quality
-`Good Pieces / Total Pieces`
+A Production Run is not a new duplicate record. It is the traceability view built from the existing:
+- production_runs
+- scrap_events
+- downtime_events
+- personnel
+- part_cycle_times
+- machines
+- operations
 
-### OEE
-`Availability × Performance × Quality`
+Each run shows:
+- Run identifier (`PR-XXXXXXXX`)
+- Lot
+- Customer / Part Number
+- Operation / Machine / Ideal CT
+- Operator / Supervisor
+- Recorded / Completed timestamp
+- Production
+- Scrap
+- Yield
+- PPM
+- COPQ
+- Downtime
+- Quality events
+- Downtime events
 
-Performance and the other components are capped at 100% for dashboard display.
+## Supabase
+No SQL migration is required for v1.0.3.
 
-## Shift Configuration
-Admin users now have **Configuración** where they can define:
-- Shift code/name
-- Start time
-- End time
-- Planned break/excluded minutes
+Upload:
+- index.html
+- assets/
 
-## Downtime capture
-Every downtime event can explicitly be marked:
-- `Planned` — excluded from planned production time, does not penalize Availability.
-- `Unplanned` — reduces operating time and Availability.
-
-The selected downtime catalog reason still provides a default classification, but the event can be overridden at capture.
-
-## Before GitHub
-Run once:
-`sql/migrate_v1.0.1_to_v1.0.2.sql`
-
-Then upload:
-- `index.html`
-- `assets/`
-
-No config.js change required.
+config.js remains unchanged.
