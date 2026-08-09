@@ -1,68 +1,336 @@
-const dictionaries={
- es:{},
- en:{
-  "Dashboard":"Dashboard","Captura":"Capture","Clientes":"Customers","Números de Parte":"Part Numbers","Máquinas":"Machines","Personal":"Personnel","Catálogo":"Catalog","Historial":"History","Corridas":"Runs","Configuración":"Settings",
-  "General":"General","Producción":"Production","Calidad":"Quality","Mantenimiento":"Maintenance",
-  "Gestión General Operativo":"General Operations Management",
-  "Actualizar":"Refresh","Exportar Excel":"Export Excel","Sistema Actualizado":"System Updated","Sincronizando…":"Syncing…","Conectando…":"Connecting…",
-  "Escaneo de Producción":"Production Scan","Capturar Calidad":"Capture Quality","Capturar Tiempo Muerto":"Capture Downtime",
-  "Número de Parte":"Part Number","Operación":"Operation","Máquina":"Machine","Supervisor":"Supervisor","Operador":"Operator","Lote":"Lot","Cantidad":"Quantity","Turno":"Shift",
-  "Defecto":"Defect","Defectos":"Defects","Paros":"Downtime Reasons","Tiempo Muerto":"Downtime","Tiempo Muerto":"Downtime",
-  "Guardar":"Save","Guardar CT":"Save CT","Guardar turno":"Save Shift","Agregar":"Add","Cancelar":"Cancel","Salir":"Exit","Eliminar":"Delete","Editar":"Edit","Continuar":"Continue","Atrás":"Back",
-  "Buscar corrida":"Find Run","Registrar paro":"Register Downtime","Registrar Calidad":"Register Quality","Agregar evento":"Add Event","Confirmar producción":"Confirm Production",
-  "Producción registrada":"Production registered","Calidad":"Quality","Tiempos Muertos":"Downtime","Eventos de Calidad":"Quality Events",
-  "Corridas de Producción":"Production Runs","Trazabilidad":"Traceability","Production Run":"Production Run",
-  "Selecciona una corrida para consultar su trazabilidad completa.":"Select a run to view its complete traceability.",
-  "Cada corrida concentra la trazabilidad de producción, calidad, mantenimiento, máquina, lote y personal.":"Each run consolidates production, quality, maintenance, machine, lot and personnel traceability.",
-  "Cliente":"Customer","Número de Parte":"Part Number","CT Ideal":"Ideal CT","Registrado":"Recorded","Completado":"Completed","Estado":"Status",
-  "Tiempo planificado":"Planned time","Planeado":"Planned","No planeado":"Unplanned","Planned":"Planned","Unplanned":"Unplanned",
-  "Periodo":"Period","Todos los clientes":"All customers","Todas las máquinas":"All machines","Todos los NP":"All PNs",
-  "Semana anterior":"Previous week","Día anterior":"Previous day","Mes anterior":"Previous month","Trimestre anterior":"Previous quarter","Semestre anterior":"Previous half-year","Año anterior":"Previous year","Personalizado":"Custom",
-  "Desde":"From","Hasta":"To","Buscar…":"Search…","Buscar cliente…":"Search customer…","Buscar número de parte…":"Search part number…","Buscar máquina…":"Search machine…","Buscar personal…":"Search personnel…",
-  "Iniciar sesión":"Sign in","Correo":"Email","Contraseña":"Password","Ingresar":"Sign in","Acceso seguro":"Secure access",
-  "Configuración Operativa":"Operational Settings","Turnos":"Shifts","Cómo calcula GUVEL":"How GUVEL Calculates",
-  "Disponibilidad":"Availability","Desempeño de Producción":"Production Performance","OEE y Desempeño":"OEE & Performance",
-  "Scrap por defecto":"Scrap by Defect","Scrap por Número de Parte":"Scrap by Part Number","Pareto por defecto":"Pareto by Defect","Pareto por Número de Parte":"Pareto by Part Number",
-  "Paros por motivo":"Downtime by Reason","Paros por máquina":"Downtime by Machine","Pareto de paros":"Downtime Pareto","Pareto por máquina":"Machine Pareto",
-  "Historial de Producción":"Production History","Historial de Scrap":"Quality History","Historial de Tiempos Muertos":"Downtime History",
-  "Código de barras del Número de Parte":"Part Number Barcode","Imprimir etiqueta":"Print Label","Tiempos Ciclo":"Cycle Times","Operaciones":"Operations"
- }
+const ES_EN={
+  "Salir": "Sign out",
+  "Captura": "Capture",
+  "Clientes": "Customers",
+  "Números de Parte": "Part Numbers",
+  "Máquinas": "Machines",
+  "Personal": "Personnel",
+  "Catálogo": "Catalog",
+  "Corridas": "Runs",
+  "Historial": "History",
+  "Configuración": "Settings",
+  "Conectando…": "Connecting…",
+  "Gestión General Operativo": "General Operations Management",
+  "Actualizar": "Refresh",
+  "Exportar Excel": "Export Excel",
+  "General": "General",
+  "Producción": "Production",
+  "Calidad": "Quality",
+  "Mantenimiento": "Maintenance",
+  "Periodo": "Period",
+  "Actual": "Current",
+  "Semana anterior": "Previous week",
+  "Día anterior": "Previous day",
+  "Mes anterior": "Previous month",
+  "Trimestre anterior": "Previous quarter",
+  "Semestre anterior": "Previous half-year",
+  "Año anterior": "Previous year",
+  "Personalizado": "Custom",
+  "Desde": "From",
+  "Hasta": "To",
+  "Cliente": "Customer",
+  "Número de Parte": "Part Number",
+  "Máquina": "Machine",
+  "Limpiar": "Clear",
+  "Requiere tiempo ciclo configurado": "Requires configured cycle time",
+  "Piezas registradas": "Pieces recorded",
+  "0 piezas": "0 pieces",
+  "Scrap / producción": "Scrap / production",
+  "Buenas / producción": "Good / production",
+  "Costo estándar estimado": "Estimated standard cost",
+  "Tendencia": "Trend",
+  "Concentración de pérdida": "Loss concentration",
+  "Top 3 productos con mayor scrap": "Top 3 products with highest scrap",
+  "OEE y Desempeño": "OEE & Performance",
+  "Disponibilidad, Performance y Quality calculados con los turnos, CT ideal y paros registrados.": "Availability, Performance and Quality calculated from shifts, ideal CT and recorded downtime.",
+  "Configuración requerida": "Configuration required",
+  "Tiempo operativo / planificado": "Operating / planned time",
+  "CT ideal vs tiempo operativo": "Ideal CT vs operating time",
+  "Producción por día": "Production by day",
+  "Distribución y priorización de pérdidas por defecto y Número de Parte.": "Distribution and prioritization of losses by defect and Part Number.",
+  "Scrap por defecto": "Scrap by defect",
+  "Scrap por Número de Parte": "Scrap by Part Number",
+  "Pareto por defecto": "Pareto by defect",
+  "Pareto por Número de Parte": "Pareto by Part Number",
+  "Tiempos Muertos": "Downtime",
+  "Distribución y priorización de paros registrados durante producción.": "Distribution and prioritization of downtime recorded during production.",
+  "Tiempo muerto": "Downtime",
+  "Periodo seleccionado": "Selected period",
+  "Eventos": "Events",
+  "Paros registrados": "Downtime events recorded",
+  "Paros por motivo": "Downtime by reason",
+  "Paros por máquina": "Downtime by machine",
+  "Pareto de paros": "Downtime Pareto",
+  "Pareto por máquina": "Machine Pareto",
+  "Escaneo de Producción": "Production Scan",
+  "Capturar Calidad": "Capture Quality",
+  "Capturar Tiempo Muerto": "Capture Downtime",
+  "NP → Lote → Cantidad → Recursos → Personal → Confirmar": "PN → Lot → Quantity → Resources → Personnel → Confirm",
+  "Registra scrap, retrabajo o disposición contra una corrida": "Record scrap, rework or disposition against a run",
+  "Registra un paro independiente contra una corrida existente": "Record independent downtime against an existing run",
+  "Trazabilidad guiada": "Guided traceability",
+  "Nueva producción": "New production",
+  "Fecha, hora y turno automáticos": "Automatic date, time and shift",
+  "Escanear identificación": "Scan identification",
+  "Lote": "Lot",
+  "Escanear lote / batch": "Scan lot / batch",
+  "Cantidad": "Quantity",
+  "Escanear cantidad de envío": "Scan shipment quantity",
+  "Proceso": "Process",
+  "Operación y máquina": "Operation and machine",
+  "Supervisor y operador": "Supervisor and operator",
+  "Confirmar": "Confirm",
+  "Preview y validación": "Preview and validation",
+  "Cancelar captura": "Cancel capture",
+  "Paso 1 de 6": "Step 1 of 6",
+  "Escanea el Número de Parte": "Scan the Part Number",
+  "El código debe contener únicamente el número de parte o el prefijo": "The code must contain only the part number or the prefix",
+  "Habilitar cámara": "Enable camera",
+  "o utiliza lector USB": "or use a USB scanner",
+  "Continuar": "Continue",
+  "Paso 2 de 6": "Step 2 of 6",
+  "Escanea el lote": "Scan the lot",
+  "Acepta el contenido directo o formato": "Direct content or formatted value accepted",
+  "Paso 3 de 6": "Step 3 of 6",
+  "Escanea la cantidad": "Scan the quantity",
+  "Paso 4 de 6": "Step 4 of 6",
+  "Confirma el proceso": "Confirm the process",
+  "Solo aparecen recursos autorizados para el Número de Parte escaneado.": "Only resources authorized for the scanned Part Number are shown.",
+  "Operación": "Operation",
+  "Atrás": "Back",
+  "Paso 5 de 6": "Step 5 of 6",
+  "Identifica al personal": "Identify personnel",
+  "Los nombres provienen del catálogo para evitar variantes de captura.": "Names come from the personnel catalog to avoid entry variations.",
+  "Supervisor": "Supervisor",
+  "Operador": "Operator",
+  "Generar preview": "Generate preview",
+  "Paso 6 de 6": "Step 6 of 6",
+  "Confirma la producción": "Confirm production",
+  "GUVEL valida la información antes de crear o finalizar la corrida.": "GUVEL validates the information before creating or completing the run.",
+  "Opcional": "Optional",
+  "Tiempos muertos de la corrida": "Run downtime",
+  "Agregar paro": "Add downtime",
+  "Confirmo que la información mostrada corresponde al envío físico.": "I confirm that the displayed information matches the physical shipment.",
+  "Confirmar producción": "Confirm production",
+  "Evento de calidad": "Quality event",
+  "Registrar Calidad": "Record Quality",
+  "Buscar corrida": "Find run",
+  "Completa los datos para localizar la corrida.": "Complete the fields to locate the run.",
+  "Defecto": "Defect",
+  "Disposición": "Disposition",
+  "Retrabajo": "Rework",
+  "Reparación": "Repair",
+  "Uso como está": "Use as is",
+  "Devuelto a proveedor": "Return to supplier",
+  "Pendiente": "Pending",
+  "Costo adicional": "Additional cost",
+  "Motivo / causa": "Reason / cause",
+  "Notas": "Notes",
+  "Cancelar": "Cancel",
+  "Agregar evento": "Add event",
+  "Corrida seleccionada": "Selected run",
+  "Eventos registrados": "Recorded events",
+  "Registrar Tiempo Muerto": "Record Downtime",
+  "Localiza la corrida por lote y contexto productivo. El paro quedará vinculado a esa corrida para mantener trazabilidad.": "Locate the run by lot and production context. Downtime will be linked to that run to preserve traceability.",
+  "Motivo de paro": "Downtime reason",
+  "Tipo": "Type",
+  "Unplanned · Castiga OEE": "Unplanned · Impacts OEE",
+  "Planned · No castiga OEE": "Planned · Does not impact OEE",
+  "Minutos": "Minutes",
+  "Registrar paro": "Record downtime",
+  "Escaneo por cámara": "Camera scanning",
+  "Escanear código": "Scan code",
+  "Centra el código dentro de la cámara. La lectura se procesa automáticamente.": "Center the code in the camera. The scan is processed automatically.",
+  "Maestro": "Master",
+  "Agregar": "Add",
+  "Selecciona un cliente para consultar su ficha.": "Select a customer to view its profile.",
+  "Eliminar": "Delete",
+  "Nuevo NP": "New PN",
+  "Agregar NP": "Add PN",
+  "Selecciona un número de parte para consultar su ficha.": "Select a Part Number to view its profile.",
+  "Editar": "Edit",
+  "Descripción": "Description",
+  "Costo por pieza": "Cost per piece",
+  "Moneda": "Currency",
+  "Guardar cambios": "Save changes",
+  "Costo": "Cost",
+  "Identificación automática": "Automatic identification",
+  "Código de barras del Número de Parte": "Part Number barcode",
+  "Contenido exacto:": "Exact content:",
+  "Imprimir etiqueta": "Print label",
+  "Operaciones": "Operations",
+  "Tiempos Ciclo": "Cycle Times",
+  "Defectos": "Defects",
+  "Vincular máquina": "Link machine",
+  "El tiempo ciclo ideal se configura por": "Ideal cycle time is configured by",
+  ". Esto permite que el mismo producto tenga velocidades distintas según el equipo.": ". This allows the same product to have different rates depending on the machine.",
+  "Guardar CT": "Save CT",
+  "CT ideal": "Ideal CT",
+  "Nuevo defecto": "New defect",
+  "Recursos productivos": "Production resources",
+  "Agregar máquina": "Add machine",
+  "Selecciona una máquina para consultar sus productos vinculados.": "Select a machine to view its linked products.",
+  "NP vinculados": "Linked PNs",
+  "Números de Parte vinculados": "Linked Part Numbers",
+  "Trazabilidad humana": "Personnel traceability",
+  "Operador / Supervisor": "Operator / Supervisor",
+  "Agregar personal": "Add personnel",
+  "Selecciona una persona para consultar su ficha.": "Select a person to view their profile.",
+  "Desactivar": "Deactivate",
+  "Rol": "Role",
+  "Estado": "Status",
+  "Activo": "Active",
+  "Paros": "Downtime Reasons",
+  "Maestro de calidad": "Quality master",
+  "Catálogo de Defectos": "Defect Catalog",
+  "Código": "Code",
+  "Categoría": "Category",
+  "Dimensional": "Dimensional",
+  "Visual": "Visual",
+  "Rosca": "Thread",
+  "Material": "Material",
+  "Otro": "Other",
+  "Agregar defecto": "Add defect",
+  "Defectos configurados": "Configured defects",
+  "Maestro de mantenimiento": "Maintenance master",
+  "Catálogo de Paros": "Downtime Catalog",
+  "Herramienta": "Tooling",
+  "Setup": "Setup",
+  "Logística": "Logistics",
+  "No planeado": "Unplanned",
+  "Planeado": "Planned",
+  "Paros configurados": "Configured downtime reasons",
+  "Motivo": "Reason",
+  "Corridas de Producción": "Production Runs",
+  "Cada corrida concentra la trazabilidad de producción, calidad, mantenimiento, máquina, lote y personal.": "Each run consolidates production, quality, maintenance, machine, lot and personnel traceability.",
+  "Trazabilidad": "Traceability",
+  "Selecciona una corrida para consultar su trazabilidad completa.": "Select a run to view its complete traceability.",
+  "Registrado": "Recorded",
+  "Completado": "Completed",
+  "Eventos de Calidad": "Quality Events",
+  "Administración": "Administration",
+  "Configuración Operativa": "Operational Settings",
+  "Define los turnos y el tiempo planificado que GUVEL utilizará para calcular OEE.": "Define the shifts and planned time GUVEL will use to calculate OEE.",
+  "Turnos": "Shifts",
+  "Inicio": "Start",
+  "Fin": "End",
+  "Descansos / tiempo planeado excluido (min)": "Breaks / excluded planned time (min)",
+  "Guardar turno": "Save shift",
+  "Regla OEE": "OEE Rule",
+  "Cómo calcula GUVEL": "How GUVEL Calculates",
+  "Duración de turno − descansos − paros Planned": "Shift duration − breaks − Planned downtime",
+  "(Planificado − paros Unplanned) / Planificado": "(Planned − Unplanned downtime) / Planned",
+  "Σ(CT ideal × piezas) / Tiempo operativo": "Σ(Ideal CT × pieces) / Operating time",
+  "Piezas buenas / piezas producidas": "Good pieces / produced pieces",
+  "GUVEL cuenta una sola vez el tiempo planificado por combinación": "GUVEL counts planned time once per combination",
+  "Máquina + Fecha + Turno": "Machine + Date + Shift",
+  ", aunque se fabriquen varios números de parte en el mismo turno.": ", even when multiple Part Numbers run in the same shift.",
+  "Scrap / Calidad": "Scrap / Quality",
+  "Historial de Producción": "Production History",
+  "Fecha/Hora": "Date/Time",
+  "Historial de Scrap": "Quality History",
+  "Fecha": "Date",
+  "Historial de Tiempos Muertos": "Downtime History",
+  "Paro": "Downtime",
+  "Acceso seguro": "Secure access",
+  "Iniciar sesión": "Sign in",
+  "Correo": "Email",
+  "Contraseña": "Password",
+  "Ingresar": "Sign in",
+  "Sistema Actualizado": "System Updated",
+  "Sincronizando…": "Syncing…",
+  "Guardado correctamente": "Saved successfully",
+  "Producción registrada": "Production registered",
+  "Sin corridas.": "No runs.",
+  "Sin eventos de calidad.": "No quality events.",
+  "Sin tiempos muertos.": "No downtime.",
+  "Sin lote": "No lot",
+  "No configurado": "Not configured"
 };
+const EN_ES=Object.fromEntries(Object.entries(ES_EN).map(([es,en])=>[en,es]));
 let current=localStorage.getItem('guvel_language')||'es';
-const originalText=new WeakMap(),originalPlaceholder=new WeakMap(),originalTitle=new WeakMap();
 
-function translateTextNode(node,lang){
- const raw=(originalText.get(node)??node.nodeValue);if(!originalText.has(node))originalText.set(node,raw);
- const trimmed=raw.trim();if(!trimmed)return;
- const translated=lang==='en'?dictionaries.en[trimmed]:trimmed;
- if(translated!==undefined){
-  const lead=raw.match(/^\s*/)?.[0]||'',trail=raw.match(/\s*$/)?.[0]||'';
-  node.nodeValue=lead+translated+trail;
- }else node.nodeValue=raw;
+const dynamicRules={
+ en:[
+  [/^(\d[\d,.]*) piezas$/i,'$1 pieces'],
+  [/^(\d[\d,.]*) min$/i,'$1 min'],
+  [/^Selecciona cliente$/,'Select customer'],
+  [/^Selecciona NP$/,'Select PN'],
+  [/^Selecciona operación$/,'Select operation'],
+  [/^Selecciona máquina$/,'Select machine'],
+  [/^Selecciona supervisor$/,'Select supervisor'],
+  [/^Selecciona operador$/,'Select operator'],
+  [/^Selecciona motivo$/,'Select reason'],
+  [/^Todos los clientes$/,'All customers'],
+  [/^Todos los NP$/,'All PNs'],
+  [/^Todas las máquinas$/,'All machines'],
+  [/^Buscar cliente…$/,'Search customer…'],
+  [/^Buscar número de parte…$/,'Search part number…'],
+  [/^Buscar máquina…$/,'Search machine…'],
+  [/^Buscar personal…$/,'Search personnel…'],
+  [/^Buscar lote, NP, máquina, operador…$/,'Search lot, PN, machine, operator…']
+ ],
+ es:[
+  [/^(\d[\d,.]*) pieces$/i,'$1 piezas'],
+  [/^Select customer$/,'Selecciona cliente'],
+  [/^Select PN$/,'Selecciona NP'],
+  [/^Select operation$/,'Selecciona operación'],
+  [/^Select machine$/,'Selecciona máquina'],
+  [/^Select supervisor$/,'Selecciona supervisor'],
+  [/^Select operator$/,'Selecciona operador'],
+  [/^Select reason$/,'Selecciona motivo'],
+  [/^All customers$/,'Todos los clientes'],
+  [/^All PNs$/,'Todos los NP'],
+  [/^All machines$/,'Todas las máquinas'],
+  [/^Search customer…$/,'Buscar cliente…'],
+  [/^Search part number…$/,'Buscar número de parte…'],
+  [/^Search machine…$/,'Buscar máquina…'],
+  [/^Search personnel…$/,'Buscar personal…'],
+  [/^Search lot, PN, machine, operator…$/,'Buscar lote, NP, máquina, operador…']
+ ]
+};
+
+export function tr(value,lang=current){
+ if(value===null||value===undefined)return value;
+ const s=String(value);
+ const exact=lang==='en'?ES_EN[s]:EN_ES[s];
+ if(exact!==undefined)return exact;
+ for(const [rx,repl] of dynamicRules[lang]||[])if(rx.test(s))return s.replace(rx,repl);
+ return s;
 }
-function walk(root,lang){
+
+function translateText(node,lang){
+ const raw=node.nodeValue,trim=raw.trim();if(!trim)return;
+ const next=tr(trim,lang);if(next!==trim){
+   const lead=raw.match(/^\s*/)?.[0]||'',trail=raw.match(/\s*$/)?.[0]||'';
+   node.nodeValue=lead+next+trail;
+ }
+}
+function translateRoot(root,lang){
+ if(!root)return;
  const walker=document.createTreeWalker(root,NodeFilter.SHOW_TEXT);
  let n;while(n=walker.nextNode()){
-  if(n.parentElement?.closest('script,style,svg'))continue;
-  translateTextNode(n,lang);
+   if(n.parentElement?.closest('script,style,svg'))continue;
+   translateText(n,lang);
  }
- root.querySelectorAll('input[placeholder],textarea[placeholder]').forEach(el=>{
-  if(!originalPlaceholder.has(el))originalPlaceholder.set(el,el.placeholder);
-  const es=originalPlaceholder.get(el);el.placeholder=lang==='en'?(dictionaries.en[es]||es):es;
- });
- root.querySelectorAll('[title]').forEach(el=>{
-  if(!originalTitle.has(el))originalTitle.set(el,el.title);
-  const es=originalTitle.get(el);el.title=lang==='en'?(dictionaries.en[es]||es):es;
- });
+ root.querySelectorAll?.('input[placeholder],textarea[placeholder]').forEach(el=>el.placeholder=tr(el.placeholder,lang));
+ root.querySelectorAll?.('[title]').forEach(el=>el.title=tr(el.title,lang));
 }
+function updateControl(){
+ document.documentElement.lang=current;
+ const label=document.getElementById('currentLanguageLabel');if(label)label.textContent=current.toUpperCase();
+ document.querySelectorAll('.language-option').forEach(x=>x.classList.toggle('active',x.dataset.lang===current));
+}
+
 export function applyLanguage(lang=current){
- current=lang;localStorage.setItem('guvel_language',lang);document.documentElement.lang=lang;
- walk(document.body,lang);
- document.querySelectorAll('.lang-btn').forEach(b=>b.classList.toggle('active',b.dataset.lang===lang));
+ current=lang;localStorage.setItem('guvel_language',lang);translateRoot(document.body,lang);updateControl();
 }
 export function initI18n(){
- document.querySelectorAll('.lang-btn').forEach(b=>b.addEventListener('click',()=>applyLanguage(b.dataset.lang)));
- const obs=new MutationObserver(muts=>{for(const m of muts)for(const n of m.addedNodes)if(n.nodeType===1)walk(n,current)});
+ const trigger=document.getElementById('languageMenuBtn'),menu=document.getElementById('languageMenu');
+ trigger?.addEventListener('click',e=>{e.stopPropagation();const open=menu.hidden;menu.hidden=!open;trigger.setAttribute('aria-expanded',String(open))});
+ document.querySelectorAll('.language-option').forEach(b=>b.addEventListener('click',()=>{applyLanguage(b.dataset.lang);menu.hidden=true;trigger?.setAttribute('aria-expanded','false')}));
+ document.addEventListener('click',()=>{if(menu)menu.hidden=true;trigger?.setAttribute('aria-expanded','false')});
+ const obs=new MutationObserver(muts=>{for(const m of muts)for(const n of m.addedNodes)if(n.nodeType===1)translateRoot(n,current);});
  obs.observe(document.body,{childList:true,subtree:true});
  applyLanguage(current);
 }

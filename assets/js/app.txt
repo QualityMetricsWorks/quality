@@ -15,9 +15,24 @@ function setView(view){
  document.querySelectorAll('.nav-item').forEach(x=>x.classList.toggle('active',x.dataset.view===view));
  $('exportBtn').hidden=view!=='history';
  $('pageTitle').textContent=({dashboard:'Dashboard',capture:'Captura',clients:'Clientes',parts:'Números de Parte',machines:'Máquinas',personnel:'Personal',catalog:'Catálogo',runs:'Corridas',history:'Historial',settings:'Configuración'})[view]||view;
+ if(view==='runs')refreshRunsView();else applyLanguage();
 }
 async function reload(msg='Sistema Actualizado'){
  await api.loadAll();ui.renderAll();applyLanguage();$('storageStatus').textContent='Sistema Actualizado';if(msg)toast(msg);
+}
+async function refreshRunsView(){
+ const list=$('runList');if(list)list.innerHTML='<div class="run-loading"><span></span><strong>Cargando corridas…</strong></div>';
+ try{
+  await api.loadAll();
+  if(!state.selectedRunId&&state.runs.length){
+    state.selectedRunId=[...state.runs].sort((a,b)=>String(b.createdAt||b.date||'').localeCompare(String(a.createdAt||a.date||'')))[0].id;
+  }
+  ui.renderRuns();applyLanguage();
+ }catch(e){
+  console.error(e);
+  if(list)list.innerHTML=`<div class="run-zero-state error"><strong>No se pudieron cargar las corridas.</strong><small>${e.message||'Error'}</small></div>`;
+  toast(e.message||'Error al cargar corridas');
+ }
 }
 async function run(fn,msg='Guardado correctamente'){
  try{$('storageStatus').textContent='Sincronizando…';await fn();await reload(msg)}

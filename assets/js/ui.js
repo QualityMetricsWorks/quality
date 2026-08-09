@@ -123,13 +123,23 @@ export function renderCatalog(){
 export function renderDowntimeCatalog(){const q=($('downtimeSearch')?.value||'').toLowerCase();const rows=state.downtimeReasons.filter(x=>`${x.code} ${x.name} ${x.category} ${x.downtimeType}`.toLowerCase().includes(q));$('downtimeTableBody').innerHTML=rows.map(x=>`<tr><td>${esc(x.code)}</td><td>${esc(x.name)}</td><td>${esc(x.category||'—')}</td><td><span class="type-badge ${x.downtimeType==='planned'?'planned':'unplanned'}">${x.downtimeType==='planned'?'Planeado':'No planeado'}</span></td><td><button class="icon-btn" data-delete-downtime-reason="${x.id}">×</button></td></tr>`).join('')||'<tr><td colspan="5" class="empty-state">Sin paros configurados.</td></tr>'}
 const runCode=r=>`PR-${String(r.id||'').replaceAll('-','').slice(0,8).toUpperCase()}`;
 export function renderRuns(){
- const count=$('runCount');if(!count)return;count.textContent=state.runs.length;
- const q=($('runSearch')?.value||'').toLowerCase();
- const rows=[...state.runs].sort((a,b)=>String(b.createdAt||b.date).localeCompare(String(a.createdAt||a.date))).filter(r=>{
-  const p=getPart(r.partId),m=getMachine(r.machineId),op=getOperation(r.operationId),oper=getPersonnel(r.operatorId);
-  return `${runCode(r)} ${r.lotNumber||''} ${p?.number||''} ${m?.code||''} ${op?.code||''} ${oper?.fullName||''}`.toLowerCase().includes(q);
+ const count=$('runCount'),list=$('runList');if(!count||!list)return;
+ const sorted=[...state.runs].sort((a,b)=>String(b.createdAt||b.date||'').localeCompare(String(a.createdAt||a.date||'')));
+ if(!state.selectedRunId&&sorted.length)state.selectedRunId=sorted[0].id;
+ if(state.selectedRunId&&!state.runs.some(x=>x.id===state.selectedRunId))state.selectedRunId=sorted[0]?.id||null;
+ count.textContent=state.runs.length;
+ const q=($('runSearch')?.value||'').trim().toLowerCase();
+ const rows=sorted.filter(r=>{
+  const p=getPart(r.partId),m=getMachine(r.machineId),op=getOperation(r.operationId),oper=getPersonnel(r.operatorId),sup=getPersonnel(r.supervisorId);
+  return `${runCode(r)} ${r.lotNumber||''} ${p?.number||''} ${getClient(r.clientId)?.name||''} ${m?.code||''} ${op?.code||''} ${oper?.fullName||''} ${sup?.fullName||''}`.toLowerCase().includes(q);
  });
- $('runList').innerHTML=rows.map(r=>`<button class="entity-item ${r.id===state.selectedRunId?'active':''}" data-run-id="${r.id}"><span><strong>${esc(runCode(r))} · ${esc(r.lotNumber||'Sin lote')}</strong><small>${esc(getPart(r.partId)?.number||'—')} · ${esc(getMachine(r.machineId)?.code||'—')} · ${new Date(r.createdAt||r.date).toLocaleString('es-MX')}</small></span><span>›</span></button>`).join('')||'<div class="empty-state">Sin corridas.</div>';
+ if(!state.runs.length){
+  list.innerHTML='<div class="run-zero-state"><strong>Sin corridas.</strong><small>No existen registros en production_runs para esta empresa.</small></div>';
+ }else if(!rows.length){
+  list.innerHTML='<div class="run-zero-state"><strong>Sin resultados.</strong><small>Cambia el criterio de búsqueda.</small></div>';
+ }else{
+  list.innerHTML=rows.map(r=>`<button class="entity-item ${r.id===state.selectedRunId?'active':''}" data-run-id="${r.id}"><span><strong>${esc(runCode(r))} · ${esc(r.lotNumber||'Sin lote')}</strong><small>${esc(getPart(r.partId)?.number||'—')} · ${esc(getMachine(r.machineId)?.code||r.machine||'—')} · ${r.createdAt?new Date(r.createdAt).toLocaleString(document.documentElement.lang==='en'?'en-US':'es-MX'):r.date}</small></span><span>›</span></button>`).join('');
+ }
  renderRunDetail();
 }
 export function renderRunDetail(){
@@ -139,9 +149,10 @@ export function renderRunDetail(){
  const quality=state.scrapEvents.filter(x=>x.runId===r.id),downtime=state.downtimeEvents.filter(x=>x.runId===r.id);
  const mins=downtime.reduce((s,x)=>s+Number(x.minutes||0),0);
  const ct=state.cycleTimes.find(x=>x.partId===r.partId&&x.operationId===r.operationId&&x.machineId===r.machineId);
+ const locale=document.documentElement.lang==='en'?'en-US':'es-MX';
  $('runDetailCode').textContent=runCode(r);$('runDetailStatus').textContent=r.status||'completed';$('runDetailStatus').className=`run-status ${r.status||'completed'}`;$('runDetailMethod').textContent=r.captureMethod||'—';$('runDetailLot').textContent=r.lotNumber||'—';
  $('runDetailProduction').textContent=number(met.produced);$('runDetailScrap').textContent=number(met.scrap);$('runDetailYield').textContent=percent(met.yieldRate);$('runDetailPpm').textContent=number(Math.round(met.ppm));$('runDetailCopq').textContent=money(met.copq,p?.currency||'USD');$('runDetailDowntime').textContent=`${number(mins)} min`;
- $('runDetailClient').textContent=getClient(r.clientId)?.name||'—';$('runDetailPart').textContent=p?.number||'—';$('runDetailOperation').textContent=op?`${op.code} · ${op.name}`:'—';$('runDetailMachine').textContent=m?.code||r.machine||'—';$('runDetailCycle').textContent=ct?`${Number(ct.idealCycleSeconds).toFixed(2)} s`:'No configurado';$('runDetailShift').textContent=r.shift||'—';$('runDetailOperator').textContent=getPersonnel(r.operatorId)?.fullName||'—';$('runDetailSupervisor').textContent=getPersonnel(r.supervisorId)?.fullName||'—';$('runDetailCreated').textContent=r.createdAt?new Date(r.createdAt).toLocaleString('es-MX'):'—';$('runDetailCompleted').textContent=r.completedAt?new Date(r.completedAt).toLocaleString('es-MX'):'—';
+ $('runDetailClient').textContent=getClient(r.clientId)?.name||'—';$('runDetailPart').textContent=p?.number||'—';$('runDetailOperation').textContent=op?`${op.code} · ${op.name}`:'—';$('runDetailMachine').textContent=m?.code||r.machine||'—';$('runDetailCycle').textContent=ct?`${Number(ct.idealCycleSeconds).toFixed(2)} s`:'No configurado';$('runDetailShift').textContent=r.shift||'—';$('runDetailOperator').textContent=getPersonnel(r.operatorId)?.fullName||'—';$('runDetailSupervisor').textContent=getPersonnel(r.supervisorId)?.fullName||'—';$('runDetailCreated').textContent=r.createdAt?new Date(r.createdAt).toLocaleString(locale):'—';$('runDetailCompleted').textContent=r.completedAt?new Date(r.completedAt).toLocaleString(locale):'—';
  $('runQualityList').innerHTML=quality.map(e=>`<div class="entity-item"><span><strong>${esc(getDefect(e.defectId)?.name||'—')}</strong><small>${esc(dispositionLabel(e.disposition))}</small></span><strong>${number(e.quantity)}</strong></div>`).join('')||'<div class="empty-state">Sin eventos de calidad.</div>';
  $('runDowntimeList').innerHTML=downtime.map(e=>`<div class="entity-item"><span><strong>${esc(getDowntimeReason(e.reasonId)?.name||'—')}</strong><small>${e.eventType==='planned'?'Planned':'Unplanned'}</small></span><strong>${number(e.minutes)} min</strong></div>`).join('')||'<div class="empty-state">Sin tiempos muertos.</div>';
 }

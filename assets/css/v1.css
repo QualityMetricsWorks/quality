@@ -42,3 +42,15 @@
 .run-section-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:16px}.run-subsection{border-top:2px solid var(--guvel-cyan);padding:14px;border:1px solid var(--color-border);border-top-width:2px}.run-subsection:nth-child(2){border-top-color:var(--guvel-red)}
 @media(max-width:1100px){.runs-layout{grid-template-columns:1fr}.run-info-grid{grid-template-columns:repeat(3,1fr)}}
 @media(max-width:700px){.product-context{display:flex!important;gap:4px}.module-badge{display:none}.language-switch{height:25px}.run-info-grid{grid-template-columns:1fr 1fr}.run-section-grid{grid-template-columns:1fr}}
+
+/* v1.0.4 subtle language selector */
+.language-control{position:relative;display:inline-flex}
+.language-trigger{height:27px;display:inline-flex;align-items:center;gap:5px;padding:0 7px;border:0;background:transparent;color:var(--color-text-muted);font-size:9px;font-weight:800;cursor:pointer;border-radius:4px}
+.language-trigger:hover,.language-trigger[aria-expanded="true"]{background:var(--color-surface-muted);color:var(--color-text)}
+.language-trigger>svg:first-child{width:14px;height:14px;fill:currentColor}.language-chevron{width:11px;height:11px;fill:currentColor}
+.language-menu{position:absolute;right:0;top:34px;z-index:90;min-width:150px;padding:5px;background:#fff;border:1px solid var(--color-border);box-shadow:var(--shadow-md);border-radius:5px}
+.language-menu[hidden]{display:none}.language-option{width:100%;display:flex;justify-content:space-between;align-items:center;border:0;background:transparent;padding:8px 9px;text-align:left;color:var(--color-text-secondary);font-size:10px;cursor:pointer;border-radius:3px}
+.language-option:hover{background:var(--color-surface-subtle)}.language-option.active{color:var(--guvel-cyan-deep);background:var(--guvel-cyan-soft);font-weight:700}.language-option small{font-size:8px;color:var(--color-text-muted)}
+.run-loading,.run-zero-state{display:grid;place-items:center;text-align:center;gap:5px;min-height:130px;padding:20px;color:var(--color-text-muted);border:1px dashed var(--color-border)}
+.run-loading span{width:18px;height:18px;border:2px solid var(--color-border);border-top-color:var(--guvel-cyan);border-radius:50%;animation:guvelSpin .8s linear infinite}.run-loading strong,.run-zero-state strong{font-size:10px;color:var(--color-text-secondary)}.run-zero-state small{font-size:9px}.run-zero-state.error{border-color:#FECDCA;background:#FFF8F7}.run-zero-state.error strong{color:#B42318}
+@keyframes guvelSpin{to{transform:rotate(360deg)}}

@@ -1,47 +1,41 @@
-# GUVEL General System v1.0.3
+# GUVEL General System v1.0.4
+
+## Bugfix: Production Runs
+The Runs module now refreshes `production_runs` directly from Supabase every time the user opens **Corridas / Runs**.
+
+Additional safeguards:
+- Most recent run is selected automatically.
+- Explicit loading state.
+- Explicit zero-record state.
+- Search uses Run ID, lot, customer, PN, operation, machine, operator and supervisor.
+- Run detail opens automatically for the latest run.
+
+No SQL migration is required.
 
 ## ES / EN
-A language selector is now displayed beside the version:
-`ES | EN`.
+The previous ES/EN button pair was replaced with a subtle globe selector beside the version.
 
-The selected language is persisted in browser storage and restored on the next visit. The translation layer is centralized in:
-`assets/js/i18n.js`.
+The translation engine was rebuilt as a bidirectional runtime layer:
+- Navigation
+- Dashboard names and descriptions
+- KPI captions
+- Filters
+- Capture wizard
+- Quality / Downtime capture
+- Master data forms
+- Catalogs
+- Production Runs
+- History
+- Settings
+- Login
+- Placeholders and select helper text
+- Dynamically rendered UI messages
 
-This avoids maintaining separate HTML pages for Spanish and English.
+Language preference remains stored locally in the browser.
 
-## Production Runs
-New **Corridas / Runs** module.
+## Deploy
+Replace:
+- `index.html`
+- `assets/`
 
-A Production Run is not a new duplicate record. It is the traceability view built from the existing:
-- production_runs
-- scrap_events
-- downtime_events
-- personnel
-- part_cycle_times
-- machines
-- operations
-
-Each run shows:
-- Run identifier (`PR-XXXXXXXX`)
-- Lot
-- Customer / Part Number
-- Operation / Machine / Ideal CT
-- Operator / Supervisor
-- Recorded / Completed timestamp
-- Production
-- Scrap
-- Yield
-- PPM
-- COPQ
-- Downtime
-- Quality events
-- Downtime events
-
-## Supabase
-No SQL migration is required for v1.0.3.
-
-Upload:
-- index.html
-- assets/
-
-config.js remains unchanged.
+No changes to `config.js` or Supabase.
