@@ -1,41 +1,18 @@
-# GUVEL General System v1.0.4
+# GUVEL General System v1.1.0
 
-## Bugfix: Production Runs
-The Runs module now refreshes `production_runs` directly from Supabase every time the user opens **Corridas / Runs**.
+### Corrections
+- Production capture explicitly asks for the production shift. Date/time remain server-generated.
+- Header and page toolbar compacted.
 
-Additional safeguards:
-- Most recent run is selected automatically.
-- Explicit loading state.
-- Explicit zero-record state.
-- Search uses Run ID, lot, customer, PN, operation, machine, operator and supervisor.
-- Run detail opens automatically for the latest run.
+### Roles
+- Admin: full control and users.
+- Manager: master data and operational configuration; no users.
+- Supervisor: production, quality/scrap and downtime capture only.
+- Guest: view/filter only.
 
-No SQL migration is required.
+Permissions are enforced in UI and Supabase.
 
-## ES / EN
-The previous ES/EN button pair was replaced with a subtle globe selector beside the version.
+### Users
+Create/invite the account first in Supabase Authentication, then assign it to the company and role from GUVEL Admin. No service key is exposed in the browser.
 
-The translation engine was rebuilt as a bidirectional runtime layer:
-- Navigation
-- Dashboard names and descriptions
-- KPI captions
-- Filters
-- Capture wizard
-- Quality / Downtime capture
-- Master data forms
-- Catalogs
-- Production Runs
-- History
-- Settings
-- Login
-- Placeholders and select helper text
-- Dynamically rendered UI messages
-
-Language preference remains stored locally in the browser.
-
-## Deploy
-Replace:
-- `index.html`
-- `assets/`
-
-No changes to `config.js` or Supabase.
+Run `sql/migrate_v1.0.4_to_v1.1.0.sql` once, then replace `index.html` and `assets/`.

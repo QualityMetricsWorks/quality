@@ -7,9 +7,16 @@ import {initTraceability,renderBarcode,printBarcode} from './traceability.js';
 import {initI18n,applyLanguage} from './i18n.js';
 
 let db;
-const canWrite=()=>['admin','editor','operator'].includes(state.role);
+const canCapture=()=>['admin','manager','supervisor'].includes(state.role);
+const canManage=()=>['admin','manager'].includes(state.role);
+const canAdmin=()=>state.role==='admin';
 
+let currentView='dashboard';
+function applyRolePermissions(){const r=state.role;document.body.dataset.role=r;document.querySelectorAll('.management-access').forEach(x=>x.hidden=!['admin','manager'].includes(r));document.querySelectorAll('.capture-access').forEach(x=>x.hidden=!['admin','manager','supervisor'].includes(r));document.querySelectorAll('.admin-only').forEach(x=>x.hidden=r!=='admin');const allowed={dashboard:true,runs:true,history:true,capture:['admin','manager','supervisor'].includes(r),clients:['admin','manager'].includes(r),parts:['admin','manager'].includes(r),machines:['admin','manager'].includes(r),personnel:['admin','manager'].includes(r),catalog:['admin','manager'].includes(r),settings:['admin','manager'].includes(r)};if(!allowed[currentView])setView('dashboard');}
+async function renderUsersAdmin(){const b=$('usersAdminBody');if(!b||state.role!=='admin')return;try{const rows=await api.listCompanyUsers();b.innerHTML=(rows||[]).map(u=>`<tr><td>${esc(u.email||'—')}</td><td><input class="user-name-edit" value="${esc(u.display_name||'')}" data-user-name="${u.user_id}"></td><td><select class="user-role-edit" data-user-role="${u.user_id}">${['admin','manager','supervisor','guest'].map(r=>`<option value="${r}" ${r===u.role?'selected':''}>${r[0].toUpperCase()+r.slice(1)}</option>`).join('')}</select></td><td>${u.active?'Activo':'Inactivo'}</td><td><button class="btn btn-secondary btn-sm" data-user-save="${u.user_id}">Guardar</button></td></tr>`).join('')||'<tr><td colspan="5" class="empty">No hay usuarios asignados.</td></tr>'}catch(e){b.innerHTML=`<tr><td colspan="5" class="empty">${esc(e.message||'Error')}</td></tr>`}}
+function bindUserAdmin(){$('userAssignForm')?.addEventListener('submit',async e=>{e.preventDefault();if(!canAdmin())return toast('Solo Admin.');try{await api.assignUserProfile({email:$('userAssignEmail').value.trim(),displayName:$('userAssignName').value.trim(),role:$('userAssignRole').value});toast('Usuario asignado correctamente');e.target.reset();await renderUsersAdmin()}catch(err){toast(err.message||'No se pudo asignar el usuario.')}});document.body.addEventListener('click',async e=>{const b=e.target.closest('[data-user-save]');if(!b||!canAdmin())return;const id=b.dataset.userSave,role=document.querySelector(`[data-user-role="${id}"]`)?.value,name=document.querySelector(`[data-user-name="${id}"]`)?.value||'';try{await api.updateUserProfile({userId:id,role,displayName:name,active:true});toast('Permisos actualizados');await renderUsersAdmin()}catch(err){toast(err.message||'No se pudo actualizar el usuario.')}})}
 function setView(view){
+ currentView=view;
  document.querySelectorAll('.view').forEach(x=>x.classList.remove('active'));
  $(`${view}View`)?.classList.add('active');
  document.querySelectorAll('.nav-item').forEach(x=>x.classList.toggle('active',x.dataset.view===view));
@@ -76,6 +83,7 @@ function initEvents(){
  $('refreshDataBtn').addEventListener('click',()=>reload());
  $('signOutBtn').addEventListener('click',()=>db.auth.signOut());
  bindTabs();
+ bindUserAdmin();
 
  $('clearFiltersBtn').addEventListener('click',()=>{['filterStart','filterEnd','filterClient','filterPartNumber','filterMachine'].forEach(id=>$(id).value='');$('filterPeriod').value='current';applyPeriod('current');ui.updateFilterParts();ui.renderDashboard()});
  ['filterStart','filterEnd','filterPartNumber','filterMachine'].forEach(id=>$(id).addEventListener('change',ui.renderDashboard));
@@ -90,7 +98,7 @@ function initEvents(){
  $('findProductionBtn').addEventListener('click',ui.findMatchingRuns);
  $('cancelScrapBtn').addEventListener('click',()=>{resetQualityCapture();toast('Captura de calidad cancelada')});
  $('scrapEventForm').addEventListener('submit',e=>{
-  e.preventDefault();if(!canWrite())return toast('Tu rol es de solo lectura.');
+  e.preventDefault();if(!canCapture())return toast('Tu rol no tiene permisos de captura.');
   const runObj=getRun($('scrapRun').value),qty=Number($('scrapQuantity').value);
   const existing=state.scrapEvents.filter(x=>x.runId===runObj?.id).reduce((s,x)=>s+Number(x.quantity||0),0);
   if(!runObj)return toast('Selecciona una corrida.');
@@ -107,7 +115,7 @@ function initEvents(){
  $('manualDowntimeReason').addEventListener('change',()=>{const r=state.downtimeReasons.find(x=>x.id===$('manualDowntimeReason').value);if(r)$('manualDowntimeType').value=r.downtimeType||'unplanned'});
  $('cancelDowntimeBtn').addEventListener('click',()=>{resetDowntimeCapture();toast('Captura de tiempo muerto cancelada')});
  $('downtimeEventForm').addEventListener('submit',e=>{
-  e.preventDefault();if(!canWrite())return toast('Tu rol es de solo lectura.');
+  e.preventDefault();if(!canCapture())return toast('Tu rol no tiene permisos de captura.');
   const runObj=getRun($('downtimeRun').value);if(!runObj)return toast('Selecciona una corrida.');
   const item={reasonId:$('manualDowntimeReason').value,minutes:Number($('manualDowntimeMinutes').value),eventType:$('manualDowntimeType').value,notes:$('manualDowntimeNotes').value.trim()};
   if(!item.reasonId||item.minutes<=0)return toast('Selecciona motivo y minutos.');
@@ -115,24 +123,24 @@ function initEvents(){
  });
 
  // Shift settings
- $('shiftForm').addEventListener('submit',e=>{e.preventDefault();if(state.role!=='admin')return toast('Solo administrador.');run(()=>api.upsertShift({code:$('shiftCode').value.trim().toUpperCase(),name:$('shiftName').value.trim(),startTime:$('shiftStart').value,endTime:$('shiftEnd').value,breakMinutes:Number($('shiftBreakMinutes').value||0)}),'Turno actualizado').then(()=>e.target.reset())});
+ $('shiftForm').addEventListener('submit',e=>{e.preventDefault();if(!canManage())return toast('Solo Admin o Manager.');run(()=>api.upsertShift({code:$('shiftCode').value.trim().toUpperCase(),name:$('shiftName').value.trim(),startTime:$('shiftStart').value,endTime:$('shiftEnd').value,breakMinutes:Number($('shiftBreakMinutes').value||0)}),'Turno actualizado').then(()=>e.target.reset())});
 
  // Masters
- $('clientForm').addEventListener('submit',e=>{e.preventDefault();run(()=>api.insertClient({name:$('clientName').value.trim(),code:$('clientCode').value.trim()})).then(()=>e.target.reset())});
- $('partForm').addEventListener('submit',e=>{e.preventDefault();run(()=>api.insertPart({clientId:$('partClient').value,number:$('partNumberName').value.trim(),description:$('partDescription').value.trim(),costPerPiece:Number($('partCost').value||0),currency:$('partCurrency').value})).then(()=>e.target.reset())});
- $('partEditForm').addEventListener('submit',e=>{e.preventDefault();if(!state.selectedPartId)return;run(()=>api.updatePart(state.selectedPartId,{description:$('editPartDescription').value.trim(),costPerPiece:Number($('editPartCost').value||0),currency:$('editPartCurrency').value})).then(()=>{$('partEditForm').hidden=true})});
+ $('clientForm').addEventListener('submit',e=>{e.preventDefault();if(!canManage())return toast('Solo Admin o Manager.');run(()=>api.insertClient({name:$('clientName').value.trim(),code:$('clientCode').value.trim()})).then(()=>e.target.reset())});
+ $('partForm').addEventListener('submit',e=>{e.preventDefault();if(!canManage())return toast('Solo Admin o Manager.');run(()=>api.insertPart({clientId:$('partClient').value,number:$('partNumberName').value.trim(),description:$('partDescription').value.trim(),costPerPiece:Number($('partCost').value||0),currency:$('partCurrency').value})).then(()=>e.target.reset())});
+ $('partEditForm').addEventListener('submit',e=>{e.preventDefault();if(!canManage())return toast('Solo Admin o Manager.');if(!state.selectedPartId)return;run(()=>api.updatePart(state.selectedPartId,{description:$('editPartDescription').value.trim(),costPerPiece:Number($('editPartCost').value||0),currency:$('editPartCurrency').value})).then(()=>{$('partEditForm').hidden=true})});
  $('editPartBtn').addEventListener('click',()=>{$('partEditForm').hidden=false});
  $('cancelPartEditBtn').addEventListener('click',()=>{$('partEditForm').hidden=true});
 
  $('partMachineForm').addEventListener('submit',e=>{e.preventDefault();if(!state.selectedPartId||!$('partMachineSelect').value)return;run(()=>api.linkPartMachine(state.selectedPartId,$('partMachineSelect').value))});
- $('cycleTimeForm').addEventListener('submit',e=>{e.preventDefault();if(!state.selectedPartId)return;run(()=>api.upsertCycleTime({partId:state.selectedPartId,operationId:$('cycleTimeOperation').value,machineId:$('cycleTimeMachine').value,idealCycleSeconds:Number($('cycleTimeSeconds').value)}),'Tiempo ciclo actualizado').then(()=>{$('cycleTimeSeconds').value=''})});
+ $('cycleTimeForm').addEventListener('submit',e=>{e.preventDefault();if(!canManage())return toast('Solo Admin o Manager.');if(!state.selectedPartId)return;run(()=>api.upsertCycleTime({partId:state.selectedPartId,operationId:$('cycleTimeOperation').value,machineId:$('cycleTimeMachine').value,idealCycleSeconds:Number($('cycleTimeSeconds').value)}),'Tiempo ciclo actualizado').then(()=>{$('cycleTimeSeconds').value=''})});
  $('cancelCycleTimeBtn').addEventListener('click',()=>{$('cycleTimeForm').reset();ui.renderCycleTimes()});
 
- $('machineForm').addEventListener('submit',e=>{e.preventDefault();run(()=>api.insertMachine({code:$('machineCode').value.trim(),name:$('machineName').value.trim()})).then(()=>e.target.reset())});
- $('personnelForm').addEventListener('submit',e=>{e.preventDefault();run(()=>api.insertPersonnel({employeeNo:$('personnelEmployeeNo').value.trim(),fullName:$('personnelName').value.trim(),role:$('personnelRole').value})).then(()=>e.target.reset())});
+ $('machineForm').addEventListener('submit',e=>{e.preventDefault();if(!canManage())return toast('Solo Admin o Manager.');run(()=>api.insertMachine({code:$('machineCode').value.trim(),name:$('machineName').value.trim()})).then(()=>e.target.reset())});
+ $('personnelForm').addEventListener('submit',e=>{e.preventDefault();if(!canManage())return toast('Solo Admin o Manager.');run(()=>api.insertPersonnel({employeeNo:$('personnelEmployeeNo').value.trim(),fullName:$('personnelName').value.trim(),role:$('personnelRole').value})).then(()=>e.target.reset())});
  $('operationForm').addEventListener('submit',e=>{e.preventDefault();if(!state.selectedPartId)return toast('Selecciona un NP.');run(()=>api.insertOperation({partId:state.selectedPartId,code:$('operationCode').value.trim(),name:$('operationName').value.trim()})).then(()=>e.target.reset())});
- $('defectForm').addEventListener('submit',e=>{e.preventDefault();run(()=>api.insertDefect({partId:$('defectPartNumber').value,operationId:$('defectOperation').value,code:$('defectCode').value.trim(),name:$('defectName').value.trim(),category:$('defectCategory').value})).then(()=>{e.target.reset();ui.renderSelects()})});
- $('downtimeReasonForm').addEventListener('submit',e=>{e.preventDefault();run(()=>api.insertDowntimeReason({code:$('downtimeCode').value.trim(),name:$('downtimeName').value.trim(),category:$('downtimeCategory').value,downtimeType:$('downtimeType').value})).then(()=>e.target.reset())});
+ $('defectForm').addEventListener('submit',e=>{e.preventDefault();if(!canManage())return toast('Solo Admin o Manager.');run(()=>api.insertDefect({partId:$('defectPartNumber').value,operationId:$('defectOperation').value,code:$('defectCode').value.trim(),name:$('defectName').value.trim(),category:$('defectCategory').value})).then(()=>{e.target.reset();ui.renderSelects()})});
+ $('downtimeReasonForm').addEventListener('submit',e=>{e.preventDefault();if(!canManage())return toast('Solo Admin o Manager.');run(()=>api.insertDowntimeReason({code:$('downtimeCode').value.trim(),name:$('downtimeName').value.trim(),category:$('downtimeCategory').value,downtimeType:$('downtimeType').value})).then(()=>e.target.reset())});
 
  // Searches
  $('clientSearch').addEventListener('input',ui.renderClients);$('partSearch').addEventListener('input',ui.renderParts);$('machineSearch').addEventListener('input',ui.renderMachines);$('personnelSearch').addEventListener('input',ui.renderPersonnel);$('defectSearch').addEventListener('input',ui.renderCatalog);$('downtimeSearch').addEventListener('input',ui.renderDowntimeCatalog);$('runSearch').addEventListener('input',ui.renderRuns);$('productionHistorySearch').addEventListener('input',ui.renderHistory);$('scrapHistorySearch').addEventListener('input',ui.renderHistory);
@@ -179,7 +187,7 @@ function exportExcel(){
 }
 
 async function startSession(user){
- try{await api.loadIdentity(user);await api.loadAll();$('authOverlay').classList.add('hidden');$('companyContext').textContent=state.companyName;$('userEmail').textContent=user.email;$('storageStatus').textContent='Sistema Actualizado';document.querySelectorAll('.admin-only').forEach(x=>x.hidden=state.role!=='admin');ui.renderAll();applyLanguage()}
+ try{await api.loadIdentity(user);await api.loadAll();$('authOverlay').classList.add('hidden');$('companyContext').textContent=state.companyName;$('userEmail').textContent=user.email;$('storageStatus').textContent='Sistema Actualizado';applyRolePermissions();await renderUsersAdmin();ui.renderAll();applyLanguage()}
  catch(e){console.error(e);toast(e.message);$('authOverlay').classList.remove('hidden')}
 }
 function iso(d){return d.toISOString().slice(0,10)}

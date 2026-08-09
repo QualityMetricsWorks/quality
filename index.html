@@ -8,14 +8,14 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="assets/css/main.css?v=1.0.4">
+  <link rel="stylesheet" href="assets/css/main.css?v=1.1.0">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.6/dist/JsBarcode.all.min.js"></script>
   <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
-  <script src="config.js?v=1.0.4"></script>
-  <script type="module" src="assets/js/app.js?v=1.0.4"></script>
+  <script src="config.js?v=1.1.0"></script>
+  <script type="module" src="assets/js/app.js?v=1.1.0"></script>
 </head>
 <body>
   <header class="guvel-shell">
@@ -30,7 +30,7 @@
 
       <div class="product-context">
         <span class="module-badge"><span class="module-dot"></span> Production & Quality</span>
-        <span class="version-badge">v1.0.4</span>
+        <span class="version-badge">v1.1.0</span>
         <div class="language-control">
           <button id="languageMenuBtn" class="language-trigger" type="button" aria-haspopup="true" aria-expanded="false" title="Idioma / Language">
             <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20Zm6.9 6h-3.1a15.7 15.7 0 0 0-1.4-3.5A8.1 8.1 0 0 1 18.9 8ZM12 4c.8 1 1.5 2.3 1.9 4h-3.8C10.5 6.3 11.2 5 12 4ZM4.3 14a8 8 0 0 1 0-4h3.4a16.7 16.7 0 0 0 0 4H4.3Zm.8 2h3.1a15.7 15.7 0 0 0 1.4 3.5A8.1 8.1 0 0 1 5.1 16Zm3.1-8H5.1a8.1 8.1 0 0 1 4.5-3.5A15.7 15.7 0 0 0 8.2 8ZM12 20c-.8-1-1.5-2.3-1.9-4h3.8c-.4 1.7-1.1 3-1.9 4Zm2.3-6H9.7a14.6 14.6 0 0 1 0-4h4.6a14.6 14.6 0 0 1 0 4Zm.1 5.5a15.7 15.7 0 0 0 1.4-3.5h3.1a8.1 8.1 0 0 1-4.5 3.5ZM16.3 14a16.7 16.7 0 0 0 0-4h3.4a8 8 0 0 1 0 4h-3.4Z"/></svg>
@@ -60,27 +60,27 @@
           <span class="nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 13h6V4H4v9Zm0 7h6v-5H4v5Zm10 0h6v-9h-6v9Zm0-16v5h6V4h-6Z"/></svg></span>
           <span>Dashboard</span>
         </button>
-        <button class="nav-item" data-view="capture">
+        <button class="nav-item capture-access" data-view="capture">
           <span class="nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M5 4h14v16H5V4Zm3 3v2h8V7H8Zm0 4v2h8v-2H8Zm0 4v2h5v-2H8Z"/></svg></span>
           <span>Captura</span>
         </button>
-        <button class="nav-item" data-view="clients">
+        <button class="nav-item management-access" data-view="clients">
           <span class="nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 20V6l8-3 8 3v14h-5v-5H9v5H4Zm4-9h2V8H8v3Zm6 0h2V8h-2v3Z"/></svg></span>
           <span>Clientes</span>
         </button>
-        <button class="nav-item" data-view="parts">
+        <button class="nav-item management-access" data-view="parts">
           <span class="nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="m12 3 9 5-9 5-9-5 9-5Zm-7 9 7 4 7-4v5l-7 4-7-4v-5Z"/></svg></span>
           <span>Números de Parte</span>
         </button>
-        <button class="nav-item" data-view="machines">
+        <button class="nav-item management-access" data-view="machines">
           <span class="nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M3 20V9h4l2-4h6l2 4h4v11H3Zm4-3h10v-5H7v5Zm3-8h4l-1-2h-2l-1 2Z"/></svg></span>
           <span>Máquinas</span>
         </button>
-        <button class="nav-item" data-view="personnel">
+        <button class="nav-item management-access" data-view="personnel">
           <span class="nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8Zm-7 8c0-3.3 3.1-6 7-6s7 2.7 7 6H5Z"/></svg></span>
           <span>Personal</span>
         </button>
-        <button class="nav-item" data-view="catalog">
+        <button class="nav-item management-access" data-view="catalog">
           <span class="nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M5 4h14v16H5V4Zm3 3v2h8V7H8Zm0 4v2h8v-2H8Zm0 4v2h8v-2H8Z"/></svg></span>
           <span>Catálogo</span>
         </button>
@@ -91,7 +91,7 @@
         <button class="nav-item" data-view="history">
           <span class="nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 4a8 8 0 1 1-7.75 10H2l3-4 3 4H6.3A6 6 0 1 0 12 6V3l4 3-4 3V6Z"/></svg></span>
           <span>Historial</span>
-        </button>        <button class="nav-item admin-only" data-view="settings">
+        </button>        <button class="nav-item management-access" data-view="settings">
           <span class="nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M19.4 13a7.8 7.8 0 0 0 .1-1 7.8 7.8 0 0 0-.1-1l2-1.5-2-3.4-2.4 1a8.5 8.5 0 0 0-1.7-1L15 3.5h-4L10.7 6a8.5 8.5 0 0 0-1.7 1l-2.4-1-2 3.4L6.6 11a7.8 7.8 0 0 0-.1 1 7.8 7.8 0 0 0 .1 1l-2 1.5 2 3.4 2.4-1a8.5 8.5 0 0 0 1.7 1l.3 2.5h4l.3-2.5a8.5 8.5 0 0 0 1.7-1l2.4 1 2-3.4-2-1.5ZM13 15.5A3.5 3.5 0 1 1 13 8a3.5 3.5 0 0 1 0 7.5Z"/></svg></span>
           <span>Configuración</span>
         </button>
@@ -252,7 +252,7 @@
               <div class="trace-title"><p class="eyebrow">Paso 4 de 6</p><h2>Confirma el proceso</h2><p>Solo aparecen recursos autorizados para el Número de Parte escaneado.</p></div>
               <div class="form-grid two-col">
                 <div class="field"><label>Operación</label><select id="traceOperation" required></select></div>
-                <div class="field"><label>Máquina</label><select id="traceMachine" required></select></div>
+                <div class="field"><label>Máquina</label><select id="traceMachine" required></select></div><div class="field"><label>Turno de producción</label><select id="traceShift" required></select></div>
               </div>
               <div id="traceResourceValidation" class="validation-stack"></div>
               <div class="trace-footer-actions"><button class="btn btn-ghost trace-back" data-back-step="3">Atrás</button><button id="traceResourceContinue" class="btn btn-primary">Continuar</button></div>
@@ -562,6 +562,13 @@
           <div class="info-strip">GUVEL cuenta una sola vez el tiempo planificado por combinación <strong>Máquina + Fecha + Turno</strong>, aunque se fabriquen varios números de parte en el mismo turno.</div>
         </article>
       </div>
+      <article id="usersAdminPanel" class="card users-admin-panel admin-only" hidden>
+        <div class="card-header"><div><p class="eyebrow">Seguridad</p><h3>Usuarios y permisos</h3><p class="card-subtitle">Administra los perfiles de acceso de la empresa.</p></div></div>
+        <div class="user-role-grid"><div class="role-info"><strong>Admin</strong><span>Control total. Usuarios, configuración y datos.</span></div><div class="role-info"><strong>Manager</strong><span>Administra maestros y configuración, sin administrar usuarios.</span></div><div class="role-info"><strong>Supervisor</strong><span>Solo captura producción, calidad y tiempos muertos.</span></div><div class="role-info"><strong>Guest</strong><span>Solo visualiza y filtra información.</span></div></div>
+        <form id="userAssignForm" class="user-assign-form"><div class="field"><label>Correo del usuario</label><input id="userAssignEmail" type="email" placeholder="usuario@empresa.com" required></div><div class="field"><label>Nombre</label><input id="userAssignName" placeholder="Nombre visible"></div><div class="field"><label>Rol</label><select id="userAssignRole"><option value="admin">Admin</option><option value="manager">Manager</option><option value="supervisor">Supervisor</option><option value="guest" selected>Guest</option></select></div><button class="btn btn-primary">Asignar usuario</button></form>
+        <div class="user-admin-note">Primero crea o invita el correo en <strong>Supabase Authentication</strong>. Después asígnalo aquí a la empresa y a su rol. GUVEL nunca expone una service key en el navegador.</div>
+        <div class="table-scroll"><table><thead><tr><th>Usuario</th><th>Nombre</th><th>Rol</th><th>Estado</th><th>Acción</th></tr></thead><tbody id="usersAdminBody"></tbody></table></div>
+      </article>
     </section>
 
     <section id="historyView" class="view">
@@ -590,7 +597,7 @@
       <div class="field"><label>Contraseña</label><input type="password" id="loginPassword" required></div>
       <button class="btn btn-primary btn-block">Ingresar</button>
       <p id="authMessage" class="auth-message"></p>
-      <small class="version-note">GUVEL General System · v1.0.4 · Sprint 1 · Multiempresa</small>
+      <small class="version-note">GUVEL General System · v1.1.0 · Sprint 1 · Multiempresa</small>
     </form>
   </div>
 </body>

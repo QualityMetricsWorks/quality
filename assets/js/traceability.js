@@ -3,7 +3,7 @@ import {state,getPart,getClient,getOperation,getMachine,getRun,operationsForPart
 import {populateSelect,renderAll,updateScrapDefects} from './ui.js';
 import * as api from './db.js';
 
-const trace={step:1,partId:'',lotNumber:'',quantity:0,operationId:'',machineId:'',supervisorId:'',operatorId:''};
+const trace={step:1,partId:'',lotNumber:'',quantity:0,operationId:'',machineId:'',shift:'',supervisorId:'',operatorId:''};
 let scanner=null,scanTarget=null,onRegistered=null;
 let pendingDowntime=[];
 
@@ -40,7 +40,7 @@ function validateQty(raw){
 }
 function renderResources(){
  populateSelect($('traceOperation'),operationsForPart(trace.partId),'Selecciona operación',x=>`${x.code} · ${x.name}`);
- populateSelect($('traceMachine'),machinesForPart(trace.partId),'Selecciona máquina',x=>`${x.code}${x.name?' · '+x.name:''}`);
+ populateSelect($('traceMachine'),machinesForPart(trace.partId),'Selecciona máquina',x=>`${x.code}${x.name?' · '+x.name:''}`);populateSelect($('traceShift'),state.shiftSchedules,'Selecciona turno',x=>`${x.code} · ${x.name}`);
  $('traceResourceValidation').innerHTML=`<div class="validation-item">NP identificado y válido</div><div class="validation-item">Máquinas filtradas por relación NP–Máquina</div>`;
 }
 function renderPeople(){
@@ -50,7 +50,7 @@ function renderPeople(){
 function previewRow(label,value,highlight=false){return `<div class="preview-item ${highlight?'highlight':''}"><span>${esc(label)}</span><strong>${esc(value||'—')}</strong></div>`}
 function renderDowntime(){populateSelect($('traceDowntimeReason'),state.downtimeReasons,'Selecciona motivo',x=>`${x.code} · ${x.name} · ${x.downtimeType==='planned'?'Planeado':'No planeado'}`);$('traceDowntimeList').innerHTML=pendingDowntime.map((x,i)=>`<span class="downtime-chip">${esc(state.downtimeReasons.find(r=>r.id===x.reasonId)?.name||'Paro')} · ${number(x.minutes)} min <button type="button" data-remove-downtime="${i}">×</button></span>`).join('')}
 function renderPreview(){renderDowntime();
- trace.operationId=$('traceOperation').value;trace.machineId=$('traceMachine').value;trace.supervisorId=$('traceSupervisor').value;trace.operatorId=$('traceOperator').value;
+ trace.operationId=$('traceOperation').value;trace.machineId=$('traceMachine').value;trace.shift=$('traceShift').value;trace.supervisorId=$('traceSupervisor').value;trace.operatorId=$('traceOperator').value;
  const p=getPart(trace.partId),op=getOperation(trace.operationId),m=getMachine(trace.machineId),sup=getPersonnel(trace.supervisorId),oper=getPersonnel(trace.operatorId);
  $('traceValidation').innerHTML=[
   'Número de Parte válido',
@@ -72,13 +72,13 @@ function renderPreview(){renderDowntime();
   previewRow('Supervisor',sup?.fullName),
   previewRow('Operador',oper?.fullName),
   previewRow('Fecha / Hora','Automático al confirmar'),
-  previewRow('Turno','Automático según horario de empresa'),
+  previewRow('Turno',state.shiftSchedules.find(x=>x.code===trace.shift||x.id===trace.shift)?.name||trace.shift||'—',true),
   previewRow('Método','Escaneo'),
   previewRow('Estado','Completado')
  ].join('');
 }
 function reset(){
- pendingDowntime=[];Object.assign(trace,{step:1,partId:'',lotNumber:'',quantity:0,operationId:'',machineId:'',supervisorId:'',operatorId:''});
+ pendingDowntime=[];Object.assign(trace,{step:1,partId:'',lotNumber:'',quantity:0,operationId:'',machineId:'',shift:'',supervisorId:'',operatorId:''});
  ['tracePartScan','traceLotScan','traceQtyScan'].forEach(id=>$(id).value='');
  ['tracePartResult','traceLotResult','traceValidation','tracePreview'].forEach(id=>$(id).innerHTML='');
  $('traceConfirmCheck').checked=false;
@@ -119,7 +119,7 @@ export function initTraceability(callback){
  $('traceLotContinue').addEventListener('click',()=>{if(validateLot($('traceLotScan').value))setStep(3)});
  $('traceQtyContinue').addEventListener('click',()=>{if(validateQty($('traceQtyScan').value))setStep(4)});
  bindEnter('tracePartScan',validatePart,2);bindEnter('traceLotScan',validateLot,3);bindEnter('traceQtyScan',validateQty,4);
- $('traceResourceContinue').addEventListener('click',()=>{if(!$('traceOperation').value||!$('traceMachine').value)return toast('Selecciona operación y máquina.');trace.operationId=$('traceOperation').value;trace.machineId=$('traceMachine').value;setStep(5)});
+ $('traceResourceContinue').addEventListener('click',()=>{if(!$('traceOperation').value||!$('traceMachine').value||!$('traceShift').value)return toast('Selecciona operación, máquina y turno.');trace.operationId=$('traceOperation').value;trace.machineId=$('traceMachine').value;setStep(5)});
  $('tracePeopleContinue').addEventListener('click',()=>{if(!$('traceSupervisor').value||!$('traceOperator').value)return toast('Selecciona supervisor y operador.');setStep(6)});
  document.querySelectorAll('.trace-back').forEach(b=>b.addEventListener('click',()=>setStep(Number(b.dataset.backStep))));
  $('addTraceDowntimeBtn').addEventListener('click',()=>{const reasonId=$('traceDowntimeReason').value,minutes=Number($('traceDowntimeMinutes').value);if(!reasonId||minutes<=0)return toast('Selecciona motivo y minutos.');pendingDowntime.push({reasonId,minutes,eventType:$('traceDowntimeType').value});$('traceDowntimeMinutes').value='';renderDowntime()});
@@ -128,7 +128,7 @@ export function initTraceability(callback){
   if(!$('traceConfirmCheck').checked)return toast('Confirma la información antes de registrar.');
   try{
    $('traceConfirmBtn').disabled=true;$('traceConfirmBtn').textContent='Registrando…';
-   const data=await api.registerProduction({partId:trace.partId,operationId:trace.operationId,machineId:trace.machineId,quantity:trace.quantity,lotNumber:trace.lotNumber,operatorId:trace.operatorId,supervisorId:trace.supervisorId,status:'completed',captureMethod:'scan'});
+   const data=await api.registerProduction({partId:trace.partId,operationId:trace.operationId,machineId:trace.machineId,quantity:trace.quantity,lotNumber:trace.lotNumber,shift:trace.shift,operatorId:trace.operatorId,supervisorId:trace.supervisorId,status:'completed',captureMethod:'scan'});
    if(pendingDowntime.length)await api.insertDowntimeEvents(data.id,pendingDowntime);
    toast(data?.action==='finalized_partial'?'Parcial finalizado correctamente':'Producción registrada correctamente');
    reset();if(onRegistered)await onRegistered();

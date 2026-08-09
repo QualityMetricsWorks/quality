@@ -277,3 +277,6 @@
   }
   .page-description{max-width:90%}
 }
+
+/* v1.1.0 compact chrome */
+.product-bar{min-height:48px;gap:16px}.product-logo{width:32px;height:32px}.product-name span,.product-name strong{font-size:13px}.product-identity small{margin-top:3px;font-size:8px}.module-badge,.version-badge{min-height:23px;padding:0 7px;font-size:8px}.account-avatar{width:27px;height:27px}.navigation-bar{min-height:40px}.navigation-bar .main-nav{height:40px}.navigation-bar .nav-item{height:40px;padding:0 10px;font-size:9px}.nav-icon,.nav-icon svg{width:13px;height:13px}.nav-status{font-size:8px}.page-toolbar{margin-bottom:14px;padding-bottom:11px}.breadcrumb{font-size:9px}.page-description{margin-top:4px;font-size:9px}

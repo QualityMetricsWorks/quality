@@ -11,7 +11,7 @@ export async function loadIdentity(user){
  state.user=user;
  const {data:p,error}=await db.from('profiles').select('company_id,role,display_name').eq('user_id',user.id).single();
  if(error)throw new Error('Usuario sin perfil/empresa. Ejecuta el bootstrap.');
- state.companyId=p.company_id;state.role=p.role||'viewer';
+ state.companyId=p.company_id;state.role=p.role||'guest';
  const {data:c,error:ce}=await db.from('companies').select('name').eq('id',state.companyId).single();if(ce)throw ce;
  state.companyName=c?.name||'Organización';
 }
@@ -47,6 +47,9 @@ export async function loadAll(){
  state.scrapEvents=s.data.map(x=>({id:x.id,runId:x.production_run_id,defectId:x.defect_id,quantity:Number(x.quantity||0),disposition:x.disposition,reason:x.reason||'',extraCost:Number(x.extra_cost||0),notes:x.notes||'',createdAt:x.created_at}));
  state.selectedClientId=state.selectedClientId||state.clients[0]?.id||null;state.selectedPartId=state.selectedPartId||state.parts[0]?.id||null;
 }
+export async function listCompanyUsers(){return check(await db.rpc('admin_list_company_users'))}
+export async function assignUserProfile(x){return check(await db.rpc('admin_upsert_user_profile',{p_email:x.email,p_role:x.role,p_display_name:x.displayName||null}))}
+export async function updateUserProfile(x){return check(await db.rpc('admin_update_user_profile',{p_user_id:x.userId,p_role:x.role,p_display_name:x.displayName||null,p_active:x.active}))}
 const common=()=>({company_id:state.companyId});
 export async function insertClient(x){return check(await db.from('clients').insert({...common(),name:x.name,code:x.code||null}).select().single())}
 export async function deleteClient(id){check(await db.from('clients').delete().eq('id',id))}
@@ -76,6 +79,7 @@ export async function registerProduction(x){
    p_operation_id:x.operationId,
    p_machine_id:x.machineId,
    p_quantity:x.quantity,
+   p_shift:x.shift,
    p_lot_number:x.lotNumber||null,
    p_operator_id:x.operatorId,
    p_supervisor_id:x.supervisorId,
