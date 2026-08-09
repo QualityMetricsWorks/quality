@@ -48,7 +48,7 @@ function renderPeople(){
  populateSelect($('traceOperator'),activePersonnelByRole('operator'),'Selecciona operador',x=>`${x.employeeNo} · ${x.fullName}`);
 }
 function previewRow(label,value,highlight=false){return `<div class="preview-item ${highlight?'highlight':''}"><span>${esc(label)}</span><strong>${esc(value||'—')}</strong></div>`}
-function renderDowntime(){populateSelect($('traceDowntimeReason'),state.downtimeReasons,'Selecciona motivo',x=>`${x.code} · ${x.name}`);$('traceDowntimeList').innerHTML=pendingDowntime.map((x,i)=>`<span class="downtime-chip">${esc(state.downtimeReasons.find(r=>r.id===x.reasonId)?.name||'Paro')} · ${number(x.minutes)} min <button type="button" data-remove-downtime="${i}">×</button></span>`).join('')}
+function renderDowntime(){populateSelect($('traceDowntimeReason'),state.downtimeReasons,'Selecciona motivo',x=>`${x.code} · ${x.name} · ${x.downtimeType==='planned'?'Planeado':'No planeado'}`);$('traceDowntimeList').innerHTML=pendingDowntime.map((x,i)=>`<span class="downtime-chip">${esc(state.downtimeReasons.find(r=>r.id===x.reasonId)?.name||'Paro')} · ${number(x.minutes)} min <button type="button" data-remove-downtime="${i}">×</button></span>`).join('')}
 function renderPreview(){renderDowntime();
  trace.operationId=$('traceOperation').value;trace.machineId=$('traceMachine').value;trace.supervisorId=$('traceSupervisor').value;trace.operatorId=$('traceOperator').value;
  const p=getPart(trace.partId),op=getOperation(trace.operationId),m=getMachine(trace.machineId),sup=getPersonnel(trace.supervisorId),oper=getPersonnel(trace.operatorId);

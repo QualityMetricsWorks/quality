@@ -8,14 +8,14 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="assets/css/main.css?v=1.0.0">
+  <link rel="stylesheet" href="assets/css/main.css?v=1.0.1">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.6/dist/JsBarcode.all.min.js"></script>
   <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
-  <script src="config.js?v=1.0.0"></script>
-  <script type="module" src="assets/js/app.js?v=1.0.0"></script>
+  <script src="config.js?v=1.0.1"></script>
+  <script type="module" src="assets/js/app.js?v=1.0.1"></script>
 </head>
 <body>
   <header class="guvel-shell">
@@ -30,7 +30,7 @@
 
       <div class="product-context">
         <span class="module-badge"><span class="module-dot"></span> Production & Quality</span>
-        <span class="version-badge">v1.0.0</span>
+        <span class="version-badge">v1.0.1</span>
       </div>
 
       <div class="account-area">
@@ -107,10 +107,10 @@
       <div class="dashboard-tabs" role="tablist">
         <button class="dashboard-tab active" data-dashboard-tab="general">General</button>
         <button class="dashboard-tab" data-dashboard-tab="production">Producción</button>
-        <button class="dashboard-tab" data-dashboard-tab="scrap">Scrap</button>
+        <button class="dashboard-tab" data-dashboard-tab="scrap">Calidad</button>
         <button class="dashboard-tab" data-dashboard-tab="maintenance">Mantenimiento</button>
       </div>
-      <div class="filter-panel card dashboard-filter-panel">
+      <div class="filter-panel card dashboard-filter-panel compact-filters">
         <div class="field"><label>Periodo</label><select id="filterPeriod"><option value="current">Actual</option><option value="previous_week">Semana anterior</option><option value="previous_day">Día anterior</option><option value="previous_month">Mes anterior</option><option value="previous_quarter">Trimestre anterior</option><option value="previous_half">Semestre anterior</option><option value="previous_year">Año anterior</option><option value="custom">Personalizado</option></select></div>
         <div class="field custom-date-field"><label>Desde</label><input type="date" id="filterStart"></div>
         <div class="field custom-date-field"><label>Hasta</label><input type="date" id="filterEnd"></div>
@@ -141,27 +141,42 @@
         <div class="dashboard-grid"><article class="card chart-card wide"><div class="card-header"><h3>Producción por día</h3></div><div class="chart-wrap"><canvas id="productionTrendChart"></canvas></div></article></div>
       </div>
       <div class="dashboard-panel" data-dashboard-panel="scrap">
-        <div class="section-intro"><p class="eyebrow">Calidad</p><h2>Scrap</h2><p>Distribución de pérdidas por defecto y producto.</p></div>
-        <div class="dashboard-grid"><article class="card chart-card"><div class="card-header"><h3>Scrap por defecto</h3></div><div class="chart-wrap"><canvas id="scrapDefectPieChart"></canvas></div></article><article class="card chart-card"><div class="card-header"><h3>Scrap por Número de Parte</h3></div><div class="chart-wrap"><canvas id="scrapPartPieChart"></canvas></div></article></div>
+        <div class="section-intro"><p class="eyebrow">Calidad</p><h2>Calidad</h2><p>Distribución y priorización de pérdidas por defecto y Número de Parte.</p></div>
+        <div class="dashboard-grid">
+          <article class="card chart-card"><div class="card-header"><h3>Scrap por defecto</h3></div><div class="chart-wrap"><canvas id="scrapDefectPieChart"></canvas></div></article>
+          <article class="card chart-card"><div class="card-header"><h3>Scrap por Número de Parte</h3></div><div class="chart-wrap"><canvas id="scrapPartPieChart"></canvas></div></article>
+          <article class="card chart-card"><div class="card-header"><div><p class="eyebrow">80 / 20</p><h3>Pareto por defecto</h3></div></div><div class="chart-wrap"><canvas id="scrapDefectParetoChart"></canvas></div></article>
+          <article class="card chart-card"><div class="card-header"><div><p class="eyebrow">80 / 20</p><h3>Pareto por Número de Parte</h3></div></div><div class="chart-wrap"><canvas id="scrapPartParetoChart"></canvas></div></article>
+        </div>
       </div>
       <div class="dashboard-panel" data-dashboard-panel="maintenance">
-        <div class="section-intro"><p class="eyebrow">Mantenimiento</p><h2>Tiempos Muertos</h2><p>Distribución de paros registrados durante producción.</p></div>
+        <div class="section-intro"><p class="eyebrow">Mantenimiento</p><h2>Tiempos Muertos</h2><p>Distribución y priorización de paros registrados durante producción.</p></div>
         <div class="kpi-grid"><article class="kpi-card warning"><span>Tiempo muerto</span><strong id="kpiDowntime">0 min</strong><small>Periodo seleccionado</small></article><article class="kpi-card"><span>Eventos</span><strong id="kpiDowntimeEvents">0</strong><small>Paros registrados</small></article></div>
-        <div class="dashboard-grid"><article class="card chart-card"><div class="card-header"><h3>Paros por motivo</h3></div><div class="chart-wrap"><canvas id="downtimeReasonPieChart"></canvas></div></article><article class="card chart-card"><div class="card-header"><h3>Paros por máquina</h3></div><div class="chart-wrap"><canvas id="downtimeMachinePieChart"></canvas></div></article></div>
+        <div class="dashboard-grid">
+          <article class="card chart-card"><div class="card-header"><h3>Paros por motivo</h3></div><div class="chart-wrap"><canvas id="downtimeReasonPieChart"></canvas></div></article>
+          <article class="card chart-card"><div class="card-header"><h3>Paros por máquina</h3></div><div class="chart-wrap"><canvas id="downtimeMachinePieChart"></canvas></div></article>
+          <article class="card chart-card"><div class="card-header"><div><p class="eyebrow">80 / 20</p><h3>Pareto de paros</h3></div></div><div class="chart-wrap"><canvas id="downtimeReasonParetoChart"></canvas></div></article>
+          <article class="card chart-card"><div class="card-header"><div><p class="eyebrow">80 / 20</p><h3>Pareto por máquina</h3></div></div><div class="chart-wrap"><canvas id="downtimeMachineParetoChart"></canvas></div></article>
+        </div>
       </div>
     </section>
 
     <section id="captureView" class="view">
-      <div class="capture-mode-grid">
+      <div class="capture-mode-grid capture-mode-grid-3">
         <button class="capture-mode-card active" data-capture-mode="scan">
-          <span class="mode-kicker">Principal</span>
+          <span class="mode-kicker">Producción</span>
           <strong>Escaneo de Producción</strong>
           <small>NP → Lote → Cantidad → Recursos → Personal → Confirmar</small>
         </button>
         <button class="capture-mode-card" data-capture-mode="scrap">
           <span class="mode-kicker">Calidad</span>
-          <strong>Capturar Scrap</strong>
-          <small>Relaciona defectos con una corrida ya registrada</small>
+          <strong>Capturar Calidad</strong>
+          <small>Registra scrap, retrabajo o disposición contra una corrida</small>
+        </button>
+        <button class="capture-mode-card" data-capture-mode="downtime">
+          <span class="mode-kicker">Mantenimiento</span>
+          <strong>Capturar Tiempo Muerto</strong>
+          <small>Registra un paro independiente contra una corrida existente</small>
         </button>
       </div>
 
@@ -240,7 +255,7 @@
       </article>
 <article id="captureScrapPanel" class="capture-mode-panel">
         <div class="card form-card">
-          <div class="card-header"><div><p class="eyebrow">Evento de calidad</p><h3>Registrar Scrap</h3></div></div>
+          <div class="card-header"><div><p class="eyebrow">Evento de calidad</p><h3>Registrar Calidad</h3></div></div>
           <form id="scrapMatchForm" class="form-grid match-grid">
             <div class="field"><label>Lote</label><input id="scrapLot" placeholder="Filtrar por lote"></div>
             <div class="field"><label>Cliente</label><select id="scrapClient" required></select></div>
@@ -261,6 +276,29 @@
             <div class="form-actions full"><button class="btn btn-ghost" type="button" id="cancelScrapBtn">Cancelar</button><button class="btn btn-primary" type="submit">Agregar evento</button></div>
           </form>
           <div class="subsection"><div class="card-header"><div><p class="eyebrow">Corrida seleccionada</p><h3>Eventos registrados</h3></div></div><div class="table-scroll"><table><thead><tr><th>Defecto</th><th>Cantidad</th><th>Disposición</th><th>COPQ</th><th></th></tr></thead><tbody id="runScrapEventsBody"></tbody></table></div></div>
+        </div>
+      </article>
+
+      <article id="captureDowntimePanel" class="capture-mode-panel">
+        <div class="card form-card">
+          <div class="card-header"><div><p class="eyebrow">Mantenimiento</p><h3>Registrar Tiempo Muerto</h3></div></div>
+          <div class="info-strip">Localiza la corrida por lote y contexto productivo. El paro quedará vinculado a esa corrida para mantener trazabilidad.</div>
+          <form id="downtimeMatchForm" class="form-grid match-grid">
+            <div class="field"><label>Lote</label><input id="downtimeLot" placeholder="Filtrar por lote"></div>
+            <div class="field"><label>Cliente</label><select id="downtimeClient" required></select></div>
+            <div class="field"><label>Número de Parte</label><select id="downtimePart" required></select></div>
+            <div class="field"><label>Operación</label><select id="downtimeOperation" required></select></div>
+            <div class="field"><label>Máquina</label><select id="downtimeMachine" required></select></div>
+            <div class="form-actions"><button type="button" class="btn btn-secondary" id="findDowntimeRunBtn">Buscar corrida</button></div>
+          </form>
+          <div class="match-result"><div class="info-strip" id="selectedDowntimeRunSummary">Completa los datos para localizar la corrida.</div><div id="matchedDowntimeRunsList" class="entity-list compact"></div></div>
+          <form id="downtimeEventForm" class="form-grid">
+            <input type="hidden" id="downtimeRun">
+            <div class="field"><label>Motivo de paro</label><select id="manualDowntimeReason" required></select></div>
+            <div class="field"><label>Minutos</label><input id="manualDowntimeMinutes" type="number" min="1" required></div>
+            <div class="field full"><label>Notas</label><textarea id="manualDowntimeNotes" rows="3" placeholder="Opcional"></textarea></div>
+            <div class="form-actions full"><button type="button" id="cancelDowntimeBtn" class="btn btn-ghost">Cancelar</button><button class="btn btn-primary">Registrar paro</button></div>
+          </form>
         </div>
       </article>
 
@@ -328,12 +366,23 @@
               <div class="barcode-actions"><button id="printBarcodeBtn" class="btn btn-secondary btn-sm">Imprimir etiqueta</button></div>
             </div>
 
-            <div class="detail-tabs"><button class="detail-tab active" data-part-tab="operations">Operaciones</button><button class="detail-tab" data-part-tab="machines">Máquinas</button><button class="detail-tab" data-part-tab="defects">Defectos</button><button class="detail-tab" data-part-tab="production">Producción</button><button class="detail-tab" data-part-tab="scrap">Scrap</button></div>
+            <div class="detail-tabs"><button class="detail-tab active" data-part-tab="operations">Operaciones</button><button class="detail-tab" data-part-tab="machines">Máquinas</button><button class="detail-tab" data-part-tab="cycle-times">Tiempos Ciclo</button><button class="detail-tab" data-part-tab="defects">Defectos</button><button class="detail-tab" data-part-tab="production">Producción</button><button class="detail-tab" data-part-tab="scrap">Scrap</button></div>
             <div class="part-tab-panel active" data-part-panel="operations">
               <form id="operationForm" class="inline-form"><input id="operationCode" placeholder="OP20" required><input id="operationName" placeholder="Nombre" required><button class="btn btn-primary">Agregar</button></form><div id="partOperationList" class="entity-list compact"></div>
             </div>
             <div class="part-tab-panel" data-part-panel="machines">
               <form id="partMachineForm" class="inline-form"><select id="partMachineSelect" required></select><span></span><button class="btn btn-primary">Vincular máquina</button></form><div id="partMachineList" class="entity-list compact"></div>
+            </div>
+            <div class="part-tab-panel" data-part-panel="cycle-times">
+              <div class="info-strip">El tiempo ciclo ideal se configura por <strong>NP + Operación + Máquina</strong>. Esto permite que el mismo producto tenga velocidades distintas según el equipo.</div>
+              <form id="cycleTimeForm" class="cycle-time-form">
+                <select id="cycleTimeOperation" required></select>
+                <select id="cycleTimeMachine" required></select>
+                <input id="cycleTimeSeconds" type="number" min="0.01" step="0.01" required placeholder="CT ideal (seg)">
+                <button type="button" id="cancelCycleTimeBtn" class="btn btn-ghost">Salir</button>
+                <button class="btn btn-primary">Guardar CT</button>
+              </form>
+              <div class="table-scroll compact-table"><table><thead><tr><th>Operación</th><th>Máquina</th><th>CT ideal</th><th></th></tr></thead><tbody id="cycleTimeTableBody"></tbody></table></div>
             </div>
             <div class="part-tab-panel" data-part-panel="defects"><button id="partAddDefectBtn" class="btn btn-secondary btn-sm">Nuevo defecto</button><div id="partDefectList" class="entity-list compact"></div></div>
             <div class="part-tab-panel" data-part-panel="production"><div id="partProductionList" class="entity-list compact"></div></div>
@@ -396,8 +445,8 @@
         <article class="card table-card"><div class="card-header"><h3>Defectos configurados</h3><input id="defectSearch" class="search-input small" placeholder="Buscar…"></div><div class="table-scroll"><table><thead><tr><th>Cliente</th><th>NP</th><th>Operación</th><th>Código</th><th>Defecto</th><th>Categoría</th><th></th></tr></thead><tbody id="defectTableBody"></tbody></table></div></article>
       </div>
       <div class="catalog-panel" data-catalog-panel="downtime">
-        <article class="card form-card"><div class="card-header"><div><p class="eyebrow">Maestro de mantenimiento</p><h3>Catálogo de Paros</h3></div></div><form id="downtimeReasonForm" class="form-grid"><div class="field"><label>Código</label><input id="downtimeCode" required placeholder="DT-001"></div><div class="field"><label>Motivo de paro</label><input id="downtimeName" required placeholder="Cambio de herramienta"></div><div class="field"><label>Categoría</label><select id="downtimeCategory"><option>Máquina</option><option>Herramienta</option><option>Material</option><option>Calidad</option><option>Setup</option><option>Personal</option><option>Logística</option><option>Otro</option></select></div><div class="form-actions full"><button type="button" class="btn btn-ghost form-cancel-btn">Cancelar</button><button class="btn btn-primary">Agregar paro</button></div></form></article>
-        <article class="card table-card"><div class="card-header"><h3>Paros configurados</h3><input id="downtimeSearch" class="search-input small" placeholder="Buscar…"></div><div class="table-scroll"><table><thead><tr><th>Código</th><th>Motivo</th><th>Categoría</th><th></th></tr></thead><tbody id="downtimeTableBody"></tbody></table></div></article>
+        <article class="card form-card"><div class="card-header"><div><p class="eyebrow">Maestro de mantenimiento</p><h3>Catálogo de Paros</h3></div></div><form id="downtimeReasonForm" class="form-grid"><div class="field"><label>Código</label><input id="downtimeCode" required placeholder="DT-001"></div><div class="field"><label>Motivo de paro</label><input id="downtimeName" required placeholder="Cambio de herramienta"></div><div class="field"><label>Categoría</label><select id="downtimeCategory"><option>Máquina</option><option>Herramienta</option><option>Material</option><option>Calidad</option><option>Setup</option><option>Personal</option><option>Logística</option><option>Otro</option></select></div><div class="field"><label>Tipo</label><select id="downtimeType"><option value="unplanned">No planeado</option><option value="planned">Planeado</option></select></div><div class="form-actions full"><button type="button" class="btn btn-ghost form-cancel-btn">Cancelar</button><button class="btn btn-primary">Agregar paro</button></div></form></article>
+        <article class="card table-card"><div class="card-header"><h3>Paros configurados</h3><input id="downtimeSearch" class="search-input small" placeholder="Buscar…"></div><div class="table-scroll"><table><thead><tr><th>Código</th><th>Motivo</th><th>Categoría</th><th>Tipo</th><th></th></tr></thead><tbody id="downtimeTableBody"></tbody></table></div></article>
       </div>
     </section>
 
@@ -427,7 +476,7 @@
       <div class="field"><label>Contraseña</label><input type="password" id="loginPassword" required></div>
       <button class="btn btn-primary btn-block">Ingresar</button>
       <p id="authMessage" class="auth-message"></p>
-      <small class="version-note">GUVEL General System · v1.0.0 · Sprint 1 · Multiempresa</small>
+      <small class="version-note">GUVEL General System · v1.0.1 · Sprint 1 · Multiempresa</small>
     </form>
   </div>
 </body>

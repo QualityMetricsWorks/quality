@@ -1,12 +1,27 @@
-# GUVEL General System v1.0.0
+# GUVEL General System v1.0.1
 
-Primera versión estable. Incluye dashboards General / Producción / Scrap / Mantenimiento, captura guiada de producción, tiempos muertos, catálogo de defectos y paros, trazabilidad, exportación desde Historial y navegación GUVEL consolidada.
+## New
+- Cycle time configuration by **Part Number + Operation + Machine**.
+- Dashboard `Scrap` renamed to **Calidad**.
+- Compact dashboard filters.
+- Independent **Tiempo Muerto** capture, while downtime remains available during Production capture.
+- Quality dashboard: Pie + Pareto by Defect and Part Number.
+- Maintenance dashboard: Pie + Pareto by Downtime Reason and Machine.
+- Downtime reasons classified **Planeado / No planeado**.
+- Cleaner v1.0.1 event/navigation code.
 
-## Actualización desde v0.5.0
-1. Ejecutar `sql/migrate_v0.5.0_to_v1.0.0.sql` una sola vez en Supabase.
-2. Reemplazar `index.html` y la carpeta `assets/` en GitHub.
-3. Mantener `config.js` actual.
-4. Esperar el deployment de GitHub Pages y hacer recarga forzada.
+## Why cycle time is not stored only on Part Number
+Low-volume/high-mix production often runs the same part on different machines with different cycle performance. GUVEL stores Ideal CT by:
+`Part + Operation + Machine`.
 
-## Nota OEE
-El KPI queda preparado pero muestra `—` hasta definir tiempo ciclo ideal / estándar de operación. No se fabrica un OEE artificial con datos insuficientes.
+## Before GitHub
+Run once in Supabase:
+`sql/migrate_v1.0.0_to_v1.0.1.sql`
+
+Then upload:
+- `index.html`
+- `assets/`
+- `config.js` can remain unchanged.
+
+## OEE
+v1.0.1 prepares Ideal Cycle Time and Planned/Unplanned downtime. Full OEE is intentionally not enabled until planned production time is defined consistently.

@@ -16,7 +16,7 @@ export async function loadIdentity(user){
  state.companyName=c?.name||'Organización';
 }
 export async function loadAll(){
- const [c,p,o,d,m,pm,pe,dr,de,r,s]=await Promise.all([
+ const [c,p,o,d,m,pm,pe,dr,de,ct,r,s]=await Promise.all([
   db.from('clients').select('*').order('name'),
   db.from('part_numbers').select('*').order('number'),
   db.from('operations').select('*').order('code'),
@@ -26,10 +26,11 @@ export async function loadAll(){
   db.from('personnel').select('*').eq('active',true).order('full_name'),
   db.from('downtime_reasons').select('*').eq('active',true).order('code'),
   db.from('downtime_events').select('*').order('created_at',{ascending:false}),
+  db.from('part_cycle_times').select('*'),
   db.from('production_runs').select('*').order('run_date',{ascending:false}),
   db.from('scrap_events').select('*').order('created_at',{ascending:false})
  ]);
- const err=[c,p,o,d,m,pm,pe,dr,de,r,s].find(x=>x.error)?.error;if(err)throw err;
+ const err=[c,p,o,d,m,pm,pe,dr,de,ct,r,s].find(x=>x.error)?.error;if(err)throw err;
  state.clients=c.data.map(x=>({id:x.id,name:x.name,code:x.code||''}));
  state.parts=p.data.map(x=>({id:x.id,clientId:x.client_id,number:x.number,description:x.description||'',costPerPiece:Number(x.cost_per_piece||0),currency:x.currency||'USD'}));
  state.operations=o.data.map(x=>({id:x.id,partId:x.part_id,code:x.code,name:x.name}));
@@ -37,8 +38,9 @@ export async function loadAll(){
  state.machines=m.data.map(x=>({id:x.id,code:x.code,name:x.name||''}));
  state.partMachines=pm.data.map(x=>({id:x.id,partId:x.part_id,machineId:x.machine_id}));
  state.personnel=pe.data.map(x=>({id:x.id,employeeNo:x.employee_no,fullName:x.full_name,role:x.personnel_role,active:x.active}));
- state.downtimeReasons=dr.data.map(x=>({id:x.id,code:x.code,name:x.name,category:x.category,active:x.active}));
+ state.downtimeReasons=dr.data.map(x=>({id:x.id,code:x.code,name:x.name,category:x.category,downtimeType:x.downtime_type||'unplanned',active:x.active}));
  state.downtimeEvents=de.data.map(x=>({id:x.id,runId:x.run_id,reasonId:x.reason_id,minutes:Number(x.minutes||0),notes:x.notes||'',createdAt:x.created_at}));
+ state.cycleTimes=ct.data.map(x=>({id:x.id,partId:x.part_id,operationId:x.operation_id,machineId:x.machine_id,idealCycleSeconds:Number(x.ideal_cycle_seconds||0)}));
  state.runs=r.data.map(x=>({id:x.id,date:x.run_date,shift:x.shift,clientId:x.client_id,partId:x.part_id,operationId:x.operation_id,machineId:x.machine_id||'',machine:x.machine||'',lotNumber:x.lot_number||'',operatorId:x.operator_id||'',supervisorId:x.supervisor_id||'',status:x.status||'completed',captureMethod:x.capture_method||'manual',manualReason:x.manual_reason||'',produced:Number(x.produced||0),plannedMinutes:Number(x.planned_minutes||0),notes:x.notes||'',completedAt:x.completed_at||'',createdAt:x.created_at}));
  state.scrapEvents=s.data.map(x=>({id:x.id,runId:x.production_run_id,defectId:x.defect_id,quantity:Number(x.quantity||0),disposition:x.disposition,reason:x.reason||'',extraCost:Number(x.extra_cost||0),notes:x.notes||'',createdAt:x.created_at}));
  state.selectedClientId=state.selectedClientId||state.clients[0]?.id||null;state.selectedPartId=state.selectedPartId||state.parts[0]?.id||null;
@@ -52,9 +54,13 @@ export async function deletePart(id){check(await db.from('part_numbers').delete(
 export async function updatePart(id,x){return check(await db.from('part_numbers').update({description:x.description||null,cost_per_piece:x.costPerPiece||0,currency:x.currency||'USD'}).eq('id',id).select().single())}
 
 
-export async function insertDowntimeReason(x){return check(await db.from('downtime_reasons').insert({...common(),code:x.code,name:x.name,category:x.category,active:true}).select().single())}
+export async function insertDowntimeReason(x){return check(await db.from('downtime_reasons').insert({...common(),code:x.code,name:x.name,category:x.category,downtime_type:x.downtimeType||'unplanned',active:true}).select().single())}
 export async function deleteDowntimeReason(id){return check(await db.from('downtime_reasons').update({active:false}).eq('id',id).select().single())}
-export async function insertDowntimeEvents(runId,items){if(!items?.length)return [];return check(await db.from('downtime_events').insert(items.map(x=>({...common(),run_id:runId,reason_id:x.reasonId,minutes:x.minutes}))).select())}
+export async function insertDowntimeEvents(runId,items){if(!items?.length)return [];return check(await db.from('downtime_events').insert(items.map(x=>({...common(),run_id:runId,reason_id:x.reasonId,minutes:x.minutes,notes:x.notes||null}))).select())}
+
+
+export async function upsertCycleTime(x){return check(await db.from('part_cycle_times').upsert({...common(),part_id:x.partId,operation_id:x.operationId,machine_id:x.machineId,ideal_cycle_seconds:x.idealCycleSeconds},{onConflict:'part_id,operation_id,machine_id'}).select().single())}
+export async function deleteCycleTime(id){check(await db.from('part_cycle_times').delete().eq('id',id))}
 
 export async function insertPersonnel(x){return check(await db.from('personnel').insert({...common(),employee_no:x.employeeNo,full_name:x.fullName,personnel_role:x.role,active:true}).select().single())}
 export async function deactivatePersonnel(id){return check(await db.from('personnel').update({active:false}).eq('id',id).select().single())}
