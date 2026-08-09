@@ -13,7 +13,7 @@ function setView(view){
  $(`${view}View`)?.classList.add('active');
  document.querySelectorAll('.nav-item').forEach(x=>x.classList.toggle('active',x.dataset.view===view));
  $('exportBtn').hidden=view!=='history';
- $('pageTitle').textContent=({dashboard:'Dashboard',capture:'Captura',clients:'Clientes',parts:'Números de Parte',machines:'Máquinas',personnel:'Personal',catalog:'Catálogo',history:'Historial'})[view]||view;
+ $('pageTitle').textContent=({dashboard:'Dashboard',capture:'Captura',clients:'Clientes',parts:'Números de Parte',machines:'Máquinas',personnel:'Personal',catalog:'Catálogo',history:'Historial',settings:'Configuración'})[view]||view;
 }
 async function reload(msg='Sistema Actualizado'){
  await api.loadAll();ui.renderAll();$('storageStatus').textContent='Sistema Actualizado';if(msg)toast(msg);
@@ -88,14 +88,18 @@ function initEvents(){
  ['downtimeOperation','downtimeMachine'].forEach(id=>$(id).addEventListener('change',ui.findDowntimeMatchingRuns));
  $('downtimeLot').addEventListener('input',ui.findDowntimeMatchingRuns);
  $('findDowntimeRunBtn').addEventListener('click',ui.findDowntimeMatchingRuns);
+ $('manualDowntimeReason').addEventListener('change',()=>{const r=state.downtimeReasons.find(x=>x.id===$('manualDowntimeReason').value);if(r)$('manualDowntimeType').value=r.downtimeType||'unplanned'});
  $('cancelDowntimeBtn').addEventListener('click',()=>{resetDowntimeCapture();toast('Captura de tiempo muerto cancelada')});
  $('downtimeEventForm').addEventListener('submit',e=>{
   e.preventDefault();if(!canWrite())return toast('Tu rol es de solo lectura.');
   const runObj=getRun($('downtimeRun').value);if(!runObj)return toast('Selecciona una corrida.');
-  const item={reasonId:$('manualDowntimeReason').value,minutes:Number($('manualDowntimeMinutes').value),notes:$('manualDowntimeNotes').value.trim()};
+  const item={reasonId:$('manualDowntimeReason').value,minutes:Number($('manualDowntimeMinutes').value),eventType:$('manualDowntimeType').value,notes:$('manualDowntimeNotes').value.trim()};
   if(!item.reasonId||item.minutes<=0)return toast('Selecciona motivo y minutos.');
   run(()=>api.insertDowntimeEvents(runObj.id,[item]),'Tiempo muerto registrado').then(()=>{$('manualDowntimeMinutes').value='';$('manualDowntimeNotes').value=''});
  });
+
+ // Shift settings
+ $('shiftForm').addEventListener('submit',e=>{e.preventDefault();if(state.role!=='admin')return toast('Solo administrador.');run(()=>api.upsertShift({code:$('shiftCode').value.trim().toUpperCase(),name:$('shiftName').value.trim(),startTime:$('shiftStart').value,endTime:$('shiftEnd').value,breakMinutes:Number($('shiftBreakMinutes').value||0)}),'Turno actualizado').then(()=>e.target.reset())});
 
  // Masters
  $('clientForm').addEventListener('submit',e=>{e.preventDefault();run(()=>api.insertClient({name:$('clientName').value.trim(),code:$('clientCode').value.trim()})).then(()=>e.target.reset())});
@@ -119,7 +123,7 @@ function initEvents(){
  document.querySelectorAll('.form-cancel-btn').forEach(b=>b.addEventListener('click',()=>b.closest('form')?.reset()));
 
  document.body.addEventListener('click',e=>{
-  const t=e.target.closest('[data-client-id],[data-part-id],[data-open-part],[data-machine-id],[data-personnel-id],[data-match-run],[data-match-downtime-run],[data-unlink-machine],[data-delete-operation],[data-delete-defect],[data-delete-run],[data-delete-scrap],[data-delete-downtime-reason],[data-delete-cycle-time]');
+  const t=e.target.closest('[data-client-id],[data-part-id],[data-open-part],[data-machine-id],[data-personnel-id],[data-match-run],[data-match-downtime-run],[data-unlink-machine],[data-delete-operation],[data-delete-defect],[data-delete-run],[data-delete-scrap],[data-delete-downtime-reason],[data-delete-cycle-time],[data-delete-shift]');
   if(!t)return;
   if(t.dataset.clientId){state.selectedClientId=t.dataset.clientId;ui.renderClients()}
   if(t.dataset.partId){state.selectedPartId=t.dataset.partId;ui.renderParts()}
@@ -135,6 +139,7 @@ function initEvents(){
   if(t.dataset.deleteScrap&&confirm('¿Eliminar evento?'))run(()=>api.deleteScrapEvent(t.dataset.deleteScrap));
   if(t.dataset.deleteDowntimeReason&&confirm('¿Desactivar motivo de paro?'))run(()=>api.deleteDowntimeReason(t.dataset.deleteDowntimeReason));
   if(t.dataset.deleteCycleTime&&confirm('¿Eliminar este tiempo ciclo?'))run(()=>api.deleteCycleTime(t.dataset.deleteCycleTime),'Tiempo ciclo eliminado');
+  if(t.dataset.deleteShift&&confirm('¿Desactivar este turno?'))run(()=>api.deactivateShift(t.dataset.deleteShift),'Turno desactivado');
  });
 
  $('deleteClientBtn').addEventListener('click',()=>{if(state.selectedClientId&&confirm('¿Eliminar cliente?'))run(()=>api.deleteClient(state.selectedClientId))});
@@ -157,7 +162,7 @@ function exportExcel(){
 }
 
 async function startSession(user){
- try{await api.loadIdentity(user);await api.loadAll();$('authOverlay').classList.add('hidden');$('companyContext').textContent=state.companyName;$('userEmail').textContent=user.email;$('storageStatus').textContent='Sistema Actualizado';ui.renderAll()}
+ try{await api.loadIdentity(user);await api.loadAll();$('authOverlay').classList.add('hidden');$('companyContext').textContent=state.companyName;$('userEmail').textContent=user.email;$('storageStatus').textContent='Sistema Actualizado';document.querySelectorAll('.admin-only').forEach(x=>x.hidden=state.role!=='admin');ui.renderAll()}
  catch(e){console.error(e);toast(e.message);$('authOverlay').classList.remove('hidden')}
 }
 function iso(d){return d.toISOString().slice(0,10)}

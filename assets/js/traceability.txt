@@ -122,7 +122,7 @@ export function initTraceability(callback){
  $('traceResourceContinue').addEventListener('click',()=>{if(!$('traceOperation').value||!$('traceMachine').value)return toast('Selecciona operación y máquina.');trace.operationId=$('traceOperation').value;trace.machineId=$('traceMachine').value;setStep(5)});
  $('tracePeopleContinue').addEventListener('click',()=>{if(!$('traceSupervisor').value||!$('traceOperator').value)return toast('Selecciona supervisor y operador.');setStep(6)});
  document.querySelectorAll('.trace-back').forEach(b=>b.addEventListener('click',()=>setStep(Number(b.dataset.backStep))));
- $('addTraceDowntimeBtn').addEventListener('click',()=>{const reasonId=$('traceDowntimeReason').value,minutes=Number($('traceDowntimeMinutes').value);if(!reasonId||minutes<=0)return toast('Selecciona motivo y minutos.');pendingDowntime.push({reasonId,minutes});$('traceDowntimeMinutes').value='';renderDowntime()});
+ $('addTraceDowntimeBtn').addEventListener('click',()=>{const reasonId=$('traceDowntimeReason').value,minutes=Number($('traceDowntimeMinutes').value);if(!reasonId||minutes<=0)return toast('Selecciona motivo y minutos.');pendingDowntime.push({reasonId,minutes,eventType:$('traceDowntimeType').value});$('traceDowntimeMinutes').value='';renderDowntime()});
  document.body.addEventListener('click',e=>{const b=e.target.closest('[data-remove-downtime]');if(b){pendingDowntime.splice(Number(b.dataset.removeDowntime),1);renderDowntime()}});
  $('traceConfirmBtn').addEventListener('click',async()=>{
   if(!$('traceConfirmCheck').checked)return toast('Confirma la información antes de registrar.');

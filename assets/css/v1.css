@@ -15,3 +15,14 @@
 .type-badge.unplanned{background:#FFF1F0;color:#B42318;border-color:#FECDCA}
 @media(max-width:1000px){.capture-mode-grid-3{grid-template-columns:1fr}.compact-filters{display:grid!important;grid-template-columns:repeat(3,1fr)}.compact-filters .field{max-width:none}.cycle-time-form{grid-template-columns:1fr 1fr}}
 @media(max-width:650px){.compact-filters{grid-template-columns:1fr 1fr}.cycle-time-form{grid-template-columns:1fr}}
+
+/* v1.0.2 OEE / settings */
+.kpi-grid-4{grid-template-columns:repeat(4,1fr)}
+.settings-layout{align-items:start}
+.oee-rule-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.oee-rule-grid>div{border:1px solid var(--color-border);background:var(--color-surface-subtle);padding:12px}
+.oee-rule-grid span{display:block;color:var(--color-text-muted);font-size:9px;text-transform:uppercase;letter-spacing:.05em}
+.oee-rule-grid strong{display:block;margin-top:5px;font-size:11px;line-height:1.5}
+.oee-rule-main{grid-column:1/-1;border-top:2px solid var(--guvel-cyan)!important}
+.downtime-entry{grid-template-columns:1fr 130px 110px auto!important}
+@media(max-width:800px){.kpi-grid-4,.oee-rule-grid{grid-template-columns:1fr 1fr}.downtime-entry{grid-template-columns:1fr!important}}

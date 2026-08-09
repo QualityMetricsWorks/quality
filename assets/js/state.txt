@@ -1,4 +1,4 @@
-export const state={clients:[],parts:[],operations:[],defects:[],machines:[],partMachines:[],personnel:[],downtimeReasons:[],downtimeEvents:[],cycleTimes:[],runs:[],scrapEvents:[],companyId:null,companyName:'',role:'viewer',user:null,selectedClientId:null,selectedPartId:null,selectedMachineId:null,selectedPersonnelId:null};
+export const state={clients:[],parts:[],operations:[],defects:[],machines:[],partMachines:[],personnel:[],downtimeReasons:[],downtimeEvents:[],cycleTimes:[],shiftSchedules:[],runs:[],scrapEvents:[],companyId:null,companyName:'',role:'viewer',user:null,selectedClientId:null,selectedPartId:null,selectedMachineId:null,selectedPersonnelId:null};
 export const getClient=id=>state.clients.find(x=>x.id===id);
 export const getPart=id=>state.parts.find(x=>x.id===id);
 export const getOperation=id=>state.operations.find(x=>x.id===id);
@@ -21,3 +21,5 @@ export const downtimeForRun=id=>state.downtimeEvents.filter(x=>x.runId===id);
 
 export const cycleTimesForPart=partId=>state.cycleTimes.filter(x=>x.partId===partId);
 export const getCycleTime=(partId,operationId,machineId)=>state.cycleTimes.find(x=>x.partId===partId&&x.operationId===operationId&&x.machineId===machineId);
+
+export const getShift=code=>state.shiftSchedules.find(x=>x.code===code);
