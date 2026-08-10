@@ -147,6 +147,6 @@ export function printBarcode(){
  const p=getPart(state.selectedPartId);if(!p)return;
  const svg=$('partBarcode')?.outerHTML||'';
  const w=window.open('','_blank','width=700,height=450');
- w.document.write(`<html><head><title>${esc(p.number)}</title><style>body{font-family:Arial;display:grid;place-items:center;height:100vh;margin:0}.label{border:1px solid #bbb;padding:24px;text-align:center}.brand{font-size:13px;font-weight:700;margin-bottom:12px}.pn{font-size:20px;font-weight:700;margin:8px}</style></head><body><div class="label"><div class="brand">GUVEL GENERAL SYSTEM</div><div class="pn">${esc(p.number)}</div>${svg}</div><script>window.onload=()=>window.print()<\/script></body></html>`);
+ w.document.write(`<html><head><title>${esc(p.number)}</title><style>body{font-family:Arial;display:grid;place-items:center;height:100vh;margin:0}.label{border:1px solid #bbb;padding:24px;text-align:center}.brand{font-size:13px;font-weight:700;margin-bottom:12px}.pn{font-size:20px;font-weight:700;margin:8px}</style></head><body><div class="label"><div class="brand">Metrics Works GENERAL SYSTEM</div><div class="pn">${esc(p.number)}</div>${svg}</div><script>window.onload=()=>window.print()<\/script></body></html>`);
  w.document.close();
 }
