@@ -1,4 +1,4 @@
-/* GUVEL General System · Production Traceability v0.5.0 */
+/* Metrics Works General System · Production Traceability v0.5.0 */
 .capture-mode-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:16px}
 .capture-mode-card{position:relative;text-align:left;padding:16px;background:#fff;border:1px solid var(--color-border);border-top:2px solid var(--color-border-strong);border-radius:var(--radius-sm);color:var(--color-text)}
 .capture-mode-card:hover{border-color:#9ADDE9}.capture-mode-card.active{border-top-color:var(--guvel-cyan);background:#F8FEFF;box-shadow:0 0 0 1px rgba(12,193,224,.12)}

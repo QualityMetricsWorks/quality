@@ -1,8 +1,8 @@
-# GUVEL Scrap v0.4.0 — Sprint 1 / Step 3
+# Metrics Works Scrap v0.4.0 — Sprint 1 / Step 3
 
 ## Application Shell completed
-- Two-level GUVEL shell:
-  - Product bar: GUVEL brand, Scrap module, company/user context.
+- Two-level Metrics Works shell:
+  - Product bar: Metrics Works brand, Scrap module, company/user context.
   - Operational navigation bar: Dashboard, Captura, Clientes, NP, Máquinas, Catálogo, Historial.
 - SVG navigation icons.
 - Responsive shell for laptop/tablet/mobile.
@@ -12,12 +12,12 @@
 
 ## Chart identity
 Legacy dark-blue/orange Chart.js colors were removed.
-- Scrap: GUVEL Red `#FF3131`
-- PPM: GUVEL Red `#FF3131`
-- COPQ: GUVEL Red `#FF3131`
-- Yield: GUVEL Cyan `#0CC1E0`
-- Pareto bars: GUVEL Red
-- Pareto cumulative line: GUVEL Cyan
+- Scrap: Metrics Works Red `#FF3131`
+- PPM: Metrics Works Red `#FF3131`
+- COPQ: Metrics Works Red `#FF3131`
+- Yield: Metrics Works Cyan `#0CC1E0`
+- Pareto bars: Metrics Works Red
+- Pareto cumulative line: Metrics Works Cyan
 
 Yield remains fixed to the 50–100% range.
 

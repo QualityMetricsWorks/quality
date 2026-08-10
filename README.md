@@ -1,4 +1,4 @@
-# GUVEL General System v1.4.1
+# Metrics Works General System v1.4.1
 
 ## Changes
 1. Expanded ES/EN translation coverage across Users, Audit History, Data, Runs and dynamically generated labels.
@@ -6,7 +6,7 @@
 3. Added Light/Dark mode.
    - Stored in browser localStorage as `guvel_theme`.
    - No Supabase migration required.
-   - Dark mode keeps GUVEL cyan/red identity and uses an industrial dark neutral palette.
+   - Dark mode keeps Metrics Works cyan/red identity and uses an industrial dark neutral palette.
 
 ## Deploy
 Replace:
