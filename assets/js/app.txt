@@ -27,7 +27,7 @@ async function renderUsersAdmin(){
    <td class="user-last-access">${u.last_sign_in_at?new Date(u.last_sign_in_at).toLocaleString(document.documentElement.lang==='en'?'en-US':'es-MX'):'—'}</td>
    <td><button class="btn btn-secondary btn-sm" data-user-save="${u.user_id}">Guardar</button></td>
   </tr>`).join('')||'<tr><td colspan="6" class="empty">No hay usuarios asignados.</td></tr>';
- }catch(e){console.error('GUVEL users module:',e);const count=$('usersCount');if(count)count.textContent='0';b.innerHTML='<tr><td colspan="6" class="empty">No se pudo cargar Usuarios. El acceso al portal continúa disponible.</td></tr>'}
+ }catch(e){console.error('Metrics Works users module:',e);const count=$('usersCount');if(count)count.textContent='0';b.innerHTML='<tr><td colspan="6" class="empty">No se pudo cargar Usuarios. El acceso al portal continúa disponible.</td></tr>'}
 }
 function bindUserAdmin(){$('userAssignForm')?.addEventListener('submit',async e=>{e.preventDefault();if(!canAdmin())return toast('Solo Admin.');try{await api.assignUserProfile({email:$('userAssignEmail').value.trim(),displayName:$('userAssignName').value.trim(),role:$('userAssignRole').value});toast('Usuario asignado correctamente');e.target.reset();await renderUsersAdmin()}catch(err){toast(err.message||'No se pudo asignar el usuario.')}});document.body.addEventListener('click',async e=>{const b=e.target.closest('[data-user-save]');if(!b||!canAdmin())return;const id=b.dataset.userSave,role=document.querySelector(`[data-user-role="${id}"]`)?.value,name=document.querySelector(`[data-user-name="${id}"]`)?.value||'';try{await api.updateUserProfile({userId:id,role,displayName:name,active:true});toast('Permisos actualizados');await renderUsersAdmin()}catch(err){toast(err.message||'No se pudo actualizar el usuario.')}})}
 function setView(view){
@@ -71,7 +71,7 @@ async function refreshAuditView(){
   renderAuditHistory();
   applyLanguage();
  }catch(e){
-  console.error('GUVEL audit:',e);
+  console.error('Metrics Works audit:',e);
   body.innerHTML=`<tr><td colspan="6"><div class="run-zero-state error"><strong>No se pudo cargar el historial.</strong><small>${esc(e.message||'Error')}</small></div></td></tr>`;
  }
 }
@@ -276,7 +276,7 @@ function exportExcel(){
  const production=state.runs.map(r=>{const m=metricsForRuns([r]);return{Fecha:r.date,Turno:r.shift,Cliente:getClient(r.clientId)?.name,NP:getPart(r.partId)?.number,Operacion:state.operations.find(x=>x.id===r.operationId)?.code,Maquina:state.machines.find(x=>x.id===r.machineId)?.code,Produccion:r.produced,Scrap:m.scrap,Yield:m.yieldRate,PPM:m.ppm,COPQ:m.copq}});
  const quality=state.scrapEvents.map(e=>{const r=getRun(e.runId),p=getPart(r?.partId);return{Fecha:r?.date,Cliente:getClient(r?.clientId)?.name,NP:p?.number,Defecto:state.defects.find(x=>x.id===e.defectId)?.name,Cantidad:e.quantity,Disposicion:e.disposition,COPQ:copqForEvent(e)}});
  const downtime=state.downtimeEvents.map(e=>{const r=getRun(e.runId),reason=state.downtimeReasons.find(x=>x.id===e.reasonId);return{Fecha:r?.date,Cliente:getClient(r?.clientId)?.name,NP:getPart(r?.partId)?.number,Maquina:state.machines.find(x=>x.id===r?.machineId)?.code,Paro:reason?.name,Tipo:reason?.downtimeType,Minutos:e.minutes}});
- const wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(production),'Produccion');XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(quality),'Calidad');XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(downtime),'Mantenimiento');XLSX.writeFile(wb,'GUVEL_General_System_v1.0.1.xlsx');
+ const wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(production),'Produccion');XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(quality),'Calidad');XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(downtime),'Mantenimiento');XLSX.writeFile(wb,'Metrics Works_General_System_v1.0.1.xlsx');
 }
 
 async function startSession(user){
@@ -296,7 +296,7 @@ function applyPeriod(v){
  $('filterStart').value=iso(s);$('filterEnd').value=iso(e)
 }
 async function init(){
- db=api.initDb();initI18n();initEvents();window.GUVEL_RENDER_BARCODE=renderBarcode;initTraceability(()=>reload('Producción registrada'));applyPeriod('current');
+ db=api.initDb();initI18n();initEvents();window.Metrics Works_RENDER_BARCODE=renderBarcode;initTraceability(()=>reload('Producción registrada'));applyPeriod('current');
  const {data:{session}}=await db.auth.getSession();if(session?.user)await startSession(session.user);
  db.auth.onAuthStateChange(async(event,session)=>{if(event==='SIGNED_OUT'){$('authOverlay').classList.remove('hidden');location.reload()}else if(session?.user)await startSession(session.user)});
 }

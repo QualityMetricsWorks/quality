@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <meta name="description" content="GUVEL General System - Smarter Quality Solutions">
-  <title>GUVEL General System</title>
+  <meta name="description" content="Metrics Works General System - Smarter Quality Solutions">
+  <title>Metrics Works General System</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -16,12 +16,13 @@
   <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
   <script src="config.js?v=1.1.1"></script>
   <script type="module" src="assets/js/app.js?v=1.1.1"></script>
+<link rel="stylesheet" href="assets/css/metrics-works-proposal.css">
 </head>
 <body>
   <header class="guvel-shell">
     <div class="product-bar">
       <div class="product-brand">
-        <img class="product-logo" src="assets/img/guvel-logo.jpeg" alt="GUVEL">
+        <img class="product-logo" src="assets/img/metrics-works-logo.jpg" alt="Metrics Works">
         <div class="product-identity">
           <div class="product-name"><span class="brand-gu">GU</span><span class="brand-vel">VEL</span><strong>General System</strong></div>
           <small>Smarter Quality Solutions</small>
@@ -60,7 +61,7 @@
     </div>
 
     <div class="navigation-bar">
-      <nav class="main-nav" aria-label="Navegación de GUVEL General System">
+      <nav class="main-nav" aria-label="Navegación de Metrics Works General System">
         <button class="nav-item active" data-view="dashboard">
           <span class="nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 13h6V4H4v9Zm0 7h6v-5H4v5Zm10 0h6v-9h-6v9Zm0-16v5h6V4h-6Z"/></svg></span>
           <span>Dashboard</span>
@@ -119,7 +120,7 @@
   <main class="main-content">
     <section class="topbar page-toolbar">
       <div class="page-heading">
-        <div class="breadcrumb"><span>GUVEL General System</span><span>/</span><strong id="pageTitle">Dashboard</strong></div>
+        <div class="breadcrumb"><span>Metrics Works General System</span><span>/</span><strong id="pageTitle">Dashboard</strong></div>
         <p class="page-description">Gestión General Operativo</p>
       </div>
       <div class="topbar-actions">
@@ -281,7 +282,7 @@
             </div>
 
             <div class="trace-step-panel" data-trace-panel="6">
-              <div class="trace-title"><p class="eyebrow">Paso 6 de 6</p><h2>Confirma la producción</h2><p>GUVEL valida la información antes de crear o finalizar la corrida.</p></div>
+              <div class="trace-title"><p class="eyebrow">Paso 6 de 6</p><h2>Confirma la producción</h2><p>Metrics Works valida la información antes de crear o finalizar la corrida.</p></div>
               <div id="traceValidation" class="validation-stack"></div>
               <div id="tracePreview" class="trace-preview"></div>
               <div class="downtime-capture-box"><div class="card-header"><div><p class="eyebrow">Opcional</p><h3>Tiempos muertos de la corrida</h3></div></div><div class="downtime-entry"><select id="traceDowntimeReason"></select><select id="traceDowntimeType"><option value="unplanned">Unplanned</option><option value="planned">Planned</option></select><input id="traceDowntimeMinutes" type="number" min="1" placeholder="Minutos"><button type="button" id="addTraceDowntimeBtn" class="btn btn-secondary">Agregar paro</button></div><div id="traceDowntimeList" class="downtime-chip-list"></div></div><label class="confirm-check"><input type="checkbox" id="traceConfirmCheck"><span>Confirmo que la información mostrada corresponde al envío físico.</span></label>
@@ -550,7 +551,7 @@
     </section>
 
     <section id="settingsView" class="view">
-      <div class="section-intro"><p class="eyebrow">Administración</p><h2>Configuración Operativa</h2><p>Define los turnos y el tiempo planificado que GUVEL utilizará para calcular OEE.</p></div>
+      <div class="section-intro"><p class="eyebrow">Administración</p><h2>Configuración Operativa</h2><p>Define los turnos y el tiempo planificado que Metrics Works utilizará para calcular OEE.</p></div>
       <div class="split-layout settings-layout">
         <article class="card list-panel">
           <div class="card-header"><div><p class="eyebrow">OEE</p><h3>Turnos</h3></div></div>
@@ -564,7 +565,7 @@
           <div id="shiftList" class="entity-list compact"></div>
         </article>
         <article class="card detail-panel">
-          <div class="card-header"><div><p class="eyebrow">Regla OEE</p><h3>Cómo calcula GUVEL</h3></div></div>
+          <div class="card-header"><div><p class="eyebrow">Regla OEE</p><h3>Cómo calcula Metrics Works</h3></div></div>
           <div class="oee-rule-grid">
             <div><span>Planned Production Time</span><strong>Duración de turno − descansos − paros Planned</strong></div>
             <div><span>Availability</span><strong>(Planificado − paros Unplanned) / Planificado</strong></div>
@@ -572,7 +573,7 @@
             <div><span>Quality</span><strong>Piezas buenas / piezas producidas</strong></div>
             <div class="oee-rule-main"><span>OEE</span><strong>Availability × Performance × Quality</strong></div>
           </div>
-          <div class="info-strip">GUVEL cuenta una sola vez el tiempo planificado por combinación <strong>Máquina + Fecha + Turno</strong>, aunque se fabriquen varios números de parte en el mismo turno.</div>
+          <div class="info-strip">Metrics Works cuenta una sola vez el tiempo planificado por combinación <strong>Máquina + Fecha + Turno</strong>, aunque se fabriquen varios números de parte en el mismo turno.</div>
         </article>
       </div>
     </section>
@@ -605,7 +606,7 @@
             <div class="field"><label>Rol</label><select id="userAssignRole"><option value="guest" selected>Guest</option><option value="supervisor">Supervisor</option><option value="manager">Manager</option><option value="admin">Admin</option></select></div>
             <button class="btn btn-primary" type="submit"><span>Asignar usuario</span></button>
           </form>
-          <div class="user-admin-note"><strong>Flujo seguro:</strong> crea o invita al usuario en Supabase Authentication y después asígnalo aquí. GUVEL nunca expone una service key.</div>
+          <div class="user-admin-note"><strong>Flujo seguro:</strong> crea o invita al usuario en Supabase Authentication y después asígnalo aquí. Metrics Works nunca expone una service key.</div>
         </article>
 
         <article class="card users-list-card">
@@ -629,7 +630,7 @@
         <div>
           <p class="eyebrow">AUDIT TRAIL</p>
           <h2>Historial de Cambios</h2>
-          <p>Registro de quién hizo qué, cuándo y sobre qué información dentro de GUVEL.</p>
+          <p>Registro de quién hizo qué, cuándo y sobre qué información dentro de Metrics Works.</p>
         </div>
         <div class="audit-status"><span class="status-dot"></span><strong>Auditoría activa</strong></div>
       </div>
@@ -695,8 +696,8 @@
 
   <footer class="app-footer">
     <div class="footer-brand">
-      <img src="assets/img/guvel-logo.jpeg" alt="GUVEL">
-      <span><strong>GUVEL Platform</strong> · Production & Quality · Smarter Quality Solutions</span>
+      <img src="assets/img/metrics-works-logo.jpg" alt="Metrics Works">
+      <span><strong>Metrics Works Platform</strong> · Production & Quality · Smarter Quality Solutions</span>
     </div>
     <span>Design System · Sprint 1</span>
   </footer>
@@ -705,13 +706,13 @@
 
   <div id="authOverlay" class="auth-overlay">
     <form id="loginForm" class="login-card">
-      <div class="login-brand guvel-login-brand"><img class="login-logo" src="assets/img/guvel-logo.jpeg" alt="GUVEL"><div><strong>GUVEL General System</strong><small>Smarter Quality Solutions</small></div></div>
+      <div class="login-brand guvel-login-brand"><img class="login-logo" src="assets/img/metrics-works-logo.jpg" alt="Metrics Works"><div><strong>Metrics Works General System</strong><small>Smarter Quality Solutions</small></div></div>
       <p class="eyebrow">Acceso seguro</p><h2>Iniciar sesión</h2>
       <div class="field"><label>Correo</label><input type="email" id="loginEmail" required></div>
       <div class="field"><label>Contraseña</label><input type="password" id="loginPassword" required></div>
       <button class="btn btn-primary btn-block">Ingresar</button>
       <p id="authMessage" class="auth-message"></p>
-      <small class="version-note">GUVEL General System · v1.4.1 · Sprint 1 · Multiempresa</small>
+      <small class="version-note">Metrics Works General System · v1.4.1 · Sprint 1 · Multiempresa</small>
     </form>
   </div>
 </body>
