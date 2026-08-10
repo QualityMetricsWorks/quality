@@ -91,7 +91,7 @@ export function renderPartDetail(){
  $('partOperationList').innerHTML=operationsForPart(p.id).map(o=>`<div class="entity-item"><span><strong>${esc(o.code)}</strong><small>${esc(o.name)}</small></span><button class="icon-btn" data-delete-operation="${o.id}">×</button></div>`).join('')||'<div class="empty-state">Sin operaciones.</div>';
  $('partDefectList').innerHTML=defectsForPart(p.id).map(d=>`<div class="entity-item"><span><strong>${esc(d.code)} · ${esc(d.name)}</strong><small>${esc(getOperation(d.operationId)?.code||'General')} · ${esc(d.category||'')}</small></span></div>`).join('')||'<div class="empty-state">Sin defectos.</div>';
  $('partProductionList').innerHTML=rs.slice().sort((a,b)=>b.date.localeCompare(a.date)).slice(0,20).map(r=>`<div class="entity-item"><span><strong>${r.date} · ${esc(getOperation(r.operationId)?.code||'—')}</strong><small>${number(r.produced)} piezas · ${esc(r.machine||'Sin máquina')}</small></span><strong>${percent(metricsForRuns([r]).yieldRate)}</strong></div>`).join('')||'<div class="empty-state">Sin producción.</div>';
- const ev=state.scrapEvents.filter(e=>getRun(e.runId)?.partId===p.id);if(window.Metrics Works_RENDER_BARCODE)window.Metrics Works_RENDER_BARCODE();
+ const ev=state.scrapEvents.filter(e=>getRun(e.runId)?.partId===p.id);if(window.GUVEL_RENDER_BARCODE)window.GUVEL_RENDER_BARCODE();
  $('partScrapList').innerHTML=ev.slice(0,30).map(e=>`<div class="entity-item"><span><strong>${esc(getDefect(e.defectId)?.name||'—')}</strong><small>${esc(dispositionLabel(e.disposition))}</small></span><strong>${number(e.quantity)}</strong></div>`).join('')||'<div class="empty-state">Sin eventos.</div>';
 }
 export function renderCycleTimes(){
