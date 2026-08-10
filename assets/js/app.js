@@ -12,8 +12,23 @@ const canManage=()=>['admin','manager'].includes(state.role);
 const canAdmin=()=>state.role==='admin';
 
 let currentView='dashboard';
-function applyRolePermissions(){const r=state.role;document.body.dataset.role=r;document.querySelectorAll('.management-access').forEach(x=>x.hidden=!['admin','manager'].includes(r));document.querySelectorAll('.capture-access').forEach(x=>x.hidden=!['admin','manager','supervisor'].includes(r));document.querySelectorAll('.admin-only').forEach(x=>x.hidden=r!=='admin');const allowed={dashboard:true,runs:true,history:true,capture:['admin','manager','supervisor'].includes(r),clients:['admin','manager'].includes(r),parts:['admin','manager'].includes(r),machines:['admin','manager'].includes(r),personnel:['admin','manager'].includes(r),catalog:['admin','manager'].includes(r),settings:['admin','manager'].includes(r)};if(!allowed[currentView])setView('dashboard');}
-async function renderUsersAdmin(){const b=$('usersAdminBody');if(!b||state.role!=='admin')return;try{const rows=await api.listCompanyUsers();b.innerHTML=(rows||[]).map(u=>`<tr><td>${esc(u.email||'—')}</td><td><input class="user-name-edit" value="${esc(u.display_name||'')}" data-user-name="${u.user_id}"></td><td><select class="user-role-edit" data-user-role="${u.user_id}">${['admin','manager','supervisor','guest'].map(r=>`<option value="${r}" ${r===u.role?'selected':''}>${r[0].toUpperCase()+r.slice(1)}</option>`).join('')}</select></td><td>${u.active?'Activo':'Inactivo'}</td><td><button class="btn btn-secondary btn-sm" data-user-save="${u.user_id}">Guardar</button></td></tr>`).join('')||'<tr><td colspan="5" class="empty">No hay usuarios asignados.</td></tr>'}catch(e){console.error('GUVEL users module:',e);b.innerHTML=`<tr><td colspan="5" class="empty">No se pudo cargar Usuarios. El acceso al portal continúa disponible.</td></tr>`}}
+function applyRolePermissions(){const r=state.role;document.body.dataset.role=r;document.querySelectorAll('.management-access').forEach(x=>x.hidden=!['admin','manager'].includes(r));document.querySelectorAll('.capture-access').forEach(x=>x.hidden=!['admin','manager','supervisor'].includes(r));document.querySelectorAll('.admin-only').forEach(x=>x.hidden=r!=='admin');const allowed={dashboard:true,runs:true,history:true,capture:['admin','manager','supervisor'].includes(r),clients:['admin','manager'].includes(r),parts:['admin','manager'].includes(r),machines:['admin','manager'].includes(r),personnel:['admin','manager'].includes(r),catalog:['admin','manager'].includes(r),users:r==='admin',settings:['admin','manager'].includes(r)};if(!allowed[currentView])setView('dashboard');}
+async function renderUsersAdmin(){
+ const b=$('usersAdminBody');if(!b||state.role!=='admin')return;
+ b.innerHTML='<tr><td colspan="6" class="users-loading">Cargando usuarios…</td></tr>';
+ try{
+  const rows=await api.listCompanyUsers();
+  const count=$('usersCount');if(count)count.textContent=(rows||[]).length;
+  b.innerHTML=(rows||[]).map(u=>`<tr>
+   <td><div class="user-cell"><span class="user-avatar">${(u.display_name||u.email||'U').trim().slice(0,1).toUpperCase()}</span><div><strong>${esc(u.email||'—')}</strong><small>${u.user_id.slice(0,8)}…</small></div></div></td>
+   <td><input class="user-name-edit" value="${esc(u.display_name||'')}" data-user-name="${u.user_id}"></td>
+   <td><select class="user-role-edit role-${u.role}" data-user-role="${u.user_id}">${['admin','manager','supervisor','guest'].map(r=>`<option value="${r}" ${r===u.role?'selected':''}>${r[0].toUpperCase()+r.slice(1)}</option>`).join('')}</select></td>
+   <td><span class="user-status ${u.active?'active':'inactive'}"><i></i>${u.active?'Activo':'Inactivo'}</span></td>
+   <td class="user-last-access">${u.last_sign_in_at?new Date(u.last_sign_in_at).toLocaleString(document.documentElement.lang==='en'?'en-US':'es-MX'):'—'}</td>
+   <td><button class="btn btn-secondary btn-sm" data-user-save="${u.user_id}">Guardar</button></td>
+  </tr>`).join('')||'<tr><td colspan="6" class="empty">No hay usuarios asignados.</td></tr>';
+ }catch(e){console.error('GUVEL users module:',e);const count=$('usersCount');if(count)count.textContent='0';b.innerHTML='<tr><td colspan="6" class="empty">No se pudo cargar Usuarios. El acceso al portal continúa disponible.</td></tr>'}
+}
 function bindUserAdmin(){$('userAssignForm')?.addEventListener('submit',async e=>{e.preventDefault();if(!canAdmin())return toast('Solo Admin.');try{await api.assignUserProfile({email:$('userAssignEmail').value.trim(),displayName:$('userAssignName').value.trim(),role:$('userAssignRole').value});toast('Usuario asignado correctamente');e.target.reset();await renderUsersAdmin()}catch(err){toast(err.message||'No se pudo asignar el usuario.')}});document.body.addEventListener('click',async e=>{const b=e.target.closest('[data-user-save]');if(!b||!canAdmin())return;const id=b.dataset.userSave,role=document.querySelector(`[data-user-role="${id}"]`)?.value,name=document.querySelector(`[data-user-name="${id}"]`)?.value||'';try{await api.updateUserProfile({userId:id,role,displayName:name,active:true});toast('Permisos actualizados');await renderUsersAdmin()}catch(err){toast(err.message||'No se pudo actualizar el usuario.')}})}
 function setView(view){
  currentView=view;
@@ -21,8 +36,8 @@ function setView(view){
  $(`${view}View`)?.classList.add('active');
  document.querySelectorAll('.nav-item').forEach(x=>x.classList.toggle('active',x.dataset.view===view));
  $('exportBtn').hidden=view!=='history';
- $('pageTitle').textContent=({dashboard:'Dashboard',capture:'Captura',clients:'Clientes',parts:'Números de Parte',machines:'Máquinas',personnel:'Personal',catalog:'Catálogo',runs:'Corridas',history:'Historial',settings:'Configuración'})[view]||view;
- if(view==='runs')refreshRunsView();else applyLanguage();
+ $('pageTitle').textContent=({dashboard:'Dashboard',capture:'Captura',clients:'Clientes',parts:'Números de Parte',machines:'Máquinas',personnel:'Personal',catalog:'Catálogo',runs:'Corridas',users:'Usuarios',history:'Historial',settings:'Configuración'})[view]||view;
+ if(view==='runs')refreshRunsView();else if(view==='users'){renderUsersAdmin();applyLanguage()}else applyLanguage();
 }
 async function reload(msg='Sistema Actualizado'){
  await api.loadAll();ui.renderAll();applyLanguage();$('storageStatus').textContent='Sistema Actualizado';if(msg)toast(msg);
@@ -83,7 +98,7 @@ function initEvents(){
  $('refreshDataBtn').addEventListener('click',()=>reload());
  $('signOutBtn').addEventListener('click',()=>db.auth.signOut());
  bindTabs();
- bindUserAdmin();
+ bindUserAdmin();$('refreshUsersBtn')?.addEventListener('click',renderUsersAdmin);
 
  $('clearFiltersBtn').addEventListener('click',()=>{['filterStart','filterEnd','filterClient','filterPartNumber','filterMachine'].forEach(id=>$(id).value='');$('filterPeriod').value='current';applyPeriod('current');ui.updateFilterParts();ui.renderDashboard()});
  ['filterStart','filterEnd','filterPartNumber','filterMachine'].forEach(id=>$(id).addEventListener('change',ui.renderDashboard));
@@ -187,7 +202,7 @@ function exportExcel(){
 }
 
 async function startSession(user){
- try{await api.loadIdentity(user);await api.loadAll();$('authOverlay').classList.add('hidden');$('companyContext').textContent=state.companyName;$('userEmail').textContent=user.email;$('storageStatus').textContent='Sistema Actualizado';applyRolePermissions();ui.renderAll();applyLanguage();if(state.role==='admin')renderUsersAdmin()}
+ try{await api.loadIdentity(user);await api.loadAll();$('authOverlay').classList.add('hidden');$('companyContext').textContent=state.companyName;$('userEmail').textContent=user.email;$('storageStatus').textContent='Sistema Actualizado';applyRolePermissions();ui.renderAll();applyLanguage()}
  catch(e){console.error(e);toast(e.message);$('authOverlay').classList.remove('hidden')}
 }
 function iso(d){return d.toISOString().slice(0,10)}

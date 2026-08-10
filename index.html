@@ -91,7 +91,11 @@
         <button class="nav-item" data-view="history">
           <span class="nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 4a8 8 0 1 1-7.75 10H2l3-4 3 4H6.3A6 6 0 1 0 12 6V3l4 3-4 3V6Z"/></svg></span>
           <span>Historial</span>
-        </button>        <button class="nav-item management-access" data-view="settings">
+        </button>        <button class="nav-item admin-only" data-view="users" hidden>
+          <span class="nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M16 11a4 4 0 1 0-3.9-5A4 4 0 0 0 16 11Zm-8 0a3 3 0 1 0 0-6 3 3 0 0 0 0 6Zm8 2c-3.3 0-6 1.8-6 4v2h12v-2c0-2.2-2.7-4-6-4ZM8 13c-3.3 0-6 1.6-6 3.5V19h6v-2c0-1.5.8-2.8 2.1-3.7A8 8 0 0 0 8 13Z"/></svg></span>
+          <span>Usuarios</span>
+        </button>
+        <button class="nav-item management-access" data-view="settings">
           <span class="nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M19.4 13a7.8 7.8 0 0 0 .1-1 7.8 7.8 0 0 0-.1-1l2-1.5-2-3.4-2.4 1a8.5 8.5 0 0 0-1.7-1L15 3.5h-4L10.7 6a8.5 8.5 0 0 0-1.7 1l-2.4-1-2 3.4L6.6 11a7.8 7.8 0 0 0-.1 1 7.8 7.8 0 0 0 .1 1l-2 1.5 2 3.4 2.4-1a8.5 8.5 0 0 0 1.7 1l.3 2.5h4l.3-2.5a8.5 8.5 0 0 0 1.7-1l2.4 1 2-3.4-2-1.5ZM13 15.5A3.5 3.5 0 1 1 13 8a3.5 3.5 0 0 1 0 7.5Z"/></svg></span>
           <span>Configuración</span>
         </button>
@@ -562,13 +566,52 @@
           <div class="info-strip">GUVEL cuenta una sola vez el tiempo planificado por combinación <strong>Máquina + Fecha + Turno</strong>, aunque se fabriquen varios números de parte en el mismo turno.</div>
         </article>
       </div>
-      <article id="usersAdminPanel" class="card users-admin-panel admin-only" hidden>
-        <div class="card-header"><div><p class="eyebrow">Seguridad</p><h3>Usuarios y permisos</h3><p class="card-subtitle">Administra los perfiles de acceso de la empresa.</p></div></div>
-        <div class="user-role-grid"><div class="role-info"><strong>Admin</strong><span>Control total. Usuarios, configuración y datos.</span></div><div class="role-info"><strong>Manager</strong><span>Administra maestros y configuración, sin administrar usuarios.</span></div><div class="role-info"><strong>Supervisor</strong><span>Solo captura producción, calidad y tiempos muertos.</span></div><div class="role-info"><strong>Guest</strong><span>Solo visualiza y filtra información.</span></div></div>
-        <form id="userAssignForm" class="user-assign-form"><div class="field"><label>Correo del usuario</label><input id="userAssignEmail" type="email" placeholder="usuario@empresa.com" required></div><div class="field"><label>Nombre</label><input id="userAssignName" placeholder="Nombre visible"></div><div class="field"><label>Rol</label><select id="userAssignRole"><option value="admin">Admin</option><option value="manager">Manager</option><option value="supervisor">Supervisor</option><option value="guest" selected>Guest</option></select></div><button class="btn btn-primary">Asignar usuario</button></form>
-        <div class="user-admin-note">Primero crea o invita el correo en <strong>Supabase Authentication</strong>. Después asígnalo aquí a la empresa y a su rol. GUVEL nunca expone una service key en el navegador.</div>
-        <div class="table-scroll"><table><thead><tr><th>Usuario</th><th>Nombre</th><th>Rol</th><th>Estado</th><th>Acción</th></tr></thead><tbody id="usersAdminBody"></tbody></table></div>
-      </article>
+    </section>
+
+    <section id="usersView" class="view admin-only" hidden>
+      <div class="section-intro users-page-intro">
+        <div>
+          <p class="eyebrow">Seguridad</p>
+          <h2>Usuarios</h2>
+          <p>Administra el acceso de tu empresa y asigna el nivel de permiso de cada usuario.</p>
+        </div>
+        <div class="security-status"><span class="security-dot"></span><span>Control de acceso activo</span></div>
+      </div>
+
+      <div class="user-role-grid users-role-strip">
+        <div class="role-info role-admin"><div class="role-code">A</div><div><strong>Admin</strong><span>Control total · Usuarios · Configuración</span></div></div>
+        <div class="role-info role-manager"><div class="role-code">M</div><div><strong>Manager</strong><span>Maestros · Configuración · Operación</span></div></div>
+        <div class="role-info role-supervisor"><div class="role-code">S</div><div><strong>Supervisor</strong><span>Producción · Calidad · Paros</span></div></div>
+        <div class="role-info role-guest"><div class="role-code">G</div><div><strong>Guest</strong><span>Visualización · Filtros · Historial</span></div></div>
+      </div>
+
+      <div class="users-layout">
+        <article class="card user-create-card">
+          <div class="card-header">
+            <div><p class="eyebrow">Nuevo acceso</p><h3>Asignar usuario</h3><p class="card-subtitle">El correo debe existir primero en Supabase Authentication.</p></div>
+          </div>
+          <form id="userAssignForm" class="user-create-form">
+            <div class="field"><label>Correo</label><input id="userAssignEmail" type="email" placeholder="usuario@empresa.com" required></div>
+            <div class="field"><label>Nombre visible</label><input id="userAssignName" placeholder="Nombre del usuario"></div>
+            <div class="field"><label>Rol</label><select id="userAssignRole"><option value="guest" selected>Guest</option><option value="supervisor">Supervisor</option><option value="manager">Manager</option><option value="admin">Admin</option></select></div>
+            <button class="btn btn-primary" type="submit"><span>Asignar usuario</span></button>
+          </form>
+          <div class="user-admin-note"><strong>Flujo seguro:</strong> crea o invita al usuario en Supabase Authentication y después asígnalo aquí. GUVEL nunca expone una service key.</div>
+        </article>
+
+        <article class="card users-list-card">
+          <div class="card-header users-list-header">
+            <div><p class="eyebrow">Accesos</p><h3>Usuarios de la empresa <span id="usersCount" class="count-badge">0</span></h3></div>
+            <button id="refreshUsersBtn" class="btn btn-secondary btn-sm" type="button">Actualizar</button>
+          </div>
+          <div class="table-scroll">
+            <table class="users-table">
+              <thead><tr><th>Usuario</th><th>Nombre</th><th>Rol</th><th>Estado</th><th>Último acceso</th><th></th></tr></thead>
+              <tbody id="usersAdminBody"></tbody>
+            </table>
+          </div>
+        </article>
+      </div>
     </section>
 
     <section id="historyView" class="view">
