@@ -30,7 +30,7 @@
 
       <div class="product-context">
         <span class="module-badge"><span class="module-dot"></span> Production & Quality</span>
-        <span class="version-badge">v1.1.1</span>
+        <span class="version-badge">v1.4.0</span>
         <div class="language-control">
           <button id="languageMenuBtn" class="language-trigger" type="button" aria-haspopup="true" aria-expanded="false" title="Idioma / Language">
             <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20Zm6.9 6h-3.1a15.7 15.7 0 0 0-1.4-3.5A8.1 8.1 0 0 1 18.9 8ZM12 4c.8 1 1.5 2.3 1.9 4h-3.8C10.5 6.3 11.2 5 12 4ZM4.3 14a8 8 0 0 1 0-4h3.4a16.7 16.7 0 0 0 0 4H4.3Zm.8 2h3.1a15.7 15.7 0 0 0 1.4 3.5A8.1 8.1 0 0 1 5.1 16Zm3.1-8H5.1a8.1 8.1 0 0 1 4.5-3.5A15.7 15.7 0 0 0 8.2 8ZM12 20c-.8-1-1.5-2.3-1.9-4h3.8c-.4 1.7-1.1 3-1.9 4Zm2.3-6H9.7a14.6 14.6 0 0 1 0-4h4.6a14.6 14.6 0 0 1 0 4Zm.1 5.5a15.7 15.7 0 0 0 1.4-3.5h3.1a8.1 8.1 0 0 1-4.5 3.5ZM16.3 14a16.7 16.7 0 0 0 0-4h3.4a8 8 0 0 1 0 4h-3.4Z"/></svg>
@@ -88,8 +88,12 @@
           <span class="nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 4h16v4H4V4Zm0 6h16v10H4V10Zm3 3v2h4v-2H7Zm0 4v1h7v-1H7Z"/></svg></span>
           <span>Corridas</span>
         </button>
-        <button class="nav-item" data-view="history">
-          <span class="nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 4a8 8 0 1 1-7.75 10H2l3-4 3 4H6.3A6 6 0 1 0 12 6V3l4 3-4 3V6Z"/></svg></span>
+        <button class="nav-item" data-view="data">
+          <span class="nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 5h16v3H4V5Zm0 5h16v3H4v-3Zm0 5h16v3H4v-3Z"/></svg></span>
+          <span>Datos</span>
+        </button>
+        <button class="nav-item audit-access" data-view="history" hidden>
+          <span class="nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 3a9 9 0 1 0 8.9 10.5h-2.1A7 7 0 1 1 12 5c1.9 0 3.6.8 4.9 2H14v2h6V3h-2v2.1A8.9 8.9 0 0 0 12 3Zm-1 4v6l5 3 .9-1.7-3.9-2.3V7H11Z"/></svg></span>
           <span>Historial</span>
         </button>        <button class="nav-item admin-only" data-view="users" hidden>
           <span class="nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M16 11a4 4 0 1 0-3.9-5A4 4 0 0 0 16 11Zm-8 0a3 3 0 1 0 0-6 3 3 0 0 0 0 6Zm8 2c-3.3 0-6 1.8-6 4v2h12v-2c0-2.2-2.7-4-6-4ZM8 13c-3.3 0-6 1.6-6 3.5V19h6v-2c0-1.5.8-2.8 2.1-3.7A8 8 0 0 0 8 13Z"/></svg></span>
@@ -614,7 +618,69 @@
       </div>
     </section>
 
-    <section id="historyView" class="view">
+
+    <section id="historyView" class="view audit-history-view">
+      <div class="section-intro">
+        <div>
+          <p class="eyebrow">AUDIT TRAIL</p>
+          <h2>Historial de Cambios</h2>
+          <p>Registro de quién hizo qué, cuándo y sobre qué información dentro de GUVEL.</p>
+        </div>
+        <div class="audit-status"><span class="status-dot"></span><strong>Auditoría activa</strong></div>
+      </div>
+
+      <article class="card audit-summary-card">
+        <div class="audit-summary-item"><span>Eventos registrados</span><strong id="auditCount">0</strong></div>
+        <div class="audit-summary-item"><span>Último cambio</span><strong id="auditLastChange">—</strong></div>
+        <div class="audit-summary-item"><span>Usuario</span><strong id="auditLastUser">—</strong></div>
+        <div class="audit-summary-item"><span>Empresa</span><strong id="auditCompany">—</strong></div>
+      </article>
+
+      <article class="card table-card audit-table-card">
+        <div class="card-header">
+          <div>
+            <p class="eyebrow">AUDIT TRAIL</p>
+            <h3>Actividad del sistema</h3>
+          </div>
+          <div class="audit-actions">
+            <input id="auditSearch" class="search-input small" placeholder="Buscar usuario, tabla, acción…">
+            <select id="auditActionFilter" class="audit-filter">
+              <option value="">Todas las acciones</option>
+              <option value="INSERT">Creación</option>
+              <option value="UPDATE">Modificación</option>
+              <option value="DELETE">Eliminación</option>
+            </select>
+            <button id="refreshAuditBtn" class="btn btn-secondary btn-sm">Actualizar</button>
+          </div>
+        </div>
+        <div class="table-scroll">
+          <table class="audit-table">
+            <thead>
+              <tr>
+                <th>Fecha / Hora</th>
+                <th>Usuario</th>
+                <th>Acción</th>
+                <th>Módulo</th>
+                <th>Registro</th>
+                <th>Cambios</th>
+              </tr>
+            </thead>
+            <tbody id="auditHistoryBody"></tbody>
+          </table>
+        </div>
+      </article>
+
+      <div id="auditDetailModal" class="modal-backdrop" hidden>
+        <article class="card audit-detail-modal">
+          <div class="card-header">
+            <div><p class="eyebrow">DETALLE</p><h3 id="auditDetailTitle">Cambio</h3></div>
+            <button class="icon-btn" data-close-audit>×</button>
+          </div>
+          <div id="auditDetailBody" class="audit-detail-body"></div>
+        </article>
+      </div>
+    </section>
+    <section id="dataView" class="view">
       <div class="history-tabs"><button class="history-tab active" data-history-tab="production">Producción</button><button class="history-tab" data-history-tab="scrap">Scrap / Calidad</button><button class="history-tab" data-history-tab="downtime">Tiempos Muertos</button></div>
       <article class="card table-card history-panel active" data-history-panel="production"><div class="card-header"><div><p class="eyebrow">Trazabilidad</p><h3>Historial de Producción</h3></div><input id="productionHistorySearch" class="search-input small" placeholder="Buscar…"></div><div class="table-scroll"><table><thead><tr><th>Fecha/Hora</th><th>Turno</th><th>Lote</th><th>Cliente</th><th>NP</th><th>Operación</th><th>Máquina</th><th>Operador</th><th>Estado</th><th>Producción</th><th>Scrap</th><th>Yield</th><th></th></tr></thead><tbody id="productionHistoryBody"></tbody></table></div></article>
       <article class="card table-card history-panel" data-history-panel="scrap"><div class="card-header"><div><p class="eyebrow">Trazabilidad</p><h3>Historial de Scrap</h3></div><input id="scrapHistorySearch" class="search-input small" placeholder="Buscar…"></div><div class="table-scroll"><table><thead><tr><th>Fecha</th><th>Cliente</th><th>NP</th><th>Operación</th><th>Defecto</th><th>Cantidad</th><th>Disposición</th><th>COPQ</th><th></th></tr></thead><tbody id="scrapHistoryBody"></tbody></table></div></article>
@@ -640,7 +706,7 @@
       <div class="field"><label>Contraseña</label><input type="password" id="loginPassword" required></div>
       <button class="btn btn-primary btn-block">Ingresar</button>
       <p id="authMessage" class="auth-message"></p>
-      <small class="version-note">GUVEL General System · v1.1.1 · Sprint 1 · Multiempresa</small>
+      <small class="version-note">GUVEL General System · v1.4.0 · Sprint 1 · Multiempresa</small>
     </form>
   </div>
 </body>

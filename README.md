@@ -1,37 +1,84 @@
-# GUVEL General System v1.1.2
+# GUVEL General System v1.4.0
 
-## v1.1.2 — Users module
+## Project stage
+v1.4.0 separates operational data from the audit trail.
 
-The user administration area is now a dedicated top-navigation module:
-**Usuarios**.
+### Navigation
+- Dashboard
+- Captura
+- Clientes
+- Números de Parte
+- Máquinas
+- Personal
+- Catálogo
+- Corridas
+- Datos
+- Historial (Admin / Manager)
+- Usuarios (Admin)
+- Configuración
 
-It is no longer mixed with Configuración.
+## Datos
+The previous **Historial** module is now **Datos**.
+It contains captured information for:
+- Producción
+- Calidad / Scrap
+- Mantenimiento / Tiempos Muertos
 
-### Roles
-- Admin — full control, including users.
-- Manager — operational/master-data administration without user administration.
-- Supervisor — production, quality and downtime capture.
-- Guest — view and filter only.
+The Excel export button is available only inside Datos.
 
-### UX
-- Compact business/industrial visual language aligned with GUVEL General System.
-- Role summary cards use GUVEL brand accents.
-- Dedicated user assignment card.
-- Dedicated company-user table.
-- Active/inactive status.
-- Last access when Supabase exposes `last_sign_in_at`.
-- Refresh users without reloading the whole portal.
+## Historial
+The new **Historial** module is the system audit trail.
 
-### Supabase
-v1.1.2 uses the existing v1.1.1 hotfix RPC. The supplied SQL file was updated so `admin_list_company_users()` also returns `last_sign_in_at`.
+It shows:
+- Who performed the action
+- Email
+- Date / time
+- Action: Creation / Modification / Deletion
+- Module/table
+- Record ID
+- Before / After JSON detail
 
-If you already ran the v1.1.1 hotfix, run the included `sql/hotfix_v1.1.1_admin_users.sql` again because the return signature was extended.
+Access:
+- Admin: yes
+- Manager: yes
+- Supervisor: no
+- Guest: no
 
-No tables are deleted or recreated.
+## Audit architecture
+The audit trail is generated at the database level using PostgreSQL triggers. This is intentional: hiding UI buttons is not enough for traceability.
 
-## Upload
-Replace:
-- `index.html`
-- `assets/`
+Tracked operational tables:
+- clients
+- part_numbers
+- operations
+- defects
+- machines
+- part_machines
+- personnel
+- downtime_reasons
+- downtime_events
+- part_cycle_times
+- shift_schedules
+- production_runs
+- scrap_events
+- profiles
 
-Keep `config.js` unchanged.
+## Supabase migration
+Run once:
+
+`sql/migrate_v1.1.2_to_v1.4.0_audit.sql`
+
+Do not delete existing tables or data. The migration is additive and creates:
+- audit_logs
+- guvel_audit_trigger()
+- list_company_audit_logs()
+
+## Deploy
+After the SQL succeeds, replace:
+- index.html
+- assets/
+
+Keep:
+- config.js
+
+Then hard refresh with Ctrl + F5.

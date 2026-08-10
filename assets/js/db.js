@@ -104,4 +104,11 @@ export async function insertRun(x){return check(await db.from('production_runs')
 export async function deleteRun(id){check(await db.from('production_runs').delete().eq('id',id))}
 export async function insertScrapEvent(x){return check(await db.from('scrap_events').insert({...common(),production_run_id:x.runId,defect_id:x.defectId,quantity:x.quantity,disposition:x.disposition,reason:x.reason||null,extra_cost:x.extraCost||0,notes:x.notes||null}).select().single())}
 export async function deleteScrapEvent(id){check(await db.from('scrap_events').delete().eq('id',id))}
+
+export async function listAuditLogs(limit=500){
+  const {data,error}=await db.rpc('list_company_audit_logs',{p_limit:limit});
+  if(error)throw error;
+  return data||[];
+}
+
 function check(res){if(res.error)throw res.error;return res.data}

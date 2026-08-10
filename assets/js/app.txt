@@ -12,7 +12,7 @@ const canManage=()=>['admin','manager'].includes(state.role);
 const canAdmin=()=>state.role==='admin';
 
 let currentView='dashboard';
-function applyRolePermissions(){const r=state.role;document.body.dataset.role=r;document.querySelectorAll('.management-access').forEach(x=>x.hidden=!['admin','manager'].includes(r));document.querySelectorAll('.capture-access').forEach(x=>x.hidden=!['admin','manager','supervisor'].includes(r));document.querySelectorAll('.admin-only').forEach(x=>x.hidden=r!=='admin');const allowed={dashboard:true,runs:true,history:true,capture:['admin','manager','supervisor'].includes(r),clients:['admin','manager'].includes(r),parts:['admin','manager'].includes(r),machines:['admin','manager'].includes(r),personnel:['admin','manager'].includes(r),catalog:['admin','manager'].includes(r),users:r==='admin',settings:['admin','manager'].includes(r)};if(!allowed[currentView])setView('dashboard');}
+function applyRolePermissions(){const r=state.role;document.body.dataset.role=r;document.querySelectorAll('.management-access').forEach(x=>x.hidden=!['admin','manager'].includes(r));document.querySelectorAll('.capture-access').forEach(x=>x.hidden=!['admin','manager','supervisor'].includes(r));document.querySelectorAll('.admin-only').forEach(x=>x.hidden=r!=='admin');document.querySelectorAll('.audit-access').forEach(x=>x.hidden=!['admin','manager'].includes(r));const allowed={dashboard:true,runs:true,data:true,history:['admin','manager'].includes(r),capture:['admin','manager','supervisor'].includes(r),clients:['admin','manager'].includes(r),parts:['admin','manager'].includes(r),machines:['admin','manager'].includes(r),personnel:['admin','manager'].includes(r),catalog:['admin','manager'].includes(r),users:r==='admin',settings:['admin','manager'].includes(r)};if(!allowed[currentView])setView('dashboard');}
 async function renderUsersAdmin(){
  const b=$('usersAdminBody');if(!b||state.role!=='admin')return;
  b.innerHTML='<tr><td colspan="6" class="users-loading">Cargando usuarios…</td></tr>';
@@ -35,9 +35,12 @@ function setView(view){
  document.querySelectorAll('.view').forEach(x=>x.classList.remove('active'));
  $(`${view}View`)?.classList.add('active');
  document.querySelectorAll('.nav-item').forEach(x=>x.classList.toggle('active',x.dataset.view===view));
- $('exportBtn').hidden=view!=='history';
- $('pageTitle').textContent=({dashboard:'Dashboard',capture:'Captura',clients:'Clientes',parts:'Números de Parte',machines:'Máquinas',personnel:'Personal',catalog:'Catálogo',runs:'Corridas',users:'Usuarios',history:'Historial',settings:'Configuración'})[view]||view;
- if(view==='runs')refreshRunsView();else if(view==='users'){renderUsersAdmin();applyLanguage()}else applyLanguage();
+ $('exportBtn').hidden=view!=='data';
+ $('pageTitle').textContent=({dashboard:'Dashboard',capture:'Captura',clients:'Clientes',parts:'Números de Parte',machines:'Máquinas',personnel:'Personal',catalog:'Catálogo',runs:'Corridas',users:'Usuarios',data:'Datos',history:'Historial',settings:'Configuración'})[view]||view;
+ if(view==='runs')refreshRunsView();
+ else if(view==='users'){renderUsersAdmin();applyLanguage()}
+ else if(view==='history')refreshAuditView();
+ else applyLanguage();
 }
 async function reload(msg='Sistema Actualizado'){
  await api.loadAll();ui.renderAll();applyLanguage();$('storageStatus').textContent='Sistema Actualizado';if(msg)toast(msg);
@@ -55,6 +58,77 @@ async function refreshRunsView(){
   if(list)list.innerHTML=`<div class="run-zero-state error"><strong>No se pudieron cargar las corridas.</strong><small>${e.message||'Error'}</small></div>`;
   toast(e.message||'Error al cargar corridas');
  }
+}
+
+let auditRowsCache=[];
+async function refreshAuditView(){
+ const body=$('auditHistoryBody');
+ if(!body)return;
+ body.innerHTML='<tr><td colspan="6"><div class="run-loading"><span></span><strong>Cargando historial…</strong></div></td></tr>';
+ try{
+  const rows=await api.listAuditLogs(500);
+  auditRowsCache=rows||[];
+  renderAuditHistory();
+  applyLanguage();
+ }catch(e){
+  console.error('GUVEL audit:',e);
+  body.innerHTML=`<tr><td colspan="6"><div class="run-zero-state error"><strong>No se pudo cargar el historial.</strong><small>${esc(e.message||'Error')}</small></div></td></tr>`;
+ }
+}
+function auditActionLabel(a){return ({INSERT:'Creación',UPDATE:'Modificación',DELETE:'Eliminación'})[a]||a||'—'}
+function auditTableLabel(t){
+ const map={production_runs:'Producción',scrap_events:'Calidad',downtime_events:'Mantenimiento',part_numbers:'Números de Parte',clients:'Clientes',machines:'Máquinas',personnel:'Personal',operations:'Operaciones',defects:'Defectos',downtime_reasons:'Catálogo de Paros',part_machines:'Vínculos NP / Máquina',part_cycle_times:'Tiempos de Ciclo',shift_schedules:'Turnos',profiles:'Usuarios'};
+ return map[t]||t||'—';
+}
+function auditChangeSummary(r){
+ if(r.action==='INSERT')return 'Registro creado';
+ if(r.action==='DELETE')return 'Registro eliminado';
+ const old=r.old_data||{},next=r.new_data||{},keys=[...new Set([...Object.keys(old),...Object.keys(next)])];
+ const changed=keys.filter(k=>JSON.stringify(old[k])!==JSON.stringify(next[k])).slice(0,4);
+ return changed.length?changed.join(', '):'Sin diferencias detectadas';
+}
+function renderAuditHistory(){
+ const body=$('auditHistoryBody');if(!body)return;
+ const q=($('auditSearch')?.value||'').trim().toLowerCase(),af=$('auditActionFilter')?.value||'';
+ const rows=auditRowsCache.filter(r=>{
+  const hay=`${r.actor_email||''} ${r.actor_name||''} ${r.table_name||''} ${auditTableLabel(r.table_name)} ${r.action||''} ${r.record_id||''}`.toLowerCase();
+  return (!q||hay.includes(q))&&(!af||r.action===af);
+ });
+ const count=$('auditCount');if(count)count.textContent=rows.length;
+ const last=auditRowsCache[0];
+ $('auditLastChange').textContent=last?.created_at?new Date(last.created_at).toLocaleString(document.documentElement.lang==='en'?'en-US':'es-MX'):'—';
+ $('auditLastUser').textContent=last?.actor_name||last?.actor_email||'—';
+ $('auditCompany').textContent=state.companyName||'—';
+ body.innerHTML=rows.map(r=>{
+   const actionClass=String(r.action||'').toLowerCase();
+   const actor=esc(r.actor_name||r.actor_email||'Sistema');
+   const date=r.created_at?new Date(r.created_at).toLocaleString(document.documentElement.lang==='en'?'en-US':'es-MX'):'—';
+   return `<tr>
+     <td>${date}</td>
+     <td><div class="audit-user-cell"><span class="audit-avatar">${actor.slice(0,1).toUpperCase()}</span><span><strong>${actor}</strong><small>${esc(r.actor_email||'')}</small></span></div></td>
+     <td><span class="audit-action ${actionClass}">${auditActionLabel(r.action)}</span></td>
+     <td>${esc(auditTableLabel(r.table_name))}<small class="audit-raw-table">${esc(r.table_name||'')}</small></td>
+     <td><code>${esc(String(r.record_id||'—').slice(0,12))}</code></td>
+     <td><button class="btn btn-ghost btn-sm" data-audit-detail="${esc(r.id)}">Ver detalle</button><span class="audit-summary">${esc(auditChangeSummary(r))}</span></td>
+   </tr>`;
+ }).join('')||'<tr><td colspan="6" class="empty">No hay cambios para los filtros seleccionados.</td></tr>';
+}
+function showAuditDetail(id){
+ const r=auditRowsCache.find(x=>String(x.id)===String(id));if(!r)return;
+ $('auditDetailTitle').textContent=`${auditActionLabel(r.action)} · ${auditTableLabel(r.table_name)}`;
+ const oldJson=JSON.stringify(r.old_data||{},null,2),newJson=JSON.stringify(r.new_data||{},null,2);
+ $('auditDetailBody').innerHTML=`
+  <div class="audit-meta-grid">
+   <div><span>Usuario</span><strong>${esc(r.actor_name||r.actor_email||'Sistema')}</strong></div>
+   <div><span>Correo</span><strong>${esc(r.actor_email||'—')}</strong></div>
+   <div><span>Fecha / Hora</span><strong>${r.created_at?new Date(r.created_at).toLocaleString(document.documentElement.lang==='en'?'en-US':'es-MX'):'—'}</strong></div>
+   <div><span>Registro</span><strong>${esc(r.record_id||'—')}</strong></div>
+  </div>
+  <div class="audit-json-grid">
+   <div><p class="eyebrow">ANTES</p><pre>${esc(oldJson)}</pre></div>
+   <div><p class="eyebrow">DESPUÉS</p><pre>${esc(newJson)}</pre></div>
+  </div>`;
+ $('auditDetailModal').hidden=false;
 }
 async function run(fn,msg='Guardado correctamente'){
  try{$('storageStatus').textContent='Sincronizando…';await fn();await reload(msg)}
@@ -95,6 +169,10 @@ function resetDowntimeCapture(){
 
 function initEvents(){
  document.querySelectorAll('.nav-item').forEach(b=>b.addEventListener('click',()=>setView(b.dataset.view)));
+ $('auditSearch')?.addEventListener('input',renderAuditHistory);$('auditActionFilter')?.addEventListener('change',renderAuditHistory);$('refreshAuditBtn')?.addEventListener('click',refreshAuditView);
+ document.body.addEventListener('click',e=>{const d=e.target.closest('[data-audit-detail]');if(d)showAuditDetail(d.dataset.auditDetail);if(e.target.closest('[data-close-audit]'))$('auditDetailModal').hidden=true});
+ $('auditDetailModal')?.addEventListener('click',e=>{if(e.target.id==='auditDetailModal')e.currentTarget.hidden=true});
+
  $('refreshDataBtn').addEventListener('click',()=>reload());
  $('signOutBtn').addEventListener('click',()=>db.auth.signOut());
  bindTabs();
