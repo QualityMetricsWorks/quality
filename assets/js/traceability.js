@@ -40,7 +40,13 @@ function validateQty(raw){
 }
 function renderResources(){
  populateSelect($('traceOperation'),operationsForPart(trace.partId),'Selecciona operación',x=>`${x.code} · ${x.name}`);
- populateSelect($('traceMachine'),machinesForPart(trace.partId),'Selecciona máquina',x=>`${x.code}${x.name?' · '+x.name:''}`);populateSelect($('traceShift'),state.shiftSchedules,'Selecciona turno',x=>`${x.code} · ${x.name}`);
+ populateSelect($('traceMachine'),machinesForPart(trace.partId),'Selecciona máquina',x=>`${x.code}${x.name?' · '+x.name:''}`);// Shift select must submit shift_code (e.g. A), not the row UUID.
+if($('traceShift')){
+  const currentShift=$('traceShift').value;
+  $('traceShift').innerHTML=`<option value="">${esc('Selecciona turno')}</option>`+
+    state.shiftSchedules.map(x=>`<option value="${esc(x.code)}">${esc(`${x.code} · ${x.name}`)}</option>`).join('');
+  if([...$('traceShift').options].some(o=>o.value===currentShift))$('traceShift').value=currentShift;
+}
  $('traceResourceValidation').innerHTML=`<div class="validation-item">NP identificado y válido</div><div class="validation-item">Máquinas filtradas por relación NP–Máquina</div>`;
 }
 function renderPeople(){

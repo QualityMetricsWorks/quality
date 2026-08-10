@@ -1,4 +1,4 @@
-# GUVEL General System v1.4.1
+# GUVEL General System v1.4.2
 
 ## Changes
 1. Expanded ES/EN translation coverage across Users, Audit History, Data, Runs and dynamically generated labels.
@@ -16,4 +16,4 @@ Replace:
 Keep:
 - config.js
 
-No SQL migration is required for v1.4.1.
+No SQL migration is required for v1.4.2.
