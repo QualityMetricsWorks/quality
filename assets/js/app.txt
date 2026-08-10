@@ -22,7 +22,7 @@ async function renderUsersAdmin(){
   b.innerHTML=(rows||[]).map(u=>`<tr>
    <td><div class="user-cell"><span class="user-avatar">${(u.display_name||u.email||'U').trim().slice(0,1).toUpperCase()}</span><div><strong>${esc(u.email||'—')}</strong><small>${u.user_id.slice(0,8)}…</small></div></div></td>
    <td><input class="user-name-edit" value="${esc(u.display_name||'')}" data-user-name="${u.user_id}"></td>
-   <td><select class="user-role-edit role-${u.role}" data-user-role="${u.user_id}">${['admin','manager','supervisor','guest'].map(r=>`<option value="${r}" ${r===u.role?'selected':''}>${r[0].toUpperCase()+r.slice(1)}</option>`).join('')}</select></td>
+   <td><select class="user-role-edit role-${u.role}" data-user-role="${u.user_id}">${['admin','manager','supervisor','guest'].map(r=>`<option value="${r}" ${r===u.role?'selected':''}>${tr(r[0].toUpperCase()+r.slice(1))}</option>`).join('')}</select></td>
    <td><span class="user-status ${u.active?'active':'inactive'}"><i></i>${u.active?'Activo':'Inactivo'}</span></td>
    <td class="user-last-access">${u.last_sign_in_at?new Date(u.last_sign_in_at).toLocaleString(document.documentElement.lang==='en'?'en-US':'es-MX'):'—'}</td>
    <td><button class="btn btn-secondary btn-sm" data-user-save="${u.user_id}">Guardar</button></td>

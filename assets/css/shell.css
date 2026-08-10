@@ -280,3 +280,23 @@
 
 /* v1.1.0 compact chrome */
 .product-bar{min-height:48px;gap:16px}.product-logo{width:32px;height:32px}.product-name span,.product-name strong{font-size:13px}.product-identity small{margin-top:3px;font-size:8px}.module-badge,.version-badge{min-height:23px;padding:0 7px;font-size:8px}.account-avatar{width:27px;height:27px}.navigation-bar{min-height:40px}.navigation-bar .main-nav{height:40px}.navigation-bar .nav-item{height:40px;padding:0 10px;font-size:9px}.nav-icon,.nav-icon svg{width:13px;height:13px}.nav-status{font-size:8px}.page-toolbar{margin-bottom:14px;padding-bottom:11px}.breadcrumb{font-size:9px}.page-description{margin-top:4px;font-size:9px}
+
+/* v1.4.1 — stable shell alignment */
+.product-bar{
+  grid-template-columns: minmax(0,1fr) auto minmax(0,1fr);
+  min-height:48px;
+  width:100%;
+}
+.product-brand{min-width:0}
+.product-context{min-width:140px}
+.account-area{min-width:0}
+.page-toolbar{
+  min-height:54px;
+  align-items:center;
+}
+.page-heading{
+  min-height:38px;
+  display:flex;
+  flex-direction:column;
+  justify-content:center;
+}

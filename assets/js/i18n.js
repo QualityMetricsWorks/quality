@@ -273,7 +273,47 @@ const ES_EN={
   "Módulo":"Module",
   "Registro":"Record",
   "Fecha / Hora":"Date / Time",
-  "Actividad":"Activity"
+  "Actividad":"Activity",
+  "Español": "Spanish",
+  "English": "English",
+  "Idioma / Language": "Language",
+  "Modo oscuro": "Dark mode",
+  "Modo claro": "Light mode",
+  "Cambiar tema": "Change theme",
+  "Oscuro": "Dark",
+  "Claro": "Light",
+  "Error": "Error",
+  "Cargando usuarios…": "Loading users…",
+  "No se pudieron cargar las corridas.": "Could not load runs.",
+  "Cambia el criterio de búsqueda.": "Change the search criteria.",
+  "Sin resultados.": "No results.",
+  "Cargando corridas…": "Loading runs…",
+  "COPQ": "COPQ",
+  "Yield": "Yield",
+  "Scrap": "Scrap",
+  "Turno": "Shift",
+  "Buscar…": "Search…",
+  "Nombre del cliente": "Customer name",
+  "DETALLE": "DETAIL",
+  "Acción": "Action",
+  "Último acceso": "Last access",
+  "Nombre": "Name",
+  "Usuarios de la empresa": "Company users",
+  "Accesos": "Access",
+  "crea o invita al usuario en Supabase Authentication y después asígnalo aquí. GUVEL nunca expone una service key.": "create or invite the user in Supabase Authentication and then assign them here. GUVEL never exposes a service key.",
+  "Flujo seguro:": "Secure flow:",
+  "Nombre del usuario": "User name",
+  "Nombre visible": "Display name",
+  "El correo debe existir primero en Supabase Authentication.": "The email must exist first in Supabase Authentication.",
+  "Asignar usuario": "Assign user",
+  "Nuevo acceso": "New access",
+  "Visualización · Filtros · Historial": "View · Filters · History",
+  "Producción · Calidad · Paros": "Production · Quality · Downtime",
+  "Maestros · Configuración · Operación": "Master data · Settings · Operations",
+  "Control total · Usuarios · Configuración": "Full control · Users · Settings",
+  "Control de acceso activo": "Access control active",
+  "Administra el acceso de tu empresa y asigna el nivel de permiso de cada usuario.": "Manage your company's access and assign each user's permission level.",
+  "Seguridad": "Security"
 };
 const EN_ES=Object.fromEntries(Object.entries(ES_EN).map(([es,en])=>[en,es]));
 let current=localStorage.getItem('guvel_language')||'es';
@@ -314,7 +354,8 @@ const dynamicRules={
   [/^Search part number…$/,'Buscar número de parte…'],
   [/^Search machine…$/,'Buscar máquina…'],
   [/^Search personnel…$/,'Buscar personal…'],
-  [/^Search lot, PN, machine, operator…$/,'Buscar lote, NP, máquina, operador…']
+  [/^Search lot, PN, machine, operator…$/,'Buscar lote, NP, máquina, operador…'],
+  [/^Active$/,'Activo'],[/^Inactive$/,'Inactivo'],[/^Full control/,'Control total'],[/^Master data/,'Maestros'],[/^View$/,'Visualización']
  ]
 };
 
@@ -342,18 +383,32 @@ function translateRoot(root,lang){
    translateText(n,lang);
  }
  root.querySelectorAll?.('input[placeholder],textarea[placeholder]').forEach(el=>el.placeholder=tr(el.placeholder,lang));
+ root.querySelectorAll?.('option').forEach(el=>{ if(el.textContent.trim()) el.textContent=tr(el.textContent.trim(),lang); });
  root.querySelectorAll?.('[title]').forEach(el=>el.title=tr(el.title,lang));
+ root.querySelectorAll?.('[aria-label]').forEach(el=>el.setAttribute('aria-label',tr(el.getAttribute('aria-label'),lang)));
+ root.querySelectorAll?.('[data-i18n]').forEach(el=>{ const key=el.getAttribute('data-i18n'); el.textContent=tr(key,lang); });
 }
 function updateControl(){
  document.documentElement.lang=current;
  const label=document.getElementById('currentLanguageLabel');if(label)label.textContent=current.toUpperCase();
  document.querySelectorAll('.language-option').forEach(x=>x.classList.toggle('active',x.dataset.lang===current));
+ const theme=document.documentElement.dataset.theme||'light';
+ const themeLabel=document.getElementById('themeLabel');
+ if(themeLabel)themeLabel.textContent=theme==='dark'?tr('Oscuro',current):tr('Claro',current);
+ const themeBtn=document.getElementById('themeToggleBtn');
+ if(themeBtn){
+   themeBtn.setAttribute('aria-label',tr(theme==='dark'?'Modo oscuro':'Modo claro',current));
+   themeBtn.title=tr('Cambiar tema',current);
+ }
 }
 
 export function applyLanguage(lang=current){
  current=lang;localStorage.setItem('guvel_language',lang);translateRoot(document.body,lang);updateControl();
 }
 export function initI18n(){
+ const savedTheme=localStorage.getItem('guvel_theme')||'light';document.documentElement.dataset.theme=savedTheme;
+ const themeBtn=document.getElementById('themeToggleBtn');themeBtn?.addEventListener('click',()=>{const next=(document.documentElement.dataset.theme||'light')==='dark'?'light':'dark';document.documentElement.dataset.theme=next;localStorage.setItem('guvel_theme',next);updateControl()});
+
  const trigger=document.getElementById('languageMenuBtn'),menu=document.getElementById('languageMenu');
  trigger?.addEventListener('click',e=>{e.stopPropagation();const open=menu.hidden;menu.hidden=!open;trigger.setAttribute('aria-expanded',String(open))});
  document.querySelectorAll('.language-option').forEach(b=>b.addEventListener('click',()=>{applyLanguage(b.dataset.lang);menu.hidden=true;trigger?.setAttribute('aria-expanded','false')}));
