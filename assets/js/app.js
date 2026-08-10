@@ -1,4 +1,4 @@
-import {$,toast} from './utils.js';
+import {$,toast,esc} from './utils.js';
 import {state,getClient,getPart,getRun} from './state.js';
 import * as api from './db.js';
 import * as ui from './ui.js';
@@ -13,7 +13,7 @@ const canAdmin=()=>state.role==='admin';
 
 let currentView='dashboard';
 function applyRolePermissions(){const r=state.role;document.body.dataset.role=r;document.querySelectorAll('.management-access').forEach(x=>x.hidden=!['admin','manager'].includes(r));document.querySelectorAll('.capture-access').forEach(x=>x.hidden=!['admin','manager','supervisor'].includes(r));document.querySelectorAll('.admin-only').forEach(x=>x.hidden=r!=='admin');const allowed={dashboard:true,runs:true,history:true,capture:['admin','manager','supervisor'].includes(r),clients:['admin','manager'].includes(r),parts:['admin','manager'].includes(r),machines:['admin','manager'].includes(r),personnel:['admin','manager'].includes(r),catalog:['admin','manager'].includes(r),settings:['admin','manager'].includes(r)};if(!allowed[currentView])setView('dashboard');}
-async function renderUsersAdmin(){const b=$('usersAdminBody');if(!b||state.role!=='admin')return;try{const rows=await api.listCompanyUsers();b.innerHTML=(rows||[]).map(u=>`<tr><td>${esc(u.email||'—')}</td><td><input class="user-name-edit" value="${esc(u.display_name||'')}" data-user-name="${u.user_id}"></td><td><select class="user-role-edit" data-user-role="${u.user_id}">${['admin','manager','supervisor','guest'].map(r=>`<option value="${r}" ${r===u.role?'selected':''}>${r[0].toUpperCase()+r.slice(1)}</option>`).join('')}</select></td><td>${u.active?'Activo':'Inactivo'}</td><td><button class="btn btn-secondary btn-sm" data-user-save="${u.user_id}">Guardar</button></td></tr>`).join('')||'<tr><td colspan="5" class="empty">No hay usuarios asignados.</td></tr>'}catch(e){b.innerHTML=`<tr><td colspan="5" class="empty">${esc(e.message||'Error')}</td></tr>`}}
+async function renderUsersAdmin(){const b=$('usersAdminBody');if(!b||state.role!=='admin')return;try{const rows=await api.listCompanyUsers();b.innerHTML=(rows||[]).map(u=>`<tr><td>${esc(u.email||'—')}</td><td><input class="user-name-edit" value="${esc(u.display_name||'')}" data-user-name="${u.user_id}"></td><td><select class="user-role-edit" data-user-role="${u.user_id}">${['admin','manager','supervisor','guest'].map(r=>`<option value="${r}" ${r===u.role?'selected':''}>${r[0].toUpperCase()+r.slice(1)}</option>`).join('')}</select></td><td>${u.active?'Activo':'Inactivo'}</td><td><button class="btn btn-secondary btn-sm" data-user-save="${u.user_id}">Guardar</button></td></tr>`).join('')||'<tr><td colspan="5" class="empty">No hay usuarios asignados.</td></tr>'}catch(e){console.error('GUVEL users module:',e);b.innerHTML=`<tr><td colspan="5" class="empty">No se pudo cargar Usuarios. El acceso al portal continúa disponible.</td></tr>`}}
 function bindUserAdmin(){$('userAssignForm')?.addEventListener('submit',async e=>{e.preventDefault();if(!canAdmin())return toast('Solo Admin.');try{await api.assignUserProfile({email:$('userAssignEmail').value.trim(),displayName:$('userAssignName').value.trim(),role:$('userAssignRole').value});toast('Usuario asignado correctamente');e.target.reset();await renderUsersAdmin()}catch(err){toast(err.message||'No se pudo asignar el usuario.')}});document.body.addEventListener('click',async e=>{const b=e.target.closest('[data-user-save]');if(!b||!canAdmin())return;const id=b.dataset.userSave,role=document.querySelector(`[data-user-role="${id}"]`)?.value,name=document.querySelector(`[data-user-name="${id}"]`)?.value||'';try{await api.updateUserProfile({userId:id,role,displayName:name,active:true});toast('Permisos actualizados');await renderUsersAdmin()}catch(err){toast(err.message||'No se pudo actualizar el usuario.')}})}
 function setView(view){
  currentView=view;
@@ -187,7 +187,7 @@ function exportExcel(){
 }
 
 async function startSession(user){
- try{await api.loadIdentity(user);await api.loadAll();$('authOverlay').classList.add('hidden');$('companyContext').textContent=state.companyName;$('userEmail').textContent=user.email;$('storageStatus').textContent='Sistema Actualizado';applyRolePermissions();await renderUsersAdmin();ui.renderAll();applyLanguage()}
+ try{await api.loadIdentity(user);await api.loadAll();$('authOverlay').classList.add('hidden');$('companyContext').textContent=state.companyName;$('userEmail').textContent=user.email;$('storageStatus').textContent='Sistema Actualizado';applyRolePermissions();ui.renderAll();applyLanguage();if(state.role==='admin')renderUsersAdmin()}
  catch(e){console.error(e);toast(e.message);$('authOverlay').classList.remove('hidden')}
 }
 function iso(d){return d.toISOString().slice(0,10)}

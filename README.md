@@ -1,18 +1,21 @@
-# GUVEL General System v1.1.0
+# GUVEL General System v1.1.1
 
-### Corrections
-- Production capture explicitly asks for the production shift. Date/time remain server-generated.
-- Header and page toolbar compacted.
+## Hotfix
+Fixes the v1.1.0 login regression caused by the Admin Users module:
+- `esc is not defined` fixed by importing `esc` from `utils.js`.
+- A failure in Admin > Users can no longer block authentication or the portal shell.
+- Admin Users now displays a controlled error state instead of breaking the session bootstrap.
+- Includes a SQL hotfix for `admin_list_company_users()`.
 
-### Roles
-- Admin: full control and users.
-- Manager: master data and operational configuration; no users.
-- Supervisor: production, quality/scrap and downtime capture only.
-- Guest: view/filter only.
+## Supabase
+Run only:
+`sql/hotfix_v1.1.1_admin_users.sql`
 
-Permissions are enforced in UI and Supabase.
+Do NOT delete tables or users. Do NOT rerun the full v1.1.0 migration.
 
-### Users
-Create/invite the account first in Supabase Authentication, then assign it to the company and role from GUVEL Admin. No service key is exposed in the browser.
+## Upload to GitHub
+Replace:
+- `index.html`
+- `assets/`
 
-Run `sql/migrate_v1.0.4_to_v1.1.0.sql` once, then replace `index.html` and `assets/`.
+Keep your existing `config.js`.
