@@ -1,4 +1,4 @@
-# Metrics Works General System v1.4.1
+# MWS General System v1.4.1
 
 ## Changes
 1. Expanded ES/EN translation coverage across Users, Audit History, Data, Runs and dynamically generated labels.
