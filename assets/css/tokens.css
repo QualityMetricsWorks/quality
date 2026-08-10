@@ -1,20 +1,20 @@
 :root {
-  /* Metrics Works Brand — sampled from official logo */
-  --guvel-cyan: #0CC1E0;
-  --guvel-cyan-dark: #079AB4;
-  --guvel-cyan-deep: #087A91;
-  --guvel-cyan-soft: #EAFBFE;
+  /* Metrics Works palette — exact proposal colors */
+  --guvel-cyan: #143980;
+  --guvel-cyan-dark: #102C66;
+  --guvel-cyan-deep: #143980;
+  --guvel-cyan-soft: #EEF2FA;
 
-  --guvel-red: #FF3131;
-  --guvel-red-dark: #D92020;
-  --guvel-red-soft: #FFF0F0;
+  --guvel-red: #EC6B1E;
+  --guvel-red-dark: #C95A12;
+  --guvel-red-soft: #FFF3EA;
 
   /* Semantic */
   --color-primary: var(--guvel-cyan);
   --color-primary-hover: var(--guvel-cyan-dark);
   --color-danger: var(--guvel-red);
   --color-danger-hover: var(--guvel-red-dark);
-  --color-success: #16825D;
+  --color-success: #006732;
   --color-warning: #B7791F;
   --color-info: var(--guvel-cyan-deep);
 

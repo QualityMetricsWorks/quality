@@ -6,7 +6,7 @@
 3. Added Light/Dark mode.
    - Stored in browser localStorage as `guvel_theme`.
    - No Supabase migration required.
-   - Dark mode keeps Metrics Works cyan/red identity and uses an industrial dark neutral palette.
+   - Dark mode keeps GUVEL cyan/red identity and uses an industrial dark neutral palette.
 
 ## Deploy
 Replace:
