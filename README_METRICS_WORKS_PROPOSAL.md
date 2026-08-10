@@ -25,3 +25,12 @@ This proposal intentionally differs from GUVEL:
 
 ## Important
 After this proposal, return to the GUVEL General System v1.4.1 baseline for future GUVEL work.
+
+
+## v1.4.1 Login Hotfix
+The proposal uses the same Supabase project/profile as the working General System, but the login flow is now isolated from secondary data-loading failures.
+
+Authentication success is no longer blocked by a failure in a non-authentication table.
+Login errors are shown directly in the login form.
+
+No SQL migration is required.

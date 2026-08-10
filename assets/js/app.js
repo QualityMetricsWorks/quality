@@ -268,7 +268,22 @@ function initEvents(){
  $('clientAddPartBtn').addEventListener('click',()=>{setView('parts');$('partClient').value=state.selectedClientId||''});
  $('partAddDefectBtn').addEventListener('click',()=>{setView('catalog');const p=getPart(state.selectedPartId);$('defectClient').value=p?.clientId||'';ui.updateDefectParts();$('defectPartNumber').value=p?.id||'';ui.updateDefectOperations()});
  $('exportBtn').addEventListener('click',exportExcel);
- $('loginForm').addEventListener('submit',async e=>{e.preventDefault();$('authMessage').textContent='';const {error}=await db.auth.signInWithPassword({email:$('loginEmail').value,password:$('loginPassword').value});if(error)$('authMessage').textContent=error.message});
+ $('loginForm').addEventListener('submit',async e=>{
+ e.preventDefault();
+ const msg=$('authMessage'); const btn=e.currentTarget.querySelector('button[type="submit"]');
+ msg.textContent=''; msg.classList.remove('error','success');
+ if(btn){btn.disabled=true;btn.dataset.originalText=btn.textContent;btn.textContent='Validando…'}
+ try{
+   const {error}=await db.auth.signInWithPassword({email:$('loginEmail').value.trim(),password:$('loginPassword').value});
+   if(error) throw error;
+ }catch(error){
+   console.error('Metrics Works login:',error);
+   msg.textContent=error?.message||'No fue posible iniciar sesión.';
+   msg.classList.add('error');
+ }finally{
+   if(btn){btn.disabled=false;btn.textContent=btn.dataset.originalText||'Ingresar'}
+ }
+});
 }
 
 function exportExcel(){
@@ -280,8 +295,29 @@ function exportExcel(){
 }
 
 async function startSession(user){
- try{await api.loadIdentity(user);await api.loadAll();$('authOverlay').classList.add('hidden');$('companyContext').textContent=state.companyName;$('userEmail').textContent=user.email;$('storageStatus').textContent='Sistema Actualizado';applyRolePermissions();ui.renderAll();applyLanguage()}
- catch(e){console.error(e);toast(e.message);$('authOverlay').classList.remove('hidden')}
+ try{
+   await api.loadIdentity(user);
+   $('authOverlay').classList.add('hidden');
+   $('companyContext').textContent=state.companyName||'Organización';
+   $('userEmail').textContent=user.email;
+   $('storageStatus').textContent='Sistema Actualizado';
+   applyRolePermissions();
+   try{
+     await api.loadAll();
+     ui.renderAll();
+     applyLanguage();
+   }catch(dataError){
+     console.error('Metrics Works data load:',dataError);
+     ui.renderAll();
+     applyLanguage();
+     toast('Sesión iniciada. Algunos datos no pudieron cargarse.');
+   }
+ }catch(e){
+   console.error('Metrics Works session:',e);
+   $('authOverlay').classList.remove('hidden');
+   $('authMessage').textContent=e?.message||'No fue posible cargar el perfil de usuario.';
+   $('authMessage').classList.add('error');
+ }
 }
 function iso(d){return d.toISOString().slice(0,10)}
 function applyPeriod(v){
@@ -296,7 +332,7 @@ function applyPeriod(v){
  $('filterStart').value=iso(s);$('filterEnd').value=iso(e)
 }
 async function init(){
- db=api.initDb();initI18n();initEvents();window.Metrics Works_RENDER_BARCODE=renderBarcode;initTraceability(()=>reload('Producción registrada'));applyPeriod('current');
+ db=api.initDb();initI18n();initEvents();window.MetricsWorks_RENDER_BARCODE=renderBarcode;initTraceability(()=>reload('Producción registrada'));applyPeriod('current');
  const {data:{session}}=await db.auth.getSession();if(session?.user)await startSession(session.user);
  db.auth.onAuthStateChange(async(event,session)=>{if(event==='SIGNED_OUT'){$('authOverlay').classList.remove('hidden');location.reload()}else if(session?.user)await startSession(session.user)});
 }

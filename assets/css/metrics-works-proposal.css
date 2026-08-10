@@ -288,3 +288,7 @@ html[data-theme="dark"] table th{background:#1d2935!important;color:#d7e1eb!impo
   }
   .app-footer{margin-left:0!important}
 }
+
+/* v1.4.1 login hotfix */
+.auth-message.error{display:block;color:#b42318;background:#fff1f0;border:1px solid #fecdca;padding:8px 10px;font-size:11px}
+.login-card .btn:disabled{opacity:.65;cursor:wait}
