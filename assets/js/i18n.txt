@@ -379,7 +379,9 @@ const ES_EN={
   "OEE": "OEE",
   "Inactivo": "Inactive",
   "Sin producción.": "No production.",
-  "Cargando…": "Loading…"};
+  "Cargando…": "Loading…",
+  "Usuarios": "Users",
+  "Guardar": "Save"};
 const EN_ES=Object.fromEntries(Object.entries(ES_EN).map(([es,en])=>[en,es]));
 let current=localStorage.getItem('guvel_language')||'es';
 
@@ -426,6 +428,9 @@ const dynamicRules={
   [/^Search machine…$/,'Buscar máquina…'],
   [/^Search personnel…$/,'Buscar personal…'],
   [/^Search lot, PN, machine, operator…$/,'Buscar lote, NP, máquina, operador…'],
+  [/^Admin$/,'Admin'],[/^Manager$/,'Manager'],[/^Supervisor$/,'Supervisor'],[/^Guest$/,'Guest'],
+  [/^Activo$/,'Active'],[/^Inactivo$/,'Inactive'],[/^Operador$/,'Operator'],[/^Supervisor$/,'Supervisor'],
+  [/^Operador \/ Supervisor$/,'Operator / Supervisor'],
   [/^Active$/,'Activo'],[/^Inactive$/,'Inactivo'],[/^Full control/,'Control total'],[/^Master data/,'Maestros'],[/^View$/,'Visualización']
  ]
 };

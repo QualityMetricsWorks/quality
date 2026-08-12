@@ -49,9 +49,33 @@ if($('traceShift')){
 }
  $('traceResourceValidation').innerHTML=`<div class="validation-item">NP identificado y válido</div><div class="validation-item">Máquinas filtradas por relación NP–Máquina</div>`;
 }
+function renderPersonPicker(role){
+ const prefix=role==='supervisor'?'traceSupervisor':'traceOperator';
+ const input=$(prefix+'Search'),hidden=$(prefix),options=$(prefix+'Options');
+ if(!input||!hidden||!options)return;
+ const people=activePersonnelByRole(role);
+ const selected=getPersonnel(hidden.value);
+ input.value=selected?`${selected.employeeNo} · ${selected.fullName}`:'';
+ const query=(input.value||'').trim().toLowerCase();
+ const rows=people.filter(x=>`${x.employeeNo} ${x.fullName}`.toLowerCase().includes(query)).slice(0,50);
+ options.innerHTML=rows.length?rows.map(x=>`<button type=\"button\" class=\"person-picker-option\" data-person-id=\"${esc(x.id)}\"><strong>${esc(x.fullName)}</strong><small>${esc(x.employeeNo)}</small></button>`).join(''):`<div class=\"person-picker-empty\">Sin coincidencias.</div>`;
+ options.hidden=false;
+}
+function closePersonPickers(){document.querySelectorAll('.person-picker-options').forEach(x=>x.hidden=true)}
+function selectPerson(role,id){
+ const prefix=role==='supervisor'?'traceSupervisor':'traceOperator';
+ const hidden=$(prefix),input=$(prefix+'Search');
+ const person=getPersonnel(id);
+ if(!hidden||!input||!person)return;
+ hidden.value=person.id;input.value=`${person.employeeNo} · ${person.fullName}`;$(prefix+'Options').hidden=true;
+}
 function renderPeople(){
- populateSelect($('traceSupervisor'),activePersonnelByRole('supervisor'),'Selecciona supervisor',x=>`${x.employeeNo} · ${x.fullName}`);
- populateSelect($('traceOperator'),activePersonnelByRole('operator'),'Selecciona operador',x=>`${x.employeeNo} · ${x.fullName}`);
+ ['supervisor','operator'].forEach(role=>{
+   const prefix=role==='supervisor'?'traceSupervisor':'traceOperator';
+   const hidden=$(prefix);
+   if(hidden&&!hidden.value)$(prefix+'Search').value='';
+ });
+ closePersonPickers();
 }
 function previewRow(label,value,highlight=false){return `<div class="preview-item ${highlight?'highlight':''}"><span>${esc(label)}</span><strong>${esc(value||'—')}</strong></div>`}
 function renderDowntime(){populateSelect($('traceDowntimeReason'),state.downtimeReasons,'Selecciona motivo',x=>`${x.code} · ${x.name} · ${x.downtimeType==='planned'?'Planeado':'No planeado'}`);$('traceDowntimeList').innerHTML=pendingDowntime.map((x,i)=>`<span class="downtime-chip">${esc(state.downtimeReasons.find(r=>r.id===x.reasonId)?.name||'Paro')} · ${number(x.minutes)} min <button type="button" data-remove-downtime="${i}">×</button></span>`).join('')}
@@ -85,7 +109,7 @@ function renderPreview(){renderDowntime();
 }
 function reset(){
  pendingDowntime=[];Object.assign(trace,{step:1,partId:'',lotNumber:'',quantity:0,operationId:'',machineId:'',shift:'',supervisorId:'',operatorId:''});
- ['tracePartScan','traceLotScan','traceQtyScan'].forEach(id=>$(id).value='');
+ ['tracePartScan','traceLotScan','traceQtyScan','traceSupervisorSearch','traceOperatorSearch','traceSupervisor','traceOperator'].forEach(id=>$(id).value='');
  ['tracePartResult','traceLotResult','traceValidation','tracePreview'].forEach(id=>$(id).innerHTML='');
  $('traceConfirmCheck').checked=false;
  setStep(1);
@@ -127,6 +151,17 @@ export function initTraceability(callback){
  bindEnter('tracePartScan',validatePart,2);bindEnter('traceLotScan',validateLot,3);bindEnter('traceQtyScan',validateQty,4);
  $('traceResourceContinue').addEventListener('click',()=>{if(!$('traceOperation').value||!$('traceMachine').value||!$('traceShift').value)return toast('Selecciona operación, máquina y turno.');trace.operationId=$('traceOperation').value;trace.machineId=$('traceMachine').value;setStep(5)});
  $('tracePeopleContinue').addEventListener('click',()=>{if(!$('traceSupervisor').value||!$('traceOperator').value)return toast('Selecciona supervisor y operador.');setStep(6)});
+ ['supervisor','operator'].forEach(role=>{
+   const prefix=role==='supervisor'?'traceSupervisor':'traceOperator';
+   const input=$(prefix+'Search'),options=$(prefix+'Options');
+   input?.addEventListener('focus',()=>renderPersonPicker(role));
+   input?.addEventListener('input',()=>{
+     $(prefix).value='';
+     renderPersonPicker(role);
+   });
+   options?.addEventListener('click',e=>{const b=e.target.closest('[data-person-id]');if(b)selectPerson(role,b.dataset.personId)});
+ });
+ document.addEventListener('click',e=>{if(!e.target.closest('.person-picker'))closePersonPickers()});
  document.querySelectorAll('.trace-back').forEach(b=>b.addEventListener('click',()=>setStep(Number(b.dataset.backStep))));
  $('addTraceDowntimeBtn').addEventListener('click',()=>{const reasonId=$('traceDowntimeReason').value,minutes=Number($('traceDowntimeMinutes').value);if(!reasonId||minutes<=0)return toast('Selecciona motivo y minutos.');pendingDowntime.push({reasonId,minutes,eventType:$('traceDowntimeType').value});$('traceDowntimeMinutes').value='';renderDowntime()});
  document.body.addEventListener('click',e=>{const b=e.target.closest('[data-remove-downtime]');if(b){pendingDowntime.splice(Number(b.dataset.removeDowntime),1);renderDowntime()}});

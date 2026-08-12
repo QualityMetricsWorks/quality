@@ -379,7 +379,12 @@ const ES_EN={
   "OEE": "OEE",
   "Inactivo": "Inactive",
   "Sin producción.": "No production.",
-  "Cargando…": "Loading…"};
+  "Cargando…": "Loading…",
+  "Usuarios": "Users",
+  "Buscar supervisor…": "Search supervisor…",
+  "Buscar operador…": "Search operator…",
+  "Sin coincidencias.": "No matches found.",
+  "Guardar": "Save"};
 const EN_ES=Object.fromEntries(Object.entries(ES_EN).map(([es,en])=>[en,es]));
 let current=localStorage.getItem('guvel_language')||'es';
 
@@ -402,6 +407,9 @@ const dynamicRules={
   [/^Buscar máquina…$/,'Search machine…'],
   [/^Buscar personal…$/,'Search personnel…'],
   [/^Buscar lote, NP, máquina, operador…$/,'Search lot, PN, machine, operator…'],
+  [/^Buscar supervisor…$/,'Search supervisor…'],
+  [/^Buscar operador…$/,'Search operator…'],
+  [/^Sin coincidencias\.$/,'No matches found.'],
   [/^(.+) · Turno ([A-Z])$/,'$1 · Shift $2'],
   [/^(.+) · (\d+) pzas$/,'$1 · $2 pcs'],
   [/^(.+) piezas$/i,'$1 pieces'],
@@ -426,6 +434,12 @@ const dynamicRules={
   [/^Search machine…$/,'Buscar máquina…'],
   [/^Search personnel…$/,'Buscar personal…'],
   [/^Search lot, PN, machine, operator…$/,'Buscar lote, NP, máquina, operador…'],
+  [/^Search supervisor…$/,'Buscar supervisor…'],
+  [/^Search operator…$/,'Buscar operador…'],
+  [/^No matches found\.$/,'Sin coincidencias.'],
+  [/^Admin$/,'Admin'],[/^Manager$/,'Manager'],[/^Supervisor$/,'Supervisor'],[/^Guest$/,'Guest'],
+  [/^Activo$/,'Active'],[/^Inactivo$/,'Inactive'],[/^Operador$/,'Operator'],[/^Supervisor$/,'Supervisor'],
+  [/^Operador \/ Supervisor$/,'Operator / Supervisor'],
   [/^Active$/,'Activo'],[/^Inactive$/,'Inactivo'],[/^Full control/,'Control total'],[/^Master data/,'Maestros'],[/^View$/,'Visualización']
  ]
 };

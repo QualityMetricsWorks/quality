@@ -285,3 +285,121 @@ html[data-theme="dark"] .language-option{
 html[data-theme="dark"] .btn-primary{
   color:#fff;
 }
+
+/* v1.4.3 — compact catalog + complete dark nested surfaces */
+.catalog-panel .form-card{
+  padding:12px 14px;
+  margin-bottom:12px;
+}
+.catalog-panel .form-card .card-header{margin-bottom:9px}
+.catalog-panel .form-card .eyebrow{font-size:9px}
+.catalog-panel .form-card .card-header h3{font-size:14px}
+.catalog-panel .form-grid{
+  grid-template-columns:repeat(6,minmax(110px,1fr));
+  gap:9px;
+  align-items:end;
+}
+.catalog-panel .form-grid .field label{font-size:10px}
+.catalog-panel .form-grid .field input,
+.catalog-panel .form-grid .field select{
+  padding:8px 9px;
+  min-height:34px;
+  font-size:12px;
+}
+.catalog-panel .form-grid .form-actions{
+  grid-column:1/-1;
+  padding-top:1px;
+}
+.catalog-panel .form-grid .btn{
+  padding:8px 11px;
+  font-size:11px;
+}
+
+@media(max-width:1100px){
+ .catalog-panel .form-grid{grid-template-columns:repeat(3,minmax(120px,1fr))}
+}
+@media(max-width:700px){
+ .catalog-panel .form-grid{grid-template-columns:1fr}
+}
+
+html[data-theme="dark"] .users-page-intro,
+html[data-theme="dark"] .users-role-strip,
+html[data-theme="dark"] .users-layout,
+html[data-theme="dark"] .users-layout .card,
+html[data-theme="dark"] .role-info,
+html[data-theme="dark"] .user-admin-note,
+html[data-theme="dark"] .security-status,
+html[data-theme="dark"] .users-table,
+html[data-theme="dark"] .users-table tbody,
+html[data-theme="dark"] .users-table tr,
+html[data-theme="dark"] .users-table td,
+html[data-theme="dark"] .users-table th,
+html[data-theme="dark"] .run-list,
+html[data-theme="dark"] .run-list .entity-item,
+html[data-theme="dark"] .run-detail-header,
+html[data-theme="dark"] .run-info-grid,
+html[data-theme="dark"] .run-info-block,
+html[data-theme="dark"] .run-kpis,
+html[data-theme="dark"] .run-kpis > div,
+html[data-theme="dark"] .run-subsection,
+html[data-theme="dark"] .run-section-grid,
+html[data-theme="dark"] .run-section-grid > *,
+html[data-theme="dark"] .catalog-panel .form-card,
+html[data-theme="dark"] .catalog-panel .table-card{
+  color:var(--color-text);
+  background:var(--color-surface);
+  border-color:var(--color-border);
+}
+html[data-theme="dark"] .role-info,
+html[data-theme="dark"] .user-admin-note,
+html[data-theme="dark"] .run-info-block,
+html[data-theme="dark"] .run-kpis > div{
+  background:var(--color-surface-subtle);
+}
+html[data-theme="dark"] .users-table td,
+html[data-theme="dark"] .users-table th{
+  border-color:var(--color-border);
+}
+html[data-theme="dark"] .users-table th{
+  background:var(--color-surface-subtle);
+  color:var(--color-text-secondary);
+}
+html[data-theme="dark"] .users-table td,
+html[data-theme="dark"] .users-table td strong,
+html[data-theme="dark"] .users-table td span{
+  color:var(--color-text);
+}
+html[data-theme="dark"] .users-table td small,
+html[data-theme="dark"] .run-info-block span,
+html[data-theme="dark"] .run-kpis span,
+html[data-theme="dark"] .user-admin-note,
+html[data-theme="dark"] .security-status{
+  color:var(--color-text-secondary);
+}
+html[data-theme="dark"] .users-list-card .card-header,
+html[data-theme="dark"] .user-create-card .card-header,
+html[data-theme="dark"] .run-detail-header,
+html[data-theme="dark"] .run-section-grid .card-header{
+  background:transparent;
+  color:var(--color-text);
+}
+html[data-theme="dark"] .users-role-strip .role-code{
+  color:#fff;
+}
+html[data-theme="dark"] .run-list .entity-item:hover,
+html[data-theme="dark"] .run-list .entity-item.active{
+  background:#203243;
+  color:#fff;
+}
+
+/* v1.4.4 — searchable personnel picker for high-volume catalogs */
+.person-picker{position:relative;width:100%}
+.person-picker-input{width:100%;box-sizing:border-box}
+.person-picker-options{position:absolute;z-index:80;left:0;right:0;top:calc(100% + 4px);max-height:260px;overflow:auto;background:var(--color-surface);border:1px solid var(--color-border);border-radius:8px;box-shadow:0 12px 28px rgba(0,0,0,.16);padding:4px}
+.person-picker-option{display:flex;width:100%;gap:8px;align-items:center;justify-content:space-between;text-align:left;border:0;background:transparent;color:var(--color-text);padding:9px 10px;border-radius:6px;cursor:pointer}
+.person-picker-option:hover{background:var(--color-surface-subtle)}
+.person-picker-option strong{font-size:12px;font-weight:650}
+.person-picker-option small{font-size:10px;color:var(--color-text-secondary)}
+.person-picker-empty{padding:12px;color:var(--color-text-secondary);font-size:11px}
+html[data-theme="dark"] .person-picker-options{background:var(--color-surface);border-color:var(--color-border);box-shadow:0 14px 32px rgba(0,0,0,.42)}
+html[data-theme="dark"] .person-picker-option{color:var(--color-text)}

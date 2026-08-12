@@ -46,17 +46,16 @@ async function reload(msg='Sistema Actualizado'){
  await api.loadAll();ui.renderAll();applyLanguage();$('storageStatus').textContent='Sistema Actualizado';if(msg)toast(msg);
 }
 async function refreshRunsView(){
- const list=$('runList');if(list)list.innerHTML='<div class="run-loading"><span></span><strong>Cargando corridas…</strong></div>';
+ const list=$('runList');
  try{
-  await api.loadAll();
-  if(!state.selectedRunId&&state.runs.length){
-    state.selectedRunId=[...state.runs].sort((a,b)=>String(b.createdAt||b.date||'').localeCompare(String(a.createdAt||a.date||'')))[0].id;
-  }
-  ui.renderRuns();applyLanguage();
+   // v1.4.3: navigation uses the synchronized local state instead of
+   // issuing the full 13-query loadAll() on every visit.
+   ui.renderRuns();
+   applyLanguage();
  }catch(e){
-  console.error(e);
-  if(list)list.innerHTML=`<div class="run-zero-state error"><strong>No se pudieron cargar las corridas.</strong><small>${e.message||'Error'}</small></div>`;
-  toast(e.message||'Error al cargar corridas');
+   console.error(e);
+   if(list)list.innerHTML=`<div class="run-zero-state error"><strong>No se pudieron cargar las corridas.</strong><small>${esc(e.message||'Error')}</small></div>`;
+   toast(e.message||'Error al cargar corridas');
  }
 }
 
@@ -131,8 +130,17 @@ function showAuditDetail(id){
  $('auditDetailModal').hidden=false;
 }
 async function run(fn,msg='Guardado correctamente'){
- try{$('storageStatus').textContent='Sincronizando…';await fn();await reload(msg)}
- catch(e){console.error(e);$('storageStatus').textContent='Error';toast(e.message||'Error')}
+ try{
+   $('storageStatus').textContent='Sincronizando…';
+   await fn();
+   // v1.4.3: CRUD methods update local state after successful Supabase writes.
+   // Avoid a full 13-query reload after every click; this keeps dependent
+   // selectors, catalogs and dashboards responsive.
+   ui.renderAll();
+   applyLanguage();
+   $('storageStatus').textContent='Sistema Actualizado';
+   if(msg)toast(msg);
+ }catch(e){console.error(e);$('storageStatus').textContent='Error';toast(e.message||'Error')}
 }
 
 function bindTabs(){
@@ -296,7 +304,7 @@ function applyPeriod(v){
  $('filterStart').value=iso(s);$('filterEnd').value=iso(e)
 }
 async function init(){
- db=api.initDb();initI18n();initEvents();window.GUVEL_RENDER_BARCODE=renderBarcode;initTraceability(()=>reload('Producción registrada'));applyPeriod('current');
+ db=api.initDb();initI18n();initEvents();window.GUVEL_RENDER_BARCODE=renderBarcode;initTraceability(()=>{ui.renderAll();applyLanguage();$('storageStatus').textContent='Sistema Actualizado';toast('Producción registrada correctamente')});applyPeriod('current');
  const {data:{session}}=await db.auth.getSession();if(session?.user)await startSession(session.user);
  db.auth.onAuthStateChange(async(event,session)=>{if(event==='SIGNED_OUT'){$('authOverlay').classList.remove('hidden');location.reload()}else if(session?.user)await startSession(session.user)});
 }

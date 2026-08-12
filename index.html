@@ -30,7 +30,7 @@
 
       <div class="product-context">
         <span class="module-badge"><span class="module-dot"></span> Production & Quality</span>
-        <span class="version-badge">v1.4.2</span>
+        <span class="version-badge">v1.4.4</span>
         <div class="language-control">
           <button id="languageMenuBtn" class="language-trigger" type="button" aria-haspopup="true" aria-expanded="false" title="Idioma / Language">
             <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20Zm6.9 6h-3.1a15.7 15.7 0 0 0-1.4-3.5A8.1 8.1 0 0 1 18.9 8ZM12 4c.8 1 1.5 2.3 1.9 4h-3.8C10.5 6.3 11.2 5 12 4ZM4.3 14a8 8 0 0 1 0-4h3.4a16.7 16.7 0 0 0 0 4H4.3Zm.8 2h3.1a15.7 15.7 0 0 0 1.4 3.5A8.1 8.1 0 0 1 5.1 16Zm3.1-8H5.1a8.1 8.1 0 0 1 4.5-3.5A15.7 15.7 0 0 0 8.2 8ZM12 20c-.8-1-1.5-2.3-1.9-4h3.8c-.4 1.7-1.1 3-1.9 4Zm2.3-6H9.7a14.6 14.6 0 0 1 0-4h4.6a14.6 14.6 0 0 1 0 4Zm.1 5.5a15.7 15.7 0 0 0 1.4-3.5h3.1a8.1 8.1 0 0 1-4.5 3.5ZM16.3 14a16.7 16.7 0 0 0 0-4h3.4a8 8 0 0 1 0 4h-3.4Z"/></svg>
@@ -102,7 +102,7 @@
           <span>Historial</span>
         </button>        <button class="nav-item admin-only" data-view="users" hidden>
           <span class="nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M16 11a4 4 0 1 0-3.9-5A4 4 0 0 0 16 11Zm-8 0a3 3 0 1 0 0-6 3 3 0 0 0 0 6Zm8 2c-3.3 0-6 1.8-6 4v2h12v-2c0-2.2-2.7-4-6-4ZM8 13c-3.3 0-6 1.6-6 3.5V19h6v-2c0-1.5.8-2.8 2.1-3.7A8 8 0 0 0 8 13Z"/></svg></span>
-          <span>Usuarios</span>
+          <span data-i18n="Usuarios">Usuarios</span>
         </button>
         <button class="nav-item management-access" data-view="settings">
           <span class="nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M19.4 13a7.8 7.8 0 0 0 .1-1 7.8 7.8 0 0 0-.1-1l2-1.5-2-3.4-2.4 1a8.5 8.5 0 0 0-1.7-1L15 3.5h-4L10.7 6a8.5 8.5 0 0 0-1.7 1l-2.4-1-2 3.4L6.6 11a7.8 7.8 0 0 0-.1 1 7.8 7.8 0 0 0 .1 1l-2 1.5 2 3.4 2.4-1a8.5 8.5 0 0 0 1.7 1l.3 2.5h4l.3-2.5a8.5 8.5 0 0 0 1.7-1l2.4 1 2-3.4-2-1.5ZM13 15.5A3.5 3.5 0 1 1 13 8a3.5 3.5 0 0 1 0 7.5Z"/></svg></span>
@@ -119,7 +119,7 @@
   <main class="main-content">
     <section class="topbar page-toolbar">
       <div class="page-heading">
-        <div class="breadcrumb"><span>GUVEL General System</span><span>/</span><strong id="pageTitle">Dashboard</strong></div>
+        <div class="breadcrumb"><span>GUVEL General System</span><span>/</span><strong id="pageTitle" data-i18n="Dashboard">Dashboard</strong></div>
         <p class="page-description">Gestión General Operativo</p>
       </div>
       <div class="topbar-actions">
@@ -274,8 +274,8 @@
             <div class="trace-step-panel" data-trace-panel="5">
               <div class="trace-title"><p class="eyebrow">Paso 5 de 6</p><h2>Identifica al personal</h2><p>Los nombres provienen del catálogo para evitar variantes de captura.</p></div>
               <div class="form-grid two-col">
-                <div class="field"><label>Supervisor</label><select id="traceSupervisor" required></select></div>
-                <div class="field"><label>Operador</label><select id="traceOperator" required></select></div>
+                <div class="field person-picker-field"><label>Supervisor</label><div class="person-picker" data-person-picker="supervisor"><input id="traceSupervisorSearch" class="person-picker-input" type="search" autocomplete="off" placeholder="Buscar supervisor…"><input id="traceSupervisor" type="hidden" value=""><div id="traceSupervisorOptions" class="person-picker-options" hidden></div></div></div>
+                <div class="field person-picker-field"><label>Operador</label><div class="person-picker" data-person-picker="operator"><input id="traceOperatorSearch" class="person-picker-input" type="search" autocomplete="off" placeholder="Buscar operador…"><input id="traceOperator" type="hidden" value=""><div id="traceOperatorOptions" class="person-picker-options" hidden></div></div></div>
               </div>
               <div class="trace-footer-actions"><button class="btn btn-ghost trace-back" data-back-step="4">Atrás</button><button id="tracePeopleContinue" class="btn btn-primary">Generar preview</button></div>
             </div>
@@ -711,7 +711,7 @@
       <div class="field"><label>Contraseña</label><input type="password" id="loginPassword" required></div>
       <button class="btn btn-primary btn-block">Ingresar</button>
       <p id="authMessage" class="auth-message"></p>
-      <small class="version-note">GUVEL General System · v1.4.2 · Sprint 1 · Multiempresa</small>
+      <small class="version-note">GUVEL General System · v1.4.4 · Sprint 1 · Multiempresa</small>
     </form>
   </div>
 </body>
