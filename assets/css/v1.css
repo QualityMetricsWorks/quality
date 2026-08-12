@@ -403,3 +403,23 @@ html[data-theme="dark"] .run-list .entity-item.active{
 .person-picker-empty{padding:12px;color:var(--color-text-secondary);font-size:11px}
 html[data-theme="dark"] .person-picker-options{background:var(--color-surface);border-color:var(--color-border);box-shadow:0 14px 32px rgba(0,0,0,.42)}
 html[data-theme="dark"] .person-picker-option{color:var(--color-text)}
+
+/* v1.4.5 — inline quality capture */
+.trace-scrap-capture-box textarea{
+  width:100%;
+  margin-top:8px;
+  box-sizing:border-box;
+}
+.trace-scrap-capture-box .info-strip{
+  margin-top:8px;
+}
+html[data-theme="dark"] .trace-scrap-capture-box{
+  background:var(--color-surface);
+  color:var(--color-text);
+  border-color:var(--color-border);
+}
+html[data-theme="dark"] .trace-scrap-capture-box .info-strip{
+  background:var(--color-surface-subtle);
+  color:var(--color-text);
+  border-color:var(--color-border);
+}

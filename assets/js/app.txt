@@ -4,7 +4,7 @@ import * as api from './db.js';
 import * as ui from './ui.js';
 import {metricsForRuns,copqForEvent} from './metrics.js';
 import {initTraceability,renderBarcode,printBarcode} from './traceability.js';
-import {initI18n,applyLanguage} from './i18n.js';
+import {initI18n,applyLanguage,tr} from './i18n.js';
 
 let db;
 const canCapture=()=>['admin','manager','supervisor'].includes(state.role);
@@ -36,7 +36,7 @@ function setView(view){
  $(`${view}View`)?.classList.add('active');
  document.querySelectorAll('.nav-item').forEach(x=>x.classList.toggle('active',x.dataset.view===view));
  $('exportBtn').hidden=view!=='data';
- $('pageTitle').textContent=({dashboard:'Dashboard',capture:'Captura',clients:'Clientes',parts:'Números de Parte',machines:'Máquinas',personnel:'Personal',catalog:'Catálogo',runs:'Corridas',users:'Usuarios',data:'Datos',history:'Historial',settings:'Configuración'})[view]||view;
+ const pageLabels={dashboard:'Dashboard',capture:'Captura',clients:'Clientes',parts:'Números de Parte',machines:'Máquinas',personnel:'Personal',catalog:'Catálogo',runs:'Corridas',users:'Usuarios',data:'Datos',history:'Historial',settings:'Configuración'}; $('pageTitle').textContent=tr(pageLabels[view]||view); $('pageTitle').setAttribute('data-i18n',pageLabels[view]||view);
  if(view==='runs')refreshRunsView();
  else if(view==='users'){renderUsersAdmin();applyLanguage()}
  else if(view==='history')refreshAuditView();

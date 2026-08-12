@@ -384,7 +384,17 @@ const ES_EN={
   "Buscar supervisor…": "Search supervisor…",
   "Buscar operador…": "Search operator…",
   "Sin coincidencias.": "No matches found.",
-  "Guardar": "Save"};
+  "Guardar": "Save",
+  "Fecha de producción": "Production date",
+  "Fecha de producción manual · registro del sistema": "Manual production date · system registration timestamp",
+  "Fecha de producción capturada manualmente · hora de registro del sistema": "Production date entered manually · system registration timestamp",
+  "Selecciona fecha, operación, máquina y turno.": "Select date, operation, machine and shift.",
+  "Calidad / Scrap de la corrida": "Quality / Scrap for this run",
+  "Registra uno o varios defectos durante la misma captura de producción.": "Record one or more defects during the same production capture.",
+  "Selecciona defecto": "Select defect",
+  "Scrap capturado:": "Scrap captured:",
+  "Notas del evento (opcional)": "Event notes (optional)",
+  "Manual": "Manual"};
 const EN_ES=Object.fromEntries(Object.entries(ES_EN).map(([es,en])=>[en,es]));
 let current=localStorage.getItem('guvel_language')||'es';
 
