@@ -248,17 +248,56 @@ function initEvents(){
  $('defectForm').addEventListener('submit',e=>{e.preventDefault();if(!canManage())return toast('Solo Admin o Manager.');run(()=>api.insertDefect({partId:$('defectPartNumber').value,operationId:$('defectOperation').value,code:$('defectCode').value.trim(),name:$('defectName').value.trim(),category:$('defectCategory').value})).then(()=>{e.target.reset();ui.renderSelects()})});
  $('downtimeReasonForm').addEventListener('submit',e=>{e.preventDefault();if(!canManage())return toast('Solo Admin o Manager.');run(()=>api.insertDowntimeReason({code:$('downtimeCode').value.trim(),name:$('downtimeName').value.trim(),category:$('downtimeCategory').value,downtimeType:$('downtimeType').value})).then(()=>e.target.reset())});
 
- // Dashboard settings and custom dashboard creation
- document.querySelectorAll('[data-dashboard-settings]').forEach(btn=>btn.addEventListener('click',()=>{
-   const kind=btn.dataset.dashboardSettings,modal=$('dashboardSettingsModal'),sel=$('dashboardMetricSelect');if(!modal||!sel)return;
+ // Dashboard settings, custom dashboards and layout
+ const openDashboardSettings=(kind,metric,customId=null)=>{
+   const modal=$('dashboardSettingsModal'),sel=$('dashboardMetricSelect');if(!modal||!sel)return;
    sel.innerHTML=ui.dashboardMetricOptions(kind).map(x=>`<option value="${x[0]}">${x[1]}</option>`).join('');
-   modal.dataset.kind=kind;const first=sel.value;const r=ui.getDashboardSetting(kind,first);
+   sel.disabled=true;sel.value=metric||sel.value;modal.dataset.kind=kind;modal.dataset.customId=customId||'';
+   const custom=customId?ui.getCustomDashboard(kind,customId):null;
+   const r=custom?.range||ui.getDashboardSetting(kind,sel.value);
    $('dashboardMin').value=r.min;$('dashboardMax').value=r.max;$('dashboardTarget').value=r.target;modal.hidden=false;
- }));
- $('dashboardMetricSelect')?.addEventListener('change',e=>{const r=ui.getDashboardSetting($('dashboardSettingsModal').dataset.kind,e.target.value);$('dashboardMin').value=r.min;$('dashboardMax').value=r.max;$('dashboardTarget').value=r.target});
+ };
+ document.body.addEventListener('click',e=>{
+   const b=e.target.closest('[data-dashboard-settings]');
+   if(b)openDashboardSettings(b.dataset.dashboardSettings,b.dataset.dashboardMetric,b.dataset.customDashboardId||null);
+   const add=e.target.closest('[data-add-custom-dashboard]');
+   if(add){
+     const kind=add.dataset.addCustomDashboard,modal=$('customDashboardModal'),sel=$('customDashboardMetric');if(!modal||!sel)return;
+     $('customDashboardModalTitle').textContent='Añadir dashboard';$('customDashboardId').value='';$('customDashboardKind').value=kind;$('customDashboardName').value='';$('customDashboardSpan').value='1';
+     sel.innerHTML=ui.dashboardMetricOptions(kind).map(x=>`<option value="${x[0]}">${x[1]}</option>`).join('');modal.hidden=false;
+   }
+   const edit=e.target.closest('[data-edit-custom-dashboard]');
+   if(edit){
+     const kind=edit.dataset.editCustomDashboard,id=edit.dataset.customDashboardId,x=ui.getCustomDashboard(kind,id);if(!x)return;
+     const modal=$('customDashboardModal'),sel=$('customDashboardMetric');$('customDashboardModalTitle').textContent='Editar dashboard';$('customDashboardId').value=id;$('customDashboardKind').value=kind;$('customDashboardName').value=x.name;$('customDashboardSpan').value=String(x.span||1);
+     sel.innerHTML=ui.dashboardMetricOptions(kind).map(o=>`<option value="${o[0]}">${o[1]}</option>`).join('');sel.value=x.metric;modal.hidden=false;
+   }
+   const del=e.target.closest('[data-delete-custom-dashboard]');
+   if(del){const kind=del.dataset.deleteCustomDashboard,id=del.dataset.customDashboardId;if(confirm('¿Eliminar este dashboard?')){ui.removeCustomDashboard(kind,id);ui.renderDashboard()}}
+   const span=e.target.closest('[data-set-custom-span]');
+   if(span){ui.updateCustomDashboard(span.dataset.setCustomSpan,span.dataset.customDashboardId,{span:Number(span.dataset.span)});ui.renderDashboard()}
+ });
+ $('dashboardMetricSelect')?.addEventListener('change',e=>{
+   const modal=$('dashboardSettingsModal'),customId=modal.dataset.customId,kind=modal.dataset.kind;
+   const r=customId?ui.getCustomDashboard(kind,customId)?.range||ui.getDashboardSetting(kind,e.target.value):ui.getDashboardSetting(kind,e.target.value);
+   $('dashboardMin').value=r.min;$('dashboardMax').value=r.max;$('dashboardTarget').value=r.target;
+ });
  const closeDash=()=>{$('dashboardSettingsModal').hidden=true};$('closeDashboardSettingsBtn')?.addEventListener('click',closeDash);$('cancelDashboardSettingsBtn')?.addEventListener('click',closeDash);
- $('dashboardSettingsForm')?.addEventListener('submit',e=>{e.preventDefault();const kind=$('dashboardSettingsModal').dataset.kind,metric=$('dashboardMetricSelect').value,min=Number($('dashboardMin').value),max=Number($('dashboardMax').value),target=Number($('dashboardTarget').value);if(!(max>min)&&!(max===min&&min===0))return toast('El máximo debe ser mayor al mínimo.');if(target<min||target>max)return toast('La meta debe estar dentro del rango.');ui.saveDashboardSetting(kind,metric,{min,max,target});closeDash();ui.renderDashboard()});
- document.body.addEventListener('click',e=>{const b=e.target.closest('[data-add-custom-dashboard]');if(!b)return;const kind=b.dataset.addCustomDashboard;const name=prompt('Nombre del dashboard adicional:');if(!name?.trim())return;ui.addCustomDashboard(kind,name.trim());ui.renderDashboard()});
+ $('dashboardSettingsForm')?.addEventListener('submit',e=>{
+   e.preventDefault();const modal=$('dashboardSettingsModal'),kind=modal.dataset.kind,customId=modal.dataset.customId,metric=$('dashboardMetricSelect').value,min=Number($('dashboardMin').value),max=Number($('dashboardMax').value),target=Number($('dashboardTarget').value);
+   if(!(max>min)&&!(max===min&&min===0))return toast('El máximo debe ser mayor al mínimo.');
+   if(target<min||target>max)return toast('La meta debe estar dentro del rango.');
+   if(customId)ui.saveCustomDashboardSetting(kind,customId,{min,max,target});else ui.saveDashboardSetting(kind,metric,{min,max,target});
+   closeDash();ui.renderDashboard();
+ });
+ const closeCustom=()=>{$('customDashboardModal').hidden=true};$('closeCustomDashboardModalBtn')?.addEventListener('click',closeCustom);$('cancelCustomDashboardBtn')?.addEventListener('click',closeCustom);
+ $('customDashboardForm')?.addEventListener('submit',e=>{
+   e.preventDefault();const kind=$('customDashboardKind').value,id=$('customDashboardId').value,name=$('customDashboardName').value.trim(),metric=$('customDashboardMetric').value,span=Number($('customDashboardSpan').value||1);
+   if(!name)return;
+   if(id){const old=ui.getCustomDashboard(kind,id);ui.updateCustomDashboard(kind,id,{name,metric,metricLabel:ui.dashboardMetricOptions(kind).find(x=>x[0]===metric)?.[1]||metric,span})}
+   else ui.addCustomDashboard(kind,name,metric,span);
+   closeCustom();ui.renderDashboard();
+ });
  // Searches
  $('clientSearch').addEventListener('input',ui.renderClients);$('partSearch').addEventListener('input',ui.renderParts);$('machineSearch').addEventListener('input',ui.renderMachines);$('personnelSearch').addEventListener('input',ui.renderPersonnel);$('defectSearch').addEventListener('input',ui.renderCatalog);$('downtimeSearch').addEventListener('input',ui.renderDowntimeCatalog);$('runSearch').addEventListener('input',ui.renderRuns);$('productionHistorySearch').addEventListener('input',ui.renderHistory);$('scrapHistorySearch').addEventListener('input',ui.renderHistory);
  document.querySelectorAll('.form-cancel-btn').forEach(b=>b.addEventListener('click',()=>b.closest('form')?.reset()));

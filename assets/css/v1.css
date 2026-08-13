@@ -478,3 +478,37 @@ html[data-theme="dark"] .role-guest .role-code{color:#fff!important;background:#
  .run-section-grid{grid-template-columns:1fr 1fr!important}
  .card{break-inside:avoid}
 }
+
+/* v1.4.7 — dashboard workspace */
+.dashboard-chart-header{display:flex!important;align-items:center;justify-content:space-between;gap:8px}
+.dashboard-chart-settings{width:26px;height:26px;display:inline-grid;place-items:center;border:1px solid var(--color-border);background:var(--color-surface);color:var(--color-text-secondary);border-radius:3px;cursor:pointer;flex:0 0 auto}
+.dashboard-chart-settings:hover{color:var(--color-text);background:var(--color-surface-subtle)}
+.custom-dashboard-toolbar{display:flex;justify-content:space-between;align-items:center;gap:12px;margin:18px 0 10px;padding:8px 2px}
+.custom-dashboard-toolbar p{margin:0 0 2px}.custom-dashboard-toolbar span{font-size:10px;color:var(--color-text-muted)}
+.custom-dashboard-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;align-items:stretch}
+.custom-dashboard-card{min-width:0;border:1px solid var(--color-border);background:var(--color-surface);display:flex;flex-direction:column;transition:transform .12s ease,border-color .12s ease,box-shadow .12s ease}
+.custom-dashboard-card.span-1{grid-column:span 1}.custom-dashboard-card.span-2{grid-column:span 2}.custom-dashboard-card.span-3{grid-column:span 3}
+.custom-dashboard-card.dragging{opacity:.55;transform:scale(.99)}
+.custom-dashboard-card.drag-over{border-color:#0CC1E0;box-shadow:0 0 0 2px rgba(12,193,224,.16)}
+.custom-dashboard-card-header{display:grid;grid-template-columns:24px 1fr auto;gap:7px;align-items:center;padding:10px;border-bottom:1px solid var(--color-border)}
+.custom-dashboard-drag{cursor:grab;color:var(--color-text-muted);font-size:17px;line-height:1;text-align:center;user-select:none}
+.custom-dashboard-drag:active{cursor:grabbing}
+.custom-dashboard-card-title{min-width:0}.custom-dashboard-card-title strong,.custom-dashboard-card-title small{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.custom-dashboard-card-title small{margin-top:2px;color:var(--color-text-muted);font-size:9px}
+.custom-dashboard-card-actions{display:flex;align-items:center;gap:4px}
+.custom-dashboard-more{width:24px;height:24px;border:1px solid var(--color-border);background:var(--color-surface);color:var(--color-text-secondary);cursor:pointer;border-radius:3px}
+.custom-dashboard-more:hover{background:var(--color-surface-subtle);color:var(--color-text)}
+.custom-dashboard-more.danger:hover{color:#FF3131}
+.custom-dashboard-canvas{height:300px;min-height:260px;padding:10px 10px 0;position:relative}
+.custom-dashboard-footer{display:flex;justify-content:space-between;align-items:center;padding:7px 10px;border-top:1px solid var(--color-border);font-size:9px;color:var(--color-text-muted)}
+.span-control{display:flex;gap:3px}
+.span-control button{width:23px;height:21px;border:1px solid var(--color-border);background:var(--color-surface);color:var(--color-text-muted);font-size:9px;cursor:pointer;border-radius:2px}
+.span-control button.active{background:var(--color-text);color:var(--color-surface);border-color:var(--color-text)}
+.custom-dashboard-empty{grid-column:1/-1;padding:24px}
+.custom-dashboard-modal{width:min(620px,94vw);max-height:85vh;overflow:auto;padding:18px}
+html[data-theme="dark"] .dashboard-chart-settings,
+html[data-theme="dark"] .custom-dashboard-more,
+html[data-theme="dark"] .span-control button{background:var(--color-surface);color:var(--color-text);border-color:var(--color-border)}
+html[data-theme="dark"] .custom-dashboard-card{background:var(--color-surface);border-color:var(--color-border)}
+@media(max-width:1000px){.custom-dashboard-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.custom-dashboard-card.span-3{grid-column:span 2}}
+@media(max-width:650px){.custom-dashboard-grid{grid-template-columns:1fr}.custom-dashboard-card.span-2,.custom-dashboard-card.span-3{grid-column:span 1}.custom-dashboard-toolbar{align-items:flex-start;flex-direction:column}}

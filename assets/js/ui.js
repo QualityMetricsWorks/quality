@@ -89,17 +89,27 @@ export function dashboardMetricOptions(kind){
   maintenance:[['downtime','Tiempo muerto'],['reason_pie','Pie · Motivos de paro'],['machine_pie','Pie · Máquinas'],['reason_pareto','Pareto · Motivos de paro'],['machine_pareto','Pareto · Máquinas']]
  };return map[kind]||map.general;
 }
-export function addCustomDashboard(kind,name){
- const all=getCustomDashboards();all[kind]=all[kind]||[];
- const options=dashboardMetricOptions(kind);
- const metric=prompt('Tipo de visualización:\n'+options.map((x,i)=>`${i+1}. ${x[1]}`).join('\n'));
- const n=Number(metric);
- const chosen=options[n-1]||options[0];
- all[kind].push({id:`${kind}-${Date.now()}`,name,metric:chosen[0],metricLabel:chosen[1]});
- setCustomDashboards(all);
-}
 function getCustomDashboards(){try{return JSON.parse(localStorage.getItem(customDashboardsKey)||'{}')}catch{return {}}}
 function setCustomDashboards(x){localStorage.setItem(customDashboardsKey,JSON.stringify(x))}
+export function getCustomDashboard(kind,id){return (getCustomDashboards()[kind]||[]).find(x=>x.id===id)||null}
+export function updateCustomDashboard(kind,id,patch){
+ const all=getCustomDashboards();all[kind]=(all[kind]||[]).map(x=>x.id===id?{...x,...patch}:x);setCustomDashboards(all);
+}
+export function removeCustomDashboard(kind,id){
+ const all=getCustomDashboards();all[kind]=(all[kind]||[]).filter(x=>x.id!==id);setCustomDashboards(all);
+}
+export function saveCustomDashboardSetting(kind,id,value){updateCustomDashboard(kind,id,{range:value})}
+export function addCustomDashboard(kind,name,metric,span=1){
+ const all=getCustomDashboards();all[kind]=all[kind]||[];
+ const options=dashboardMetricOptions(kind),chosen=options.find(x=>x[0]===metric)||options[0];
+ all[kind].push({id:`${kind}-${Date.now()}`,name,metric:chosen[0],metricLabel:chosen[1],span:Number(span)||1,range:dashboardDefault(kind,chosen[0])});
+ setCustomDashboards(all);
+}
+export function reorderCustomDashboard(kind,id,beforeId){
+ const all=getCustomDashboards(),items=all[kind]||[],from=items.findIndex(x=>x.id===id);if(from<0)return;
+ const [item]=items.splice(from,1);const to=beforeId?items.findIndex(x=>x.id===beforeId):items.length;
+ items.splice(to<0?items.length:to,0,item);all[kind]=items;setCustomDashboards(all);
+}
 function customData(kind,metric,runs,downtime){
  const d=daily(runs),labels=d.map(x=>x.date);
  if(metric==='production')return {type:'line',labels,data:d.map(x=>x.produced),label:'Production'};
@@ -114,7 +124,7 @@ function customData(kind,metric,runs,downtime){
  if(metric==='defect_pie'){const map={};state.scrapEvents.filter(e=>runs.some(r=>r.id===e.runId)).forEach(e=>map[getDefect(e.defectId)?.name||'Other']=(map[getDefect(e.defectId)?.name||'Other']||0)+Number(e.quantity||0));return {type:'pie',labels:Object.keys(map),data:Object.values(map),label:'Defects'}}
  if(metric==='part_pie'){const map={};state.scrapEvents.filter(e=>runs.some(r=>r.id===e.runId)).forEach(e=>{const pn=getPart(getRun(e.runId)?.partId)?.number||'Other';map[pn]=(map[pn]||0)+Number(e.quantity||0)});return {type:'pie',labels:Object.keys(map),data:Object.values(map),label:'Part Numbers'}}
  if(metric==='defect_pareto'){const map={};state.scrapEvents.filter(e=>runs.some(r=>r.id===e.runId)).forEach(e=>{const n=getDefect(e.defectId)?.name||'Other';map[n]=(map[n]||0)+Number(e.quantity||0)});const z=Object.entries(map).sort((a,b)=>b[1]-a[1]);return {type:'pareto',labels:z.map(x=>x[0]),data:z.map(x=>x[1]),label:'Defect Pareto'}}
- if(metric==='part_pareto'){const map={};state.scrapEvents.filter(e=>runs.some(r=>r.id===e.runId)).forEach(e=>{const n=getPart(getRun(e.runId)?.partId)?.number||'Other';map[n]=(map[n]||0)+Number(e.quantity||0)});const z=Object.entries(map).sort((a,b)=>b[1]-a[1]);return {type:'pareto',labels:z.map(x=>x[0]),data:z.map(x=>x[1]),label:'Part Pareto'}}
+ if(metric==='part_pareto'){const map={};state.scrapEvents.filter(e=>runs.some(r=>r.id===e.runId)).forEach(e=>{const n=getPart(getRun(e.runId)?.partId||'')?.number||'Other';map[n]=(map[n]||0)+Number(e.quantity||0)});const z=Object.entries(map).sort((a,b)=>b[1]-a[1]);return {type:'pareto',labels:z.map(x=>x[0]),data:z.map(x=>x[1]),label:'Part Pareto'}}
  if(metric==='reason_pie'){const map={};downtime.forEach(e=>{const n=getDowntimeReason(e.reasonId)?.name||'Other';map[n]=(map[n]||0)+Number(e.minutes||0)});return {type:'pie',labels:Object.keys(map),data:Object.values(map),label:'Downtime reasons'}}
  if(metric==='machine_pie'){const map={};downtime.forEach(e=>{const r=getRun(e.runId),n=getMachine(r?.machineId)?.code||'Other';map[n]=(map[n]||0)+Number(e.minutes||0)});return {type:'pie',labels:Object.keys(map),data:Object.values(map),label:'Machines'}}
  if(metric==='reason_pareto'){const map={};downtime.forEach(e=>{const n=getDowntimeReason(e.reasonId)?.name||'Other';map[n]=(map[n]||0)+Number(e.minutes||0)});const z=Object.entries(map).sort((a,b)=>b[1]-a[1]);return {type:'pareto',labels:z.map(x=>x[0]),data:z.map(x=>x[1]),label:'Downtime Pareto'}}
@@ -122,19 +132,26 @@ function customData(kind,metric,runs,downtime){
  return {type:'line',labels,data:[],label:metric};
 }
 function renderCustomDashboard(kind,runs,downtime){
- const host=$(`custom-dashboard-host-${kind}`)||document.querySelector(`[data-custom-dashboard-host="${kind}"]`);if(!host)return;
+ const host=document.querySelector(`[data-custom-dashboard-host="${kind}"]`);if(!host)return;
  const all=getCustomDashboards(),items=all[kind]||[];
- const active=items.find(x=>x.id===(host.dataset.active||items[0]?.id))||items[0];
- host.innerHTML=`<div class="custom-dashboard-shell"><div class="custom-dashboard-toolbar"><div class="field"><label>Dashboard adicional</label><select id="customDashSelect-${kind}"><option value="">Selecciona una vista…</option>${items.map(x=>`<option value="${x.id}" ${active&&x.id===active.id?'selected':''}>${esc(x.name)}</option>`).join('')}</select></div><div class="custom-dashboard-actions"><button class="btn btn-secondary btn-sm" data-add-custom-dashboard="${kind}">+ Añadir dashboard</button></div></div>${active?`<div class="card-header"><h3>${esc(active.name)}</h3><small>${esc(active.metricLabel)}</small></div><div class="custom-dashboard-canvas"><canvas id="customDashCanvas-${kind}"></canvas></div>`:'<div class="empty-state">Crea una vista adicional para este dashboard.</div>'}</div>`;
- const sel=$(`customDashSelect-${kind}`);if(sel)sel.addEventListener('change',()=>{host.dataset.active=sel.value;renderCustomDashboard(kind,runs,downtime)});
- if(active){
-   const d=customData(kind,active.metric,runs,downtime),cid=`customDashCanvas-${kind}`;if(charts[cid])charts[cid].destroy();
-   let cfg;
-   if(d.type==='pie')cfg=pieConfig(d.labels,d.data);
-   else if(d.type==='pareto')cfg=paretoConfig(d.labels,d.data);
-   else cfg=rangedLineConfig(d.labels,d.data,'cyan',chartRange(kind,active.metric));
+ host.innerHTML=`<div class="custom-dashboard-toolbar"><div><p class="eyebrow">Dashboards personalizados</p><span>Arrastra para mover · 1, 2 o 3 columnas</span></div><button class="btn btn-secondary btn-sm" data-add-custom-dashboard="${kind}">+ Añadir dashboard</button></div><div class="custom-dashboard-grid" data-custom-grid="${kind}">${items.map(x=>`<article class="custom-dashboard-card span-${Math.min(3,Math.max(1,Number(x.span)||1))}" draggable="true" data-custom-dashboard-card="${x.id}" data-custom-kind="${kind}">
+   <div class="custom-dashboard-card-header"><div class="custom-dashboard-drag" title="Mover dashboard">⠿</div><div class="custom-dashboard-card-title"><strong>${esc(x.name)}</strong><small>${esc(x.metricLabel)}</small></div><div class="custom-dashboard-card-actions"><button class="dashboard-chart-settings" data-custom-dashboard-settings="${kind}" data-custom-dashboard-id="${x.id}" data-dashboard-settings="${kind}" data-dashboard-metric="${x.metric}" title="Configurar meta">⚙</button><button class="custom-dashboard-more" type="button" title="Editar dashboard" data-edit-custom-dashboard="${kind}" data-custom-dashboard-id="${x.id}">✎</button><button class="custom-dashboard-more danger" type="button" title="Eliminar dashboard" data-delete-custom-dashboard="${kind}" data-custom-dashboard-id="${x.id}">×</button></div></div>
+   <div class="custom-dashboard-canvas"><canvas id="customDashCanvas-${kind}-${x.id}"></canvas></div>
+   <div class="custom-dashboard-footer"><span>Distribución</span><div class="span-control">${[1,2,3].map(n=>`<button type="button" class="${Number(x.span)===n?'active':''}" data-set-custom-span="${kind}" data-custom-dashboard-id="${x.id}" data-span="${n}">${n}</button>`).join('')}</div></div>
+ </article>`).join('')||'<div class="empty-state custom-dashboard-empty">No hay dashboards adicionales. Usa “+ Añadir dashboard”.</div>'}</div>`;
+ const grid=host.querySelector(`[data-custom-grid="${kind}"]`);
+ grid?.querySelectorAll('[data-custom-dashboard-card]').forEach(card=>{
+   card.addEventListener('dragstart',e=>{e.dataTransfer.setData('text/plain',card.dataset.customDashboardCard);card.classList.add('dragging')});
+   card.addEventListener('dragend',()=>card.classList.remove('dragging'));
+   card.addEventListener('dragover',e=>{e.preventDefault();card.classList.add('drag-over')});
+   card.addEventListener('dragleave',()=>card.classList.remove('drag-over'));
+   card.addEventListener('drop',e=>{e.preventDefault();card.classList.remove('drag-over');const id=e.dataTransfer.getData('text/plain');if(id&&id!==card.dataset.customDashboardCard){reorderCustomDashboard(kind,id,card.dataset.customDashboardCard);renderDashboard()}}); 
+ });
+ items.forEach(x=>{
+   const d=customData(kind,x.metric,runs,downtime),cid=`customDashCanvas-${kind}-${x.id}`;
+   let cfg;if(d.type==='pie')cfg=pieConfig(d.labels,d.data);else if(d.type==='pareto')cfg=paretoConfig(d.labels,d.data);else cfg=rangedLineConfig(d.labels,d.data,'cyan',x.range||chartRange(kind,x.metric));
    chart(cid,cfg);
- }
+ });
 }
 function daily(runs){const map=new Map();runs.forEach(r=>{const a=map.get(r.date)||[];a.push(r);map.set(r.date,a)});return [...map].sort((a,b)=>a[0].localeCompare(b[0])).map(([date,rs])=>({date,...metricsForRuns(rs)}))}
 function chart(id,cfg){if(!window.Chart)return;if(charts[id])charts[id].destroy();const ctx=$(id);if(ctx)charts[id]=new Chart(ctx,cfg)}
