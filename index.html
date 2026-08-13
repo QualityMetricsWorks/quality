@@ -30,7 +30,7 @@
 
       <div class="product-context">
         <span class="module-badge"><span class="module-dot"></span> Production & Quality</span>
-        <span class="version-badge">v1.4.5</span>
+        <span class="version-badge">v1.4.6</span>
         <div class="language-control">
           <button id="languageMenuBtn" class="language-trigger" type="button" aria-haspopup="true" aria-expanded="false" title="Idioma / Language">
             <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20Zm6.9 6h-3.1a15.7 15.7 0 0 0-1.4-3.5A8.1 8.1 0 0 1 18.9 8ZM12 4c.8 1 1.5 2.3 1.9 4h-3.8C10.5 6.3 11.2 5 12 4ZM4.3 14a8 8 0 0 1 0-4h3.4a16.7 16.7 0 0 0 0 4H4.3Zm.8 2h3.1a15.7 15.7 0 0 0 1.4 3.5A8.1 8.1 0 0 1 5.1 16Zm3.1-8H5.1a8.1 8.1 0 0 1 4.5-3.5A15.7 15.7 0 0 0 8.2 8ZM12 20c-.8-1-1.5-2.3-1.9-4h3.8c-.4 1.7-1.1 3-1.9 4Zm2.3-6H9.7a14.6 14.6 0 0 1 0-4h4.6a14.6 14.6 0 0 1 0 4Zm.1 5.5a15.7 15.7 0 0 0 1.4-3.5h3.1a8.1 8.1 0 0 1-4.5 3.5ZM16.3 14a16.7 16.7 0 0 0 0-4h3.4a8 8 0 0 1 0 4h-3.4Z"/></svg>
@@ -151,6 +151,7 @@
         <button class="btn btn-ghost" id="clearFiltersBtn">Limpiar</button>
       </div>
       <div class="dashboard-panel active" data-dashboard-panel="general">
+        <div class="dashboard-panel-toolbar"><div><p class="eyebrow">General</p><span>Indicadores y tendencias</span></div><button class="dashboard-settings-btn" data-dashboard-settings="general" title="Configurar dashboard">⚙</button></div>
         <div class="kpi-grid kpi-grid-6">
           <article class="kpi-card info"><span>OEE</span><strong id="kpiOee">—</strong><small id="kpiOeeNote">Requiere tiempo ciclo configurado</small></article>
           <article class="kpi-card"><span>Producción</span><strong id="kpiProduction">0</strong><small>Piezas registradas</small></article>
@@ -166,8 +167,10 @@
           <article class="card chart-card"><div class="card-header"><div><p class="eyebrow">Tendencia</p><h3>COPQ Scrap</h3></div></div><div class="chart-wrap"><canvas id="copqTrendChart"></canvas></div></article>
         </div>
         <article class="card section-card"><div class="card-header"><div><p class="eyebrow">Concentración de pérdida</p><h3>Top 3 productos con mayor scrap</h3></div></div><div id="topProductsGrid" class="top-products-grid"></div></article>
+      <div class="custom-dashboard-host" data-custom-dashboard-host="general"></div>
       </div>
       <div class="dashboard-panel" data-dashboard-panel="production">
+        <div class="dashboard-panel-toolbar"><div><p class="eyebrow">Producción</p><span>Desempeño y OEE</span></div><button class="dashboard-settings-btn" data-dashboard-settings="production" title="Configurar dashboard">⚙</button></div>
         <div class="section-intro"><p class="eyebrow">Producción</p><h2>OEE y Desempeño</h2><p>Disponibilidad, Performance y Quality calculados con los turnos, CT ideal y paros registrados.</p></div>
         <div class="kpi-grid kpi-grid-4">
           <article class="kpi-card info"><span>OEE</span><strong id="kpiProdOee">—</strong><small id="kpiProdOeeNote">Configuración requerida</small></article>
@@ -176,8 +179,10 @@
           <article class="kpi-card success"><span>Quality</span><strong id="kpiQuality">—</strong><small>Buenas / producción</small></article>
         </div>
         <div class="dashboard-grid"><article class="card chart-card wide"><div class="card-header"><h3>Producción por día</h3></div><div class="chart-wrap"><canvas id="productionTrendChart"></canvas></div></article></div>
+      <div class="custom-dashboard-host" data-custom-dashboard-host="production"></div>
       </div>
       <div class="dashboard-panel" data-dashboard-panel="scrap">
+        <div class="dashboard-panel-toolbar"><div><p class="eyebrow">Calidad</p><span>Scrap, PPM y defectos</span></div><button class="dashboard-settings-btn" data-dashboard-settings="scrap" title="Configurar dashboard">⚙</button></div>
         <div class="section-intro"><p class="eyebrow">Calidad</p><h2>Calidad</h2><p>Distribución y priorización de pérdidas por defecto y Número de Parte.</p></div>
         <div class="dashboard-grid">
           <article class="card chart-card"><div class="card-header"><h3>Scrap por defecto</h3></div><div class="chart-wrap"><canvas id="scrapDefectPieChart"></canvas></div></article>
@@ -185,8 +190,10 @@
           <article class="card chart-card"><div class="card-header"><div><p class="eyebrow">80 / 20</p><h3>Pareto por defecto</h3></div></div><div class="chart-wrap"><canvas id="scrapDefectParetoChart"></canvas></div></article>
           <article class="card chart-card"><div class="card-header"><div><p class="eyebrow">80 / 20</p><h3>Pareto por Número de Parte</h3></div></div><div class="chart-wrap"><canvas id="scrapPartParetoChart"></canvas></div></article>
         </div>
+      <div class="custom-dashboard-host" data-custom-dashboard-host="scrap"></div>
       </div>
       <div class="dashboard-panel" data-dashboard-panel="maintenance">
+        <div class="dashboard-panel-toolbar"><div><p class="eyebrow">Mantenimiento</p><span>Paros y pérdidas</span></div><button class="dashboard-settings-btn" data-dashboard-settings="maintenance" title="Configurar dashboard">⚙</button></div>
         <div class="section-intro"><p class="eyebrow">Mantenimiento</p><h2>Tiempos Muertos</h2><p>Distribución y priorización de paros registrados durante producción.</p></div>
         <div class="kpi-grid"><article class="kpi-card warning"><span>Tiempo muerto</span><strong id="kpiDowntime">0 min</strong><small>Periodo seleccionado</small></article><article class="kpi-card"><span>Eventos</span><strong id="kpiDowntimeEvents">0</strong><small>Paros registrados</small></article></div>
         <div class="dashboard-grid">
@@ -195,6 +202,7 @@
           <article class="card chart-card"><div class="card-header"><div><p class="eyebrow">80 / 20</p><h3>Pareto de paros</h3></div></div><div class="chart-wrap"><canvas id="downtimeReasonParetoChart"></canvas></div></article>
           <article class="card chart-card"><div class="card-header"><div><p class="eyebrow">80 / 20</p><h3>Pareto por máquina</h3></div></div><div class="chart-wrap"><canvas id="downtimeMachineParetoChart"></canvas></div></article>
         </div>
+      <div class="custom-dashboard-host" data-custom-dashboard-host="maintenance"></div>
       </div>
     </section>
 
@@ -471,7 +479,7 @@
         <article class="card detail-panel">
           <div id="personnelEmptyState" class="empty-state">Selecciona una persona para consultar su ficha.</div>
           <div id="personnelDetail" hidden>
-            <div class="detail-title"><div><p class="eyebrow">Personal</p><h2 id="personnelDetailName">—</h2><span id="personnelDetailNo">—</span></div><button id="deletePersonnelBtn" class="btn btn-danger btn-sm">Desactivar</button></div>
+            <div class="detail-title"><div><p class="eyebrow">Personal</p><h2 id="personnelDetailName">—</h2><span id="personnelDetailNo">—</span></div><div class="detail-actions"><button id="editPersonnelBtn" class="btn btn-secondary btn-sm">Editar</button><button id="deletePersonnelBtn" class="btn btn-danger btn-sm">Desactivar</button></div></div><form id="personnelEditForm" class="form-grid two-col personnel-edit-form" hidden><div class="field"><label>Número de empleado</label><input id="editPersonnelEmployeeNo" required></div><div class="field"><label>Nombre completo</label><input id="editPersonnelName" required></div><div class="field"><label>Rol</label><select id="editPersonnelRole"><option value="operator">Operador</option><option value="supervisor">Supervisor</option><option value="both">Operador / Supervisor</option></select></div><div class="form-actions"><button type="button" id="cancelPersonnelEditBtn" class="btn btn-ghost">Salir</button><button class="btn btn-primary">Guardar cambios</button></div></form>
             <div class="mini-kpi-grid"><div><span>Rol</span><strong id="personnelDetailRole">—</strong></div><div><span>Corridas</span><strong id="personnelDetailRuns">0</strong></div><div><span>Producción</span><strong id="personnelDetailProduction">0</strong></div><div><span>Estado</span><strong id="personnelDetailStatus">Activo</strong></div></div>
           </div>
         </article>
@@ -511,7 +519,7 @@
                 <h2 id="runDetailCode">—</h2>
                 <div class="run-status-line"><span id="runDetailStatus" class="run-status">—</span><span id="runDetailMethod">—</span></div>
               </div>
-              <div class="run-header-meta"><span>Lote</span><strong id="runDetailLot">—</strong></div>
+              <div class="run-header-actions"><button id="printRunBtn" class="btn btn-secondary btn-sm">Imprimir</button><div class="run-header-meta"><span>Lote</span><strong id="runDetailLot">—</strong></div></div>
             </div>
 
             <div class="mini-kpi-grid six run-kpis">
@@ -713,8 +721,8 @@
       <div class="field"><label>Contraseña</label><input type="password" id="loginPassword" required></div>
       <button class="btn btn-primary btn-block">Ingresar</button>
       <p id="authMessage" class="auth-message"></p>
-      <small class="version-note">GUVEL General System · v1.4.5 · Sprint 1 · Multiempresa</small>
+      <small class="version-note">GUVEL General System · v1.4.6 · Sprint 1 · Multiempresa</small>
     </form>
   </div>
-</body>
+<div id="dashboardSettingsModal" class="modal-backdrop" hidden><div class="modal dashboard-settings-modal" role="dialog" aria-modal="true" aria-labelledby="dashboardSettingsTitle"><div class="modal-header"><div><p class="eyebrow">Dashboard</p><h2 id="dashboardSettingsTitle">Configuración de rango</h2></div><button id="closeDashboardSettingsBtn" class="icon-btn" type="button">×</button></div><form id="dashboardSettingsForm" class="form-grid"><div class="field"><label>Indicador</label><select id="dashboardMetricSelect"></select></div><div class="field"><label>Mínimo</label><input id="dashboardMin" type="number" step="any" required></div><div class="field"><label>Máximo</label><input id="dashboardMax" type="number" step="any" required></div><div class="field"><label>Meta</label><input id="dashboardTarget" type="number" step="any" required></div><div class="form-actions full"><button type="button" id="cancelDashboardSettingsBtn" class="btn btn-ghost">Cancelar</button><button class="btn btn-primary">Guardar configuración</button></div></form><small class="modal-help">La meta se muestra como una línea horizontal y la configuración se conserva por navegador y dashboard.</small></div></div></body>
 </html>
