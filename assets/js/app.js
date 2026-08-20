@@ -251,7 +251,7 @@ function initEvents(){
  // Dashboard settings, custom dashboards and layout
  const openDashboardSettings=(kind,metric,customId=null)=>{
    const modal=$('dashboardSettingsModal'),sel=$('dashboardMetricSelect');if(!modal||!sel)return;
-   sel.innerHTML=ui.dashboardRangeMetricOptions(kind).map(x=>`<option value="${x[0]}">${x[1]}</option>`).join('');
+   sel.innerHTML=ui.dashboardMetricOptions(kind).filter(x=>!['defect_pie','part_pie','defect_pareto','part_pareto','reason_pie','machine_pie','reason_pareto','machine_pareto'].includes(x[0])).map(x=>`<option value="${x[0]}">${x[1]}</option>`).join('');
    sel.disabled=true;sel.value=metric||sel.value;modal.dataset.kind=kind;modal.dataset.customId=customId||'';
    const custom=customId?ui.getCustomDashboard(kind,customId):null;
    const r=custom?.range||ui.getDashboardSetting(kind,sel.value);
@@ -295,17 +295,16 @@ function initEvents(){
    e.preventDefault();const kind=$('customDashboardKind').value,id=$('customDashboardId').value,name=$('customDashboardName').value.trim(),metric=$('customDashboardMetric').value,span=Number($('customDashboardSpan').value||1),clientId=$('customDashboardClient').value,partId=$('customDashboardPart').value;
    if(!name)return;
    if(id){const old=ui.getCustomDashboard(kind,id);ui.updateCustomDashboard(kind,id,{name,metric,metricLabel:ui.dashboardMetricOptions(kind).find(x=>x[0]===metric)?.[1]||metric,span,clientId,partId})}
-   else {ui.addCustomDashboard(kind,name,metric,span);const all=ui.getCustomDashboard(kind,(JSON.parse(localStorage.getItem('guvel.custom.dashboards.v146')||'{}')[kind]||[]).slice(-1)[0]?.id);if(all)ui.updateCustomDashboard(kind,all.id,{clientId,partId});}
+   else ui.addCustomDashboard(kind,name,metric,span,clientId,partId);
    closeCustom();ui.renderDashboard();
  });
- // Custom dashboard fixed scope
- $('customDashboardClient')?.addEventListener('change',()=>{const parts=state.parts.filter(p=>p.clientId===$('customDashboardClient').value);ui.populateSelect($('customDashboardPart'),parts,'Todos los números de parte',x=>x.number)});
+ $('customDashboardClient')?.addEventListener('change',()=>{ui.populateSelect($('customDashboardPart'),state.parts.filter(p=>p.clientId===$('customDashboardClient').value),'Todos los números de parte',x=>x.number)});
  // Searches
  $('clientSearch').addEventListener('input',ui.renderClients);$('partSearch').addEventListener('input',ui.renderParts);$('machineSearch').addEventListener('input',ui.renderMachines);$('personnelSearch').addEventListener('input',ui.renderPersonnel);$('defectSearch').addEventListener('input',ui.renderCatalog);$('downtimeSearch').addEventListener('input',ui.renderDowntimeCatalog);$('runSearch').addEventListener('input',ui.renderRuns);$('productionHistorySearch').addEventListener('input',ui.renderHistory);$('scrapHistorySearch').addEventListener('input',ui.renderHistory);
  document.querySelectorAll('.form-cancel-btn').forEach(b=>b.addEventListener('click',()=>b.closest('form')?.reset()));
 
  document.body.addEventListener('click',e=>{
-  const t=e.target.closest('[data-client-id],[data-part-id],[data-run-id],[data-open-part],[data-machine-id],[data-personnel-id],[data-match-run],[data-match-downtime-run],[data-unlink-machine],[data-delete-operation],[data-delete-defect],[data-delete-run],[data-delete-scrap],[data-delete-downtime-reason],[data-delete-downtime-event],[data-delete-cycle-time],[data-delete-shift]');
+  const t=e.target.closest('[data-client-id],[data-part-id],[data-run-id],[data-open-part],[data-machine-id],[data-personnel-id],[data-match-run],[data-match-downtime-run],[data-unlink-machine],[data-delete-operation],[data-delete-defect],[data-delete-run],[data-delete-scrap],[data-delete-downtime-reason],[data-delete-cycle-time],[data-delete-shift]');
   if(!t)return;
   if(t.dataset.clientId){state.selectedClientId=t.dataset.clientId;ui.renderClients()}
   if(t.dataset.runId){state.selectedRunId=t.dataset.runId;ui.renderRuns();applyLanguage()}
@@ -321,7 +320,6 @@ function initEvents(){
   if(t.dataset.deleteRun&&confirm('¿Eliminar corrida y sus eventos?'))run(()=>api.deleteRun(t.dataset.deleteRun));
   if(t.dataset.deleteScrap&&confirm('¿Eliminar evento?'))run(()=>api.deleteScrapEvent(t.dataset.deleteScrap));
   if(t.dataset.deleteDowntimeReason&&confirm('¿Desactivar motivo de paro?'))run(()=>api.deleteDowntimeReason(t.dataset.deleteDowntimeReason));
-  if(t.dataset.deleteDowntimeEvent&&confirm('¿Eliminar captura de tiempo muerto?'))run(()=>api.deleteDowntimeEvent(t.dataset.deleteDowntimeEvent),'Tiempo muerto eliminado');
   if(t.dataset.deleteCycleTime&&confirm('¿Eliminar este tiempo ciclo?'))run(()=>api.deleteCycleTime(t.dataset.deleteCycleTime),'Tiempo ciclo eliminado');
   if(t.dataset.deleteShift&&confirm('¿Desactivar este turno?'))run(()=>api.deactivateShift(t.dataset.deleteShift),'Turno desactivado');
  });
@@ -346,35 +344,13 @@ function exportExcel(){
 }
 
 async function startSession(user){
- try{
-  await api.loadIdentity(user);
-  await api.loadAll();
-  $('authOverlay').classList.add('hidden');
-  $('companyContext').textContent=state.companyName;
-  $('userEmail').textContent=user.email;
-  $('storageStatus').textContent='Sistema Actualizado';
-  applyRolePermissions();
- }catch(e){
-  console.error('GUVEL session/data load error',e);
-  toast(e.message||'No fue posible cargar la sesión.');
-  $('authOverlay').classList.remove('hidden');
-  return;
- }
- try{
-  ui.renderAll();
-  applyLanguage();
- }catch(e){
-  console.error('GUVEL UI render error',e);
-  toast('Sesión iniciada. Se detectó un error visual; revisa la consola.');
- }
+ try{await api.loadIdentity(user);await api.loadAll();$('authOverlay').classList.add('hidden');$('companyContext').textContent=state.companyName;$('userEmail').textContent=user.email;$('storageStatus').textContent='Sistema Actualizado';applyRolePermissions();ui.renderAll();applyLanguage()}
+ catch(e){console.error(e);toast(e.message);$('authOverlay').classList.remove('hidden')}
 }
 function iso(d){return d.toISOString().slice(0,10)}
 function applyPeriod(v){
  const now=new Date(),s=new Date(now),e=new Date(now);if(v==='custom')return;
  if(v==='current')s.setDate(1);
- else if(v==='today'){s.setHours(0,0,0,0);e.setHours(23,59,59,999)}
- else if(v==='current_week'){const day=(now.getDay()+6)%7;s.setDate(now.getDate()-day);s.setHours(0,0,0,0);e.setTime(now.getTime())}
- else if(v==='current_month'){s.setDate(1);s.setHours(0,0,0,0);e.setTime(now.getTime())}
  else if(v==='previous_day'){s.setDate(now.getDate()-1);e.setDate(now.getDate()-1)}
  else if(v==='previous_week'){const day=(now.getDay()+6)%7;e.setDate(now.getDate()-day-1);s.setTime(e.getTime());s.setDate(e.getDate()-6)}
  else if(v==='previous_month'){s.setMonth(now.getMonth()-1,1);e.setDate(0)}
@@ -383,10 +359,7 @@ function applyPeriod(v){
  else if(v==='previous_year'){s.setFullYear(now.getFullYear()-1,0,1);e.setFullYear(now.getFullYear()-1,11,31)}
  $('filterStart').value=iso(s);$('filterEnd').value=iso(e)
 }
-async function initCursor(){
- document.addEventListener('mousemove',e=>{document.body.style.setProperty('--cursor-x',`${e.clientX}px`);document.body.style.setProperty('--cursor-y',`${e.clientY}px`)},{passive:true});
-}
-function init(){
+async function init(){
  db=api.initDb();initI18n();initCursor();initEvents();window.GUVEL_RENDER_BARCODE=renderBarcode;initTraceability(()=>{ui.renderAll();applyLanguage();$('storageStatus').textContent='Sistema Actualizado';toast('Producción registrada correctamente')});applyPeriod('current');
  const {data:{session}}=await db.auth.getSession();if(session?.user)await startSession(session.user);
  db.auth.onAuthStateChange(async(event,session)=>{if(event==='SIGNED_OUT'){$('authOverlay').classList.remove('hidden');location.reload()}else if(session?.user)await startSession(session.user)});

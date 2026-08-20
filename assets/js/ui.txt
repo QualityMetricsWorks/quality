@@ -50,44 +50,16 @@ export function updateScrapDefects(){
  renderRunScrapEvents();
 }
 function activeRuns(){return filteredRuns({start:$('filterStart')?.value,end:$('filterEnd')?.value,clientId:$('filterClient')?.value,partId:$('filterPartNumber')?.value}).filter(r=>!$('filterMachine')?.value||r.machineId===$('filterMachine').value)}
-function comparisonPeriod(v,start,end){
- const s=new Date(start+'T00:00:00'),e=new Date(end+'T00:00:00'),days=Math.max(1,Math.round((e-s)/86400000)+1);
- const ps=new Date(s),pe=new Date(e);
- if(v==='today'){ps.setDate(ps.getDate()-1);pe.setDate(pe.getDate()-1)}
- else {ps.setDate(ps.getDate()-days);pe.setDate(pe.getDate()-days)}
- return {start:ps.toISOString().slice(0,10),end:pe.toISOString().slice(0,10)};
-}
-function setKpiComparison(id,current,previous,lowerIsBetter=false){
- const el=$(id);if(!el)return;
- const delta=previous===0?(current===0?0:null):(current-previous)/Math.abs(previous)*100;
- const host=el.parentElement;let badge=host.querySelector('.kpi-comparison');
- if(!badge){badge=document.createElement('small');badge.className='kpi-comparison';host.appendChild(badge)}
- if(delta===null){badge.textContent='—';badge.className='kpi-comparison neutral';return}
- const improved=lowerIsBetter?delta<0:delta>0,arrow=delta>0?'↑':delta<0?'↓':'→';
- badge.textContent=`${arrow} ${Math.abs(delta).toFixed(1)}%`;
- badge.className=`kpi-comparison ${delta===0?'neutral':improved?'positive':'negative'}`;
-}
-function renderKpiComparisons(v,runs,currentMetrics){
- const start=$('filterStart')?.value,end=$('filterEnd')?.value;if(!start||!end||v==='custom'||v==='current')return;
- const prev=comparisonPeriod(v,start,end),prevRuns=filteredRuns({start:prev.start,end:prev.end,clientId:$('filterClient')?.value,partId:$('filterPartNumber')?.value});
- const pm=metricsForRuns(prevRuns),co=oeeMetrics(runs),po=oeeMetrics(prevRuns);
- setKpiComparison('kpiOee',co.available?co.oee:0,po.available?po.oee:0);
- setKpiComparison('kpiProduction',currentMetrics.produced,pm.produced);
- setKpiComparison('kpiScrap',currentMetrics.scrapRate,pm.scrapRate,true);
- setKpiComparison('kpiPpm',currentMetrics.ppm,pm.ppm,true);
- setKpiComparison('kpiYield',currentMetrics.yieldRate,pm.yieldRate);
- setKpiComparison('kpiCopq',currentMetrics.copqPercent,pm.copqPercent,true);
-}
+function comparisonPeriod(start,end){const s=new Date(start+'T00:00:00'),e=new Date(end+'T00:00:00'),days=Math.max(1,Math.round((e-s)/86400000)+1);const ps=new Date(s),pe=new Date(e);ps.setDate(ps.getDate()-days);pe.setDate(pe.getDate()-days);return{start:ps.toISOString().slice(0,10),end:pe.toISOString().slice(0,10)}}
+function setKpiComparison(id,current,previous,lowerIsBetter=false){const el=$(id);if(!el)return;const host=el.parentElement;let b=host.querySelector('.kpi-comparison');if(!b){b=document.createElement('small');b.className='kpi-comparison';host.appendChild(b)}const d=previous===0?(current===0?0:null):(current-previous)/Math.abs(previous)*100;if(d===null){b.textContent='—';b.className='kpi-comparison neutral';return}const improved=lowerIsBetter?d<0:d>0;b.textContent=`${d>0?'↑':d<0?'↓':'→'} ${Math.abs(d).toFixed(1)}%`;b.className=`kpi-comparison ${d===0?'neutral':improved?'positive':'negative'}`}
+function renderKpiComparisons(){const v=$('filterPeriod')?.value,start=$('filterStart')?.value,end=$('filterEnd')?.value;if(!start||!end||v==='custom'||v==='current')return;const prev=comparisonPeriod(start,end),prevRuns=filteredRuns({start:prev.start,end:prev.end,clientId:$('filterClient')?.value,partId:$('filterPartNumber')?.value}),pm=metricsForRuns(prevRuns),runs=activeRuns(),m=metricsForRuns(runs),co=oeeMetrics(runs),po=oeeMetrics(prevRuns);setKpiComparison('kpiOee',co.available?co.oee:0,po.available?po.oee:0);setKpiComparison('kpiProduction',m.produced,pm.produced);setKpiComparison('kpiScrap',m.scrapRate,pm.scrapRate,true);setKpiComparison('kpiPpm',m.ppm,pm.ppm,true);setKpiComparison('kpiYield',m.yieldRate,pm.yieldRate);setKpiComparison('kpiCopq',m.copqPercent,pm.copqPercent,true)}
 export function renderDashboard(){
- const runs=activeRuns(),m=metricsForRuns(runs);
- $('kpiProduction').textContent=number(m.produced);$('kpiScrap').textContent=percent(m.scrapRate);$('kpiScrapQty').textContent=`${number(m.scrap)} piezas`;$('kpiPpm').textContent=number(Math.round(m.ppm));$('kpiYield').textContent=percent(m.yieldRate);
- $('kpiCopq').textContent=percent(m.copqPercent);if($('kpiCopqUsd'))$('kpiCopqUsd').textContent=money(m.scrapCost,'USD');
+ const runs=activeRuns(),m=metricsForRuns(runs);$('kpiProduction').textContent=number(m.produced);$('kpiScrap').textContent=percent(m.scrapRate);$('kpiScrapQty').textContent=`${number(m.scrap)} piezas`;$('kpiPpm').textContent=number(Math.round(m.ppm));$('kpiYield').textContent=percent(m.yieldRate);$('kpiCopq').textContent=percent(m.copqPercent);if($('kpiCopqUsd'))$('kpiCopqUsd').textContent=money(m.scrapCost,'USD');
  const de=state.downtimeEvents.filter(e=>runs.some(r=>r.id===e.runId));const mins=de.reduce((s,e)=>s+e.minutes,0);$('kpiDowntime').textContent=`${number(mins)} min`;$('kpiDowntimeEvents').textContent=number(de.length);
  const oee=oeeMetrics(runs);$('kpiOee').textContent=oee.available?percent(oee.oee):'—';$('kpiOeeNote').textContent=oee.available?'Availability × Performance × Quality':oee.reason;
  $('kpiProdOee').textContent=oee.available?percent(oee.oee):'—';$('kpiProdOeeNote').textContent=oee.available?`${number(Math.round(oee.plannedMinutes))} min planificados`:oee.reason;
  $('kpiAvailability').textContent=oee.available?percent(oee.availability):'—';$('kpiPerformance').textContent=oee.available?percent(oee.performance):'—';$('kpiQuality').textContent=oee.available?percent(oee.quality):percent(oee.quality||0);
- renderCharts(runs,de);renderTopProducts(runs);renderCustomDashboard('production',state.runs,state.downtimeEvents);renderCustomDashboard('scrap',state.runs,state.downtimeEvents);renderCustomDashboard('maintenance',state.runs,state.downtimeEvents);
- renderKpiComparisons($('filterPeriod')?.value,runs,m);
+ renderCharts(runs,de);renderTopProducts(runs);renderCustomDashboard('production',runs,de);renderCustomDashboard('scrap',runs,de);renderCustomDashboard('maintenance',runs,de);renderKpiComparisons();
 }
 
 const dashboardSettingsKey='guvel.dashboard.settings.v146';
@@ -114,13 +86,13 @@ export function getDashboardSetting(kind,metric){return chartRange(kind,metric)}
 export function saveDashboardSetting(kind,metric,value){const all=readDashboardSettings();all[kind]=all[kind]||{};all[kind][metric]=value;writeDashboardSettings(all)}
 export function dashboardRangeMetricOptions(kind){
  const map={
-  general:[['oee','OEE %'],['production','Production'],['scrap','Scrap %'],['ppm','PPM'],['yield','Yield %'],['copq','COPQ']],
+  general:[['oee','OEE %'],['production','Production'],['scrap','Scrap %'],['ppm','PPM'],['yield','Yield %'],['copq','COPQ %']],
   production:[['production','Production'],['oee','OEE %'],['availability','Availability %'],['performance','Performance %'],['quality','Quality %']],
-  scrap:[['scrap','Scrap %'],['ppm','PPM'],['yield','Yield %']],
-  maintenance:[['downtime','Tiempo muerto']]
+  scrap:[['scrap','Scrap %'],['ppm','PPM'],['yield','Yield %'],['defect_pie','Pie · Defectos'],['part_pie','Pie · Números de Parte'],['defect_pareto','Pareto · Defectos'],['part_pareto','Pareto · Números de Parte']],
+  maintenance:[['downtime','Tiempo muerto'],['reason_pie','Pie · Motivos de paro'],['machine_pie','Pie · Máquinas'],['reason_pareto','Pareto · Motivos de paro'],['machine_pareto','Pareto · Máquinas']]
  };return map[kind]||map.general;
 }
-export function dashboardMetricOptions(kind){return dashboardRangeMetricOptions(kind).concat(kind==='scrap'?[['defect_pie','Pie · Defectos'],['part_pie','Pie · Números de Parte'],['defect_pareto','Pareto · Defectos'],['part_pareto','Pareto · Números de Parte']]:kind==='maintenance'?[['reason_pie','Pie · Motivos de paro'],['machine_pie','Pie · Máquinas'],['reason_pareto','Pareto · Motivos de paro'],['machine_pareto','Pareto · Máquinas']]:[])}
+export function dashboardMetricOptions(kind){return dashboardRangeMetricOptions(kind)}
 function getCustomDashboards(){try{return JSON.parse(localStorage.getItem(customDashboardsKey)||'{}')}catch{return {}}}
 function setCustomDashboards(x){localStorage.setItem(customDashboardsKey,JSON.stringify(x))}
 export function getCustomDashboard(kind,id){return (getCustomDashboards()[kind]||[]).find(x=>x.id===id)||null}
@@ -131,10 +103,10 @@ export function removeCustomDashboard(kind,id){
  const all=getCustomDashboards();all[kind]=(all[kind]||[]).filter(x=>x.id!==id);setCustomDashboards(all);
 }
 export function saveCustomDashboardSetting(kind,id,value){updateCustomDashboard(kind,id,{range:value})}
-export function addCustomDashboard(kind,name,metric,span=1){
+export function addCustomDashboard(kind,name,metric,span=1,clientId='',partId=''){
  const all=getCustomDashboards();all[kind]=all[kind]||[];
  const options=dashboardMetricOptions(kind),chosen=options.find(x=>x[0]===metric)||options[0];
- all[kind].push({id:`${kind}-${Date.now()}`,name,metric:chosen[0],metricLabel:chosen[1],span:Number(span)||1,clientId:'',partId:'',range:dashboardDefault(kind,chosen[0])});
+ all[kind].push({id:`${kind}-${Date.now()}`,name,metric:chosen[0],metricLabel:chosen[1],span:Number(span)||1,range:dashboardDefault(kind,chosen[0])});
  setCustomDashboards(all);
 }
 export function reorderCustomDashboard(kind,id,beforeId){
@@ -145,8 +117,7 @@ export function reorderCustomDashboard(kind,id,beforeId){
 function customData(kind,metric,runs,downtime){
  const d=daily(runs),labels=d.map(x=>x.date);
  if(metric==='production')return {type:'line',labels,data:d.map(x=>x.produced),label:'Production'};
- if(metric==='scrap')return {type:'line',labels,data:d.map(x=>x.scrapRate),label:'Scrap %'};
- if(metric==='copq')return {type:'line',labels,data:d.map(x=>x.copqPercent),label:'COPQ %'};
+ if(metric==='scrap')return {type:'line',labels,data:d.map(x=>x.scrapRate),label:'Scrap %'};if(metric==='copq')return {type:'line',labels,data:d.map(x=>x.copqPercent),label:'COPQ %'};
  if(metric==='ppm')return {type:'line',labels,data:d.map(x=>x.ppm),label:'PPM'};
  if(metric==='yield')return {type:'line',labels,data:d.map(x=>x.yieldRate),label:'Yield %'};
  if(metric==='oee'){return {type:'line',labels,data:labels.map(day=>{const o=oeeMetrics(runs.filter(r=>r.date===day));return o.available?o.oee:0}),label:'OEE %'}}
@@ -168,7 +139,7 @@ function renderCustomDashboard(kind,runs,downtime){
  const host=document.querySelector(`[data-custom-dashboard-host="${kind}"]`);if(!host)return;
  const all=getCustomDashboards(),items=all[kind]||[];
  host.innerHTML=`<div class="custom-dashboard-toolbar"><div><p class="eyebrow">Dashboards personalizados</p><span>Arrastra para mover · 1, 2 o 3 columnas</span></div><button class="btn btn-secondary btn-sm" data-add-custom-dashboard="${kind}">+ Añadir dashboard</button></div><div class="custom-dashboard-grid" data-custom-grid="${kind}">${items.map(x=>`<article class="custom-dashboard-card span-${Math.min(3,Math.max(1,Number(x.span)||1))}" draggable="true" data-custom-dashboard-card="${x.id}" data-custom-kind="${kind}">
-   <div class="custom-dashboard-card-header"><div class="custom-dashboard-drag" title="Mover dashboard">⠿</div><div class="custom-dashboard-card-title"><strong>${esc(x.name)}</strong><small>${esc(x.metricLabel)}</small></div><div class="custom-dashboard-card-actions"><button class="dashboard-chart-settings" data-custom-dashboard-settings="${kind}" data-custom-dashboard-id="${x.id}" data-dashboard-settings="${kind}" data-dashboard-metric="${x.metric}" title="Configurar meta">⚙</button><button class="custom-dashboard-more" type="button" title="Editar dashboard" data-edit-custom-dashboard="${kind}" data-custom-dashboard-id="${x.id}">✎</button><button class="custom-dashboard-more danger" type="button" title="Eliminar dashboard" data-delete-custom-dashboard="${kind}" data-custom-dashboard-id="${x.id}">×</button></div></div>
+   <div class="custom-dashboard-card-header"><div class="custom-dashboard-drag" title="Mover dashboard">⠿</div><div class="custom-dashboard-card-title"><strong>${esc(x.name)}</strong><small>${esc(x.metricLabel)}</small></div><div class="custom-dashboard-card-actions">${!["defect_pie","part_pie","defect_pareto","part_pareto","reason_pie","machine_pie","reason_pareto","machine_pareto"].includes(x.metric)?`<button class="dashboard-chart-settings" data-custom-dashboard-settings="${kind}" data-custom-dashboard-id="${x.id}" data-dashboard-settings="${kind}" data-dashboard-metric="${x.metric}" title="Configurar meta">⚙</button>`:""}<button class="custom-dashboard-more" type="button" title="Editar dashboard" data-edit-custom-dashboard="${kind}" data-custom-dashboard-id="${x.id}">✎</button><button class="custom-dashboard-more danger" type="button" title="Eliminar dashboard" data-delete-custom-dashboard="${kind}" data-custom-dashboard-id="${x.id}">×</button></div></div>
    <div class="custom-dashboard-canvas"><canvas id="customDashCanvas-${kind}-${x.id}"></canvas></div>
    <div class="custom-dashboard-footer"><span>Distribución</span><div class="span-control">${[1,2,3].map(n=>`<button type="button" class="${Number(x.span)===n?'active':''}" data-set-custom-span="${kind}" data-custom-dashboard-id="${x.id}" data-span="${n}">${n}</button>`).join('')}</div></div>
  </article>`).join('')||'<div class="empty-state custom-dashboard-empty">No hay dashboards adicionales. Usa “+ Añadir dashboard”.</div>'}</div>`;
@@ -181,9 +152,7 @@ function renderCustomDashboard(kind,runs,downtime){
    card.addEventListener('drop',e=>{e.preventDefault();card.classList.remove('drag-over');const id=e.dataTransfer.getData('text/plain');if(id&&id!==card.dataset.customDashboardCard){reorderCustomDashboard(kind,id,card.dataset.customDashboardCard);renderDashboard()}}); 
  });
  items.forEach(x=>{
-   const fixedRuns=filteredRuns({clientId:x.clientId||'',partId:x.partId||''});
-   const fixedDowntime=state.downtimeEvents.filter(e=>fixedRuns.some(r=>r.id===e.runId));
-   const d=customData(kind,x.metric,fixedRuns,fixedDowntime),cid=`customDashCanvas-${kind}-${x.id}`;
+   const fixedRuns=filteredRuns({clientId:x.clientId||'',partId:x.partId||''});const fixedDowntime=state.downtimeEvents.filter(e=>fixedRuns.some(r=>r.id===e.runId));const d=customData(kind,x.metric,fixedRuns,fixedDowntime),cid=`customDashCanvas-${kind}-${x.id}`;
    let cfg;if(d.type==='pie')cfg=pieConfig(d.labels,d.data);else if(d.type==='pareto')cfg=paretoConfig(d.labels,d.data);else cfg=rangedLineConfig(d.labels,d.data,'cyan',x.range||chartRange(kind,x.metric));
    chart(cid,cfg);
  });
@@ -196,8 +165,7 @@ function paretoConfig(labels,data){
  const total=data.reduce((s,v)=>s+Number(v||0),0);let acc=0;
  return{data:{labels,datasets:[{type:'bar',data,backgroundColor:'#FF3131',borderWidth:0,yAxisID:'y'},{type:'line',data:data.map(v=>{acc+=Number(v||0);return total?acc/total*100:0}),borderColor:'#0CC1E0',backgroundColor:'#0CC1E0',pointBackgroundColor:'#0CC1E0',borderWidth:2,tension:.15,yAxisID:'y1'}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{grid:{display:false},ticks:{font:{size:9}}},y:{beginAtZero:true,grid:{color:'#EEF1F4'}},y1:{beginAtZero:true,max:100,position:'right',grid:{drawOnChartArea:false},ticks:{callback:v=>v+'%'}}}}}
 }
-function renderCharts(runs,downtime){const d=daily(runs),labels=d.map(x=>x.date);
- const oeeDaily=d.map(x=>{const rs=runs.filter(r=>r.date===x.date);const o=oeeMetrics(rs);return o.available?o.oee:0});
+function renderCharts(runs,downtime){const d=daily(runs),labels=d.map(x=>x.date);const oeeDaily=d.map(day=>{const o=oeeMetrics(runs.filter(r=>r.date===day));return o.available?o.oee:0});
  chart('oeeTrendChart',rangedLineConfig(labels,oeeDaily,'cyan',chartRange('general','oee')));
  chart('generalProductionTrendChart',rangedLineConfig(labels,d.map(x=>x.produced),'cyan',chartRange('general','production')));
  chart('scrapTrendChart',rangedLineConfig(labels,d.map(x=>x.scrapRate),'red',chartRange('general','scrap')));
@@ -205,7 +173,7 @@ function renderCharts(runs,downtime){const d=daily(runs),labels=d.map(x=>x.date)
  chart('yieldTrendChart',rangedLineConfig(labels,d.map(x=>x.yieldRate),'cyan',chartRange('general','yield')));
  chart('copqTrendChart',rangedLineConfig(labels,d.map(x=>x.copqPercent),'red',chartRange('general','copq')));
  const ev=state.scrapEvents.filter(e=>runs.some(r=>r.id===e.runId)),byDef={},byPart={};ev.forEach(e=>{const n=getDefect(e.defectId)?.name||'Otro';byDef[n]=(byDef[n]||0)+e.quantity;const pn=getPart(getRun(e.runId)?.partId)?.number||'Otro';byPart[pn]=(byPart[pn]||0)+e.quantity});chart('scrapDefectPieChart',pieConfig(Object.keys(byDef),Object.values(byDef)));chart('scrapPartPieChart',pieConfig(Object.keys(byPart),Object.values(byPart)));const defSorted=Object.entries(byDef).sort((a,b)=>b[1]-a[1]),partSorted=Object.entries(byPart).sort((a,b)=>b[1]-a[1]);chart('scrapDefectParetoChart',paretoConfig(defSorted.map(x=>x[0]),defSorted.map(x=>x[1])));chart('scrapPartParetoChart',paretoConfig(partSorted.map(x=>x[0]),partSorted.map(x=>x[1])));
- const byReason={},byMachine={};downtime.forEach(e=>{const n=getDowntimeReason(e.reasonId)?.name||'Otro';byReason[n]=(byReason[n]||0)+e.minutes;const r=getRun(e.runId),mc=getMachine(r?.machineId)?.code||'Sin máquina';byMachine[mc]=(byMachine[mc]||0)+e.minutes});chart('downtimeReasonPieChart',pieConfig(Object.keys(byReason),Object.values(byReason)));chart('downtimeMachinePieChart',pieConfig(Object.keys(byMachine),Object.values(byMachine)));const reasonSorted=Object.entries(byReason).sort((a,b)=>b[1]-a[1]),machineSorted=Object.entries(byMachine).sort((a,b)=>b[1]-a[1]);chart('downtimeReasonParetoChart',paretoConfig(reasonSorted.map(x=>x[0]),reasonSorted.map(x=>x[1])));chart('downtimeMachineParetoChart',paretoConfig(machineSorted.map(x=>x[0]),machineSorted.map(x=>x[1])));}
+ const byReason={},byMachine={};downtime.forEach(e=>{const n=getDowntimeReason(e.reasonId)?.name||'Otro';byReason[n]=(byReason[n]||0)+e.minutes;const r=getRun(e.runId),mc=getMachine(r?.machineId)?.code||'Sin máquina';byMachine[mc]=(byMachine[mc]||0)+e.minutes});chart('downtimeReasonPieChart',pieConfig(Object.keys(byReason),Object.values(byReason)));chart('downtimeMachinePieChart',pieConfig(Object.keys(byMachine),Object.values(byMachine)));const reasonSorted=Object.entries(byReason).sort((a,b)=>b[1]-a[1]),machineSorted=Object.entries(byMachine).sort((a,b)=>b[1]-a[1]);chart('downtimeReasonParetoChart',paretoConfig(reasonSorted.map(x=>x[0]),reasonSorted.map(x=>x[1])));chart('downtimeMachineParetoChart',paretoConfig(machineSorted.map(x=>x[0]),machineSorted.map(x=>x[1])))}
 function renderTopProducts(runs){const el=$('topProductsGrid');if(!el)return;const tops=topProducts(runs);el.innerHTML=tops.length?tops.map((t,i)=>{const p=getPart(t.partId),pr=defectPareto(t.runs).slice(0,3);return `<div class="top-product"><span class="rank">RANK ${i+1}</span><h4>${esc(p?.number||'—')}</h4><small>${esc(getClient(p?.clientId)?.name||'—')}</small><div class="metrics"><div><span>SCRAP</span><strong>${number(t.scrap)}</strong></div><div><span>YIELD</span><strong>${percent(t.yieldRate)}</strong></div><div><span>COPQ</span><strong>${money(t.copq,p?.currency||'USD')}</strong></div></div>${pr.map((x,j)=>`<div class="entity-item"><small>${j+1}. ${esc(x.name)}</small><strong>${number(x.qty)}</strong></div>`).join('')}</div>`}).join(''):'<div class="empty-state">Sin datos para el periodo seleccionado.</div>'}
 export function renderClients(){
  $('clientCount').textContent=state.clients.length;const q=($('clientSearch')?.value||'').toLowerCase();const list=state.clients.filter(x=>`${x.name} ${x.code}`.toLowerCase().includes(q));$('clientList').innerHTML=list.map(c=>`<button class="entity-item ${c.id===state.selectedClientId?'active':''}" data-client-id="${c.id}"><span><strong>${esc(c.name)}</strong><small>${esc(c.code||'Sin código')}</small></span><span>›</span></button>`).join('');
@@ -220,7 +188,7 @@ export function renderParts(){
  $('partCount').textContent=state.parts.length;const q=($('partSearch')?.value||'').toLowerCase();$('partList').innerHTML=state.parts.filter(p=>`${p.number} ${p.description} ${getClient(p.clientId)?.name}`.toLowerCase().includes(q)).map(p=>`<button class="entity-item ${p.id===state.selectedPartId?'active':''}" data-part-id="${p.id}"><span><strong>${esc(p.number)}</strong><small>${esc(getClient(p.clientId)?.name||'—')} · ${esc(p.description||'')}</small></span><span>›</span></button>`).join('');renderPartDetail();
 }
 export function renderPartDetail(){
- const p=getPart(state.selectedPartId),empty=$('partEmptyState'),detail=$('partDetail');if(!p){empty.hidden=false;detail.hidden=true;return}empty.hidden=true;detail.hidden=false;$('partDetailNumber').textContent=p.number;$('partDetailDescription').textContent=p.description||'Sin descripción';$('editPartDescription').value=p.description||'';$('editPartCost').value=p.costPerPiece||0;$('editPartCurrency').value=p.currency||'USD';$('partDetailClient').textContent=getClient(p.clientId)?.name||'—';$('partDetailCost').textContent=money(p.costPerPiece,p.currency);if($('partDetailScrapCost'))$('partDetailScrapCost').textContent=money(p.scrapCostPerPiece,p.currency);
+ const p=getPart(state.selectedPartId),empty=$('partEmptyState'),detail=$('partDetail');if(!p){empty.hidden=false;detail.hidden=true;return}empty.hidden=true;detail.hidden=false;$('partDetailNumber').textContent=p.number;$('partDetailDescription').textContent=p.description||'Sin descripción';$('editPartDescription').value=p.description||'';$('editPartCost').value=p.costPerPiece||0;$('editPartScrapCost').value=p.scrapCostPerPiece||0;$('editPartCurrency').value=p.currency||'USD';$('partDetailClient').textContent=getClient(p.clientId)?.name||'—';$('partDetailCost').textContent=money(p.costPerPiece,p.currency);if($('partDetailScrapCost'))$('partDetailScrapCost').textContent=money(p.scrapCostPerPiece,p.currency);
  const rs=state.runs.filter(r=>r.partId===p.id),m=metricsForRuns(rs);$('partDetailProduction').textContent=number(m.produced);$('partDetailScrapQty').textContent=number(m.scrap);$('partDetailYield').textContent=percent(m.yieldRate);$('partDetailCopq').textContent=money(m.copq,p.currency);
  updatePartMachineSelect();$('partMachineList').innerHTML=machinesForPart(p.id).map(m=>`<div class="entity-item"><span><strong>${esc(m.code)}</strong><small>${esc(m.name||'')}</small></span><button class="icon-btn" data-unlink-machine="${m.id}">×</button></div>`).join('')||'<div class="empty-state">Sin máquinas vinculadas.</div>';
 
@@ -292,7 +260,7 @@ export function renderRunDetail(){
  $('runDetailProduction').textContent=number(met.produced);$('runDetailScrap').textContent=number(met.scrap);$('runDetailYield').textContent=percent(met.yieldRate);$('runDetailPpm').textContent=number(Math.round(met.ppm));$('runDetailCopq').textContent=money(met.copq,p?.currency||'USD');$('runDetailDowntime').textContent=`${number(mins)} min`;
  $('runDetailClient').textContent=getClient(r.clientId)?.name||'—';$('runDetailPart').textContent=p?.number||'—';$('runDetailOperation').textContent=op?`${op.code} · ${op.name}`:'—';$('runDetailMachine').textContent=m?.code||r.machine||'—';$('runDetailCycle').textContent=ct?`${Number(ct.idealCycleSeconds).toFixed(2)} s`:'No configurado';$('runDetailShift').textContent=r.shift||'—';$('runDetailOperator').textContent=getPersonnel(r.operatorId)?.fullName||'—';$('runDetailSupervisor').textContent=getPersonnel(r.supervisorId)?.fullName||'—';$('runDetailCreated').textContent=r.createdAt?new Date(r.createdAt).toLocaleString(locale):'—';$('runDetailCompleted').textContent=r.completedAt?new Date(r.completedAt).toLocaleString(locale):'—';
  $('runQualityList').innerHTML=quality.map(e=>`<div class="entity-item"><span><strong>${esc(getDefect(e.defectId)?.name||'—')}</strong><small>${esc(dispositionLabel(e.disposition))}</small></span><strong>${number(e.quantity)}</strong></div>`).join('')||'<div class="empty-state">Sin eventos de calidad.</div>';
- $('runDowntimeList').innerHTML=downtime.map(e=>`<div class="entity-item"><span><strong>${esc(getDowntimeReason(e.reasonId)?.name||'—')}</strong><small>${e.eventType==='planned'?'Planned':'Unplanned'}</small></span><span class="entity-actions"><strong>${number(e.minutes)} min</strong>${['admin','manager'].includes(state.role)?`<button class="icon-btn" data-delete-downtime-event="${e.id}" title="Eliminar">×</button>`:''}</span></div>`).join('')||'<div class="empty-state">Sin tiempos muertos.</div>';
+ $('runDowntimeList').innerHTML=downtime.map(e=>`<div class="entity-item"><span><strong>${esc(getDowntimeReason(e.reasonId)?.name||'—')}</strong><small>${e.eventType==='planned'?'Planned':'Unplanned'}</small></span><strong>${number(e.minutes)} min</strong></div>`).join('')||'<div class="empty-state">Sin tiempos muertos.</div>';
 }
 export function renderSettings(){
  const el=$('shiftList');if(!el)return;
