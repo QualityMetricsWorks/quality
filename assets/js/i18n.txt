@@ -1,4 +1,42 @@
 const ES_EN={
+  "Actual": "Current",
+  "Semana anterior": "Previous week",
+  "Día anterior": "Previous day",
+  "Mes anterior": "Previous month",
+  "Trimestre anterior": "Previous quarter",
+  "Semestre anterior": "Previous half-year",
+  "Año anterior": "Previous year",
+  "Personalizado": "Custom",
+  "Limpiar": "Clear",
+  "COPQ Scrap": "Scrap COPQ",
+  "Piezas registradas": "Recorded pieces",
+  "Scrap / producción": "Scrap / production",
+  "Buenas / producción": "Good / production",
+  "Costo estándar estimado": "Estimated standard cost",
+  "OEE y Desempeño": "OEE & Performance",
+  "Tiempos Muertos": "Downtime",
+  "Calidad": "Quality",
+  "Producción": "Production",
+  "Mantenimiento": "Maintenance",
+  "Hoy": "Today",
+  "Esta semana": "This week",
+  "Este mes": "This month",
+  "Costo de chatarra": "Scrap cost",
+  "Costo por pieza": "Piece cost",
+  "Dashboards personalizados": "Custom dashboards",
+  "Añadir dashboard": "Add dashboard",
+  "Editar dashboard": "Edit dashboard",
+  "Eliminar dashboard": "Delete dashboard",
+  "Distribución": "Layout",
+  "Visualización": "Visualization",
+  "Todos los números de parte": "All part numbers",
+  "Top 3 productos con mayor scrap": "Top 3 products with highest scrap",
+  "Concentración de pérdida": "Loss concentration",
+  "Tiempo muerto eliminado": "Downtime deleted",
+  "Eliminar captura de tiempo muerto": "Delete downtime record",
+  "Configurar meta": "Configure target",
+  "Modo oscuro": "Dark mode",
+  "Modo claro": "Light mode",
   "Salir": "Sign out",
   "Captura": "Capture",
   "Clientes": "Customers",
@@ -502,7 +540,15 @@ export function applyLanguage(lang=current){
 }
 export function initI18n(){
  const savedTheme=localStorage.getItem('guvel_theme')||'light';document.documentElement.dataset.theme=savedTheme;
- const themeBtn=document.getElementById('themeToggleBtn');themeBtn?.addEventListener('click',()=>{const next=(document.documentElement.dataset.theme||'light')==='dark'?'light':'dark';document.documentElement.dataset.theme=next;localStorage.setItem('guvel_theme',next);updateControl()});
+ const themeBtn=document.getElementById('themeToggleBtn');themeBtn?.addEventListener('click',e=>{
+   const next=(document.documentElement.dataset.theme||'light')==='dark'?'light':'dark';
+   const r=document.documentElement.getBoundingClientRect();
+   document.documentElement.style.setProperty('--wave-x',`${((e.clientX/r.width)*100).toFixed(2)}%`);
+   document.documentElement.style.setProperty('--wave-y',`${((e.clientY/r.height)*100).toFixed(2)}%`);
+   document.documentElement.classList.remove('theme-wave');void document.documentElement.offsetWidth;document.documentElement.classList.add('theme-wave');
+   document.documentElement.dataset.theme=next;localStorage.setItem('guvel_theme',next);updateControl();
+   setTimeout(()=>document.documentElement.classList.remove('theme-wave'),700);
+ });
 
  const trigger=document.getElementById('languageMenuBtn'),menu=document.getElementById('languageMenu');
  trigger?.addEventListener('click',e=>{e.stopPropagation();const open=menu.hidden;menu.hidden=!open;trigger.setAttribute('aria-expanded',String(open))});
