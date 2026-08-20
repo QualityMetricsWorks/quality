@@ -230,8 +230,8 @@ function initEvents(){
 
  // Masters
  $('clientForm').addEventListener('submit',e=>{e.preventDefault();if(!canManage())return toast('Solo Admin o Manager.');run(()=>api.insertClient({name:$('clientName').value.trim(),code:$('clientCode').value.trim()})).then(()=>e.target.reset())});
- $('partForm').addEventListener('submit',e=>{e.preventDefault();if(!canManage())return toast('Solo Admin o Manager.');run(()=>api.insertPart({clientId:$('partClient').value,number:$('partNumberName').value.trim(),description:$('partDescription').value.trim(),costPerPiece:Number($('partCost').value||0),scrapCostPerPiece:Number($('partScrapCost').value||0),currency:$('partCurrency').value})).then(()=>e.target.reset())});
- $('partEditForm').addEventListener('submit',e=>{e.preventDefault();if(!canManage())return toast('Solo Admin o Manager.');if(!state.selectedPartId)return;run(()=>api.updatePart(state.selectedPartId,{description:$('editPartDescription').value.trim(),costPerPiece:Number($('editPartCost').value||0),scrapCostPerPiece:Number($('editPartScrapCost').value||0),currency:$('editPartCurrency').value})).then(()=>{$('partEditForm').hidden=true})});
+ $('partForm').addEventListener('submit',e=>{e.preventDefault();if(!canManage())return toast('Solo Admin o Manager.');run(()=>api.insertPart({clientId:$('partClient').value,number:$('partNumberName').value.trim(),description:$('partDescription').value.trim(),costPerPiece:Number($('partCost').value||0),currency:$('partCurrency').value})).then(()=>e.target.reset())});
+ $('partEditForm').addEventListener('submit',e=>{e.preventDefault();if(!canManage())return toast('Solo Admin o Manager.');if(!state.selectedPartId)return;run(()=>api.updatePart(state.selectedPartId,{description:$('editPartDescription').value.trim(),costPerPiece:Number($('editPartCost').value||0),currency:$('editPartCurrency').value})).then(()=>{$('partEditForm').hidden=true})});
  $('editPartBtn').addEventListener('click',()=>{$('partEditForm').hidden=false});
  $('cancelPartEditBtn').addEventListener('click',()=>{$('partEditForm').hidden=true});
 
@@ -251,7 +251,7 @@ function initEvents(){
  // Dashboard settings, custom dashboards and layout
  const openDashboardSettings=(kind,metric,customId=null)=>{
    const modal=$('dashboardSettingsModal'),sel=$('dashboardMetricSelect');if(!modal||!sel)return;
-   sel.innerHTML=ui.dashboardMetricOptions(kind).filter(x=>!['defect_pie','part_pie','defect_pareto','part_pareto','reason_pie','machine_pie','reason_pareto','machine_pareto'].includes(x[0])).map(x=>`<option value="${x[0]}">${x[1]}</option>`).join('');
+   sel.innerHTML=ui.dashboardMetricOptions(kind).map(x=>`<option value="${x[0]}">${x[1]}</option>`).join('');
    sel.disabled=true;sel.value=metric||sel.value;modal.dataset.kind=kind;modal.dataset.customId=customId||'';
    const custom=customId?ui.getCustomDashboard(kind,customId):null;
    const r=custom?.range||ui.getDashboardSetting(kind,sel.value);
@@ -263,13 +263,13 @@ function initEvents(){
    const add=e.target.closest('[data-add-custom-dashboard]');
    if(add){
      const kind=add.dataset.addCustomDashboard,modal=$('customDashboardModal'),sel=$('customDashboardMetric');if(!modal||!sel)return;
-     $('customDashboardModalTitle').textContent='Añadir dashboard';$('customDashboardId').value='';$('customDashboardKind').value=kind;$('customDashboardName').value='';$('customDashboardSpan').value='1';ui.populateSelect($('customDashboardClient'),state.clients,'Todos los clientes',x=>x.code?`${x.code} · ${x.name}`:x.name);ui.populateSelect($('customDashboardPart'),state.parts,'Todos los números de parte',x=>x.number);
+     $('customDashboardModalTitle').textContent='Añadir dashboard';$('customDashboardId').value='';$('customDashboardKind').value=kind;$('customDashboardName').value='';$('customDashboardSpan').value='1';
      sel.innerHTML=ui.dashboardMetricOptions(kind).map(x=>`<option value="${x[0]}">${x[1]}</option>`).join('');modal.hidden=false;
    }
    const edit=e.target.closest('[data-edit-custom-dashboard]');
    if(edit){
      const kind=edit.dataset.editCustomDashboard,id=edit.dataset.customDashboardId,x=ui.getCustomDashboard(kind,id);if(!x)return;
-     const modal=$('customDashboardModal'),sel=$('customDashboardMetric');$('customDashboardModalTitle').textContent='Editar dashboard';$('customDashboardId').value=id;$('customDashboardKind').value=kind;$('customDashboardName').value=x.name;$('customDashboardSpan').value=String(x.span||1);ui.populateSelect($('customDashboardClient'),state.clients,'Todos los clientes',c=>c.code?`${c.code} · ${c.name}`:c.name);$('customDashboardClient').value=x.clientId||'';ui.populateSelect($('customDashboardPart'),state.parts.filter(p=>!x.clientId||p.clientId===x.clientId),'Todos los números de parte',p=>p.number);$('customDashboardPart').value=x.partId||'';
+     const modal=$('customDashboardModal'),sel=$('customDashboardMetric');$('customDashboardModalTitle').textContent='Editar dashboard';$('customDashboardId').value=id;$('customDashboardKind').value=kind;$('customDashboardName').value=x.name;$('customDashboardSpan').value=String(x.span||1);
      sel.innerHTML=ui.dashboardMetricOptions(kind).map(o=>`<option value="${o[0]}">${o[1]}</option>`).join('');sel.value=x.metric;modal.hidden=false;
    }
    const del=e.target.closest('[data-delete-custom-dashboard]');
@@ -292,13 +292,12 @@ function initEvents(){
  });
  const closeCustom=()=>{$('customDashboardModal').hidden=true};$('closeCustomDashboardModalBtn')?.addEventListener('click',closeCustom);$('cancelCustomDashboardBtn')?.addEventListener('click',closeCustom);
  $('customDashboardForm')?.addEventListener('submit',e=>{
-   e.preventDefault();const kind=$('customDashboardKind').value,id=$('customDashboardId').value,name=$('customDashboardName').value.trim(),metric=$('customDashboardMetric').value,span=Number($('customDashboardSpan').value||1),clientId=$('customDashboardClient').value,partId=$('customDashboardPart').value;
+   e.preventDefault();const kind=$('customDashboardKind').value,id=$('customDashboardId').value,name=$('customDashboardName').value.trim(),metric=$('customDashboardMetric').value,span=Number($('customDashboardSpan').value||1);
    if(!name)return;
-   if(id){const old=ui.getCustomDashboard(kind,id);ui.updateCustomDashboard(kind,id,{name,metric,metricLabel:ui.dashboardMetricOptions(kind).find(x=>x[0]===metric)?.[1]||metric,span,clientId,partId})}
-   else ui.addCustomDashboard(kind,name,metric,span,clientId,partId);
+   if(id){const old=ui.getCustomDashboard(kind,id);ui.updateCustomDashboard(kind,id,{name,metric,metricLabel:ui.dashboardMetricOptions(kind).find(x=>x[0]===metric)?.[1]||metric,span})}
+   else ui.addCustomDashboard(kind,name,metric,span);
    closeCustom();ui.renderDashboard();
  });
- $('customDashboardClient')?.addEventListener('change',()=>{ui.populateSelect($('customDashboardPart'),state.parts.filter(p=>p.clientId===$('customDashboardClient').value),'Todos los números de parte',x=>x.number)});
  // Searches
  $('clientSearch').addEventListener('input',ui.renderClients);$('partSearch').addEventListener('input',ui.renderParts);$('machineSearch').addEventListener('input',ui.renderMachines);$('personnelSearch').addEventListener('input',ui.renderPersonnel);$('defectSearch').addEventListener('input',ui.renderCatalog);$('downtimeSearch').addEventListener('input',ui.renderDowntimeCatalog);$('runSearch').addEventListener('input',ui.renderRuns);$('productionHistorySearch').addEventListener('input',ui.renderHistory);$('scrapHistorySearch').addEventListener('input',ui.renderHistory);
  document.querySelectorAll('.form-cancel-btn').forEach(b=>b.addEventListener('click',()=>b.closest('form')?.reset()));
@@ -360,7 +359,7 @@ function applyPeriod(v){
  $('filterStart').value=iso(s);$('filterEnd').value=iso(e)
 }
 async function init(){
- db=api.initDb();initI18n();initCursor();initEvents();window.GUVEL_RENDER_BARCODE=renderBarcode;initTraceability(()=>{ui.renderAll();applyLanguage();$('storageStatus').textContent='Sistema Actualizado';toast('Producción registrada correctamente')});applyPeriod('current');
+ db=api.initDb();initI18n();initEvents();window.GUVEL_RENDER_BARCODE=renderBarcode;initTraceability(()=>{ui.renderAll();applyLanguage();$('storageStatus').textContent='Sistema Actualizado';toast('Producción registrada correctamente')});applyPeriod('current');
  const {data:{session}}=await db.auth.getSession();if(session?.user)await startSession(session.user);
  db.auth.onAuthStateChange(async(event,session)=>{if(event==='SIGNED_OUT'){$('authOverlay').classList.remove('hidden');location.reload()}else if(session?.user)await startSession(session.user)});
 }

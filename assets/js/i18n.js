@@ -1,19 +1,4 @@
 const ES_EN={
-  "Hoy": "Today",
-  "Esta semana": "This week",
-  "Este mes": "This month",
-  "Costo de chatarra": "Scrap cost",
-  "Costo por pieza": "Piece cost",
-  "COPQ Scrap": "Scrap COPQ",
-  "COPQ %": "COPQ %",
-  "Dashboards personalizados": "Custom dashboards",
-  "Dashboard adicional": "Additional dashboard",
-  "Añadir dashboard": "Add dashboard",
-  "Editar dashboard": "Edit dashboard",
-  "Distribución": "Layout",
-  "Visualización": "Visualization",
-  "Todos los clientes": "All customers",
-  "Todos los números de parte": "All part numbers",
   "Salir": "Sign out",
   "Captura": "Capture",
   "Clientes": "Customers",
@@ -517,7 +502,7 @@ export function applyLanguage(lang=current){
 }
 export function initI18n(){
  const savedTheme=localStorage.getItem('guvel_theme')||'light';document.documentElement.dataset.theme=savedTheme;
- const themeBtn=document.getElementById('themeToggleBtn');themeBtn?.addEventListener('click',e=>{const next=(document.documentElement.dataset.theme||'light')==='dark'?'light':'dark';document.documentElement.style.setProperty('--wave-x',`${e.clientX/window.innerWidth*100}%`);document.documentElement.style.setProperty('--wave-y',`${e.clientY/window.innerHeight*100}%`);document.documentElement.classList.remove('theme-wave');void document.documentElement.offsetWidth;document.documentElement.classList.add('theme-wave');document.documentElement.dataset.theme=next;localStorage.setItem('guvel_theme',next);updateControl();setTimeout(()=>document.documentElement.classList.remove('theme-wave'),700)});
+ const themeBtn=document.getElementById('themeToggleBtn');themeBtn?.addEventListener('click',()=>{const next=(document.documentElement.dataset.theme||'light')==='dark'?'light':'dark';document.documentElement.dataset.theme=next;localStorage.setItem('guvel_theme',next);updateControl()});
 
  const trigger=document.getElementById('languageMenuBtn'),menu=document.getElementById('languageMenu');
  trigger?.addEventListener('click',e=>{e.stopPropagation();const open=menu.hidden;menu.hidden=!open;trigger.setAttribute('aria-expanded',String(open))});
