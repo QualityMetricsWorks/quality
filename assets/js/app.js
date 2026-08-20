@@ -346,8 +346,27 @@ function exportExcel(){
 }
 
 async function startSession(user){
- try{await api.loadIdentity(user);await api.loadAll();$('authOverlay').classList.add('hidden');$('companyContext').textContent=state.companyName;$('userEmail').textContent=user.email;$('storageStatus').textContent='Sistema Actualizado';applyRolePermissions();ui.renderAll();applyLanguage()}
- catch(e){console.error(e);toast(e.message);$('authOverlay').classList.remove('hidden')}
+ try{
+  await api.loadIdentity(user);
+  await api.loadAll();
+  $('authOverlay').classList.add('hidden');
+  $('companyContext').textContent=state.companyName;
+  $('userEmail').textContent=user.email;
+  $('storageStatus').textContent='Sistema Actualizado';
+  applyRolePermissions();
+ }catch(e){
+  console.error('GUVEL session/data load error',e);
+  toast(e.message||'No fue posible cargar la sesión.');
+  $('authOverlay').classList.remove('hidden');
+  return;
+ }
+ try{
+  ui.renderAll();
+  applyLanguage();
+ }catch(e){
+  console.error('GUVEL UI render error',e);
+  toast('Sesión iniciada. Se detectó un error visual; revisa la consola.');
+ }
 }
 function iso(d){return d.toISOString().slice(0,10)}
 function applyPeriod(v){

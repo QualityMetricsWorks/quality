@@ -536,6 +536,12 @@ html[data-theme="dark"] .top-product .entity-item{background:#1d2935!important;c
 html.theme-wave::before{content:"";position:fixed;z-index:9999;inset:-20%;pointer-events:none;border-radius:50%;background:radial-gradient(circle at var(--wave-x,50%) var(--wave-y,50%),rgba(20,57,128,.18) 0%,rgba(20,57,128,.10) 14%,rgba(0,103,50,.06) 28%,transparent 48%);animation:guvelThemeWave .62s cubic-bezier(.2,.75,.25,1) forwards}
 @keyframes guvelThemeWave{from{transform:scale(.05);opacity:.9}to{transform:scale(2.8);opacity:0}}
 /* Fluorescent red cursor point */
-body{cursor:none}
+body:not(:has(#authOverlay:not(.hidden))){cursor:none}
 body::after{content:"";position:fixed;z-index:10000;left:var(--cursor-x,-20px);top:var(--cursor-y,-20px);width:7px;height:7px;border-radius:50%;background:#ff1b1b;box-shadow:0 0 5px #ff1b1b,0 0 12px rgba(255,27,27,.9),0 0 22px rgba(255,27,27,.55);transform:translate(-50%,-50%);pointer-events:none}
-a,button,input,select,textarea{cursor:none}
+body:not(:has(#authOverlay:not(.hidden))) a,body:not(:has(#authOverlay:not(.hidden))) button,body:not(:has(#authOverlay:not(.hidden))) input,body:not(:has(#authOverlay:not(.hidden))) select,body:not(:has(#authOverlay:not(.hidden))) textarea{cursor:none}
+
+/* v1.4.8.1 login safety: native cursor remains available while auth overlay is visible */
+#authOverlay,#authOverlay *{cursor:auto!important}
+#authOverlay button{cursor:pointer!important}
+#authOverlay input{cursor:text!important}
+#authOverlay~*{--login-safe:1}
