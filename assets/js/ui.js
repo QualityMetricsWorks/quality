@@ -50,6 +50,7 @@ export function updateScrapDefects(){
  renderRunScrapEvents();
 }
 function activeRuns(){return filteredRuns({start:$('filterStart')?.value,end:$('filterEnd')?.value,clientId:$('filterClient')?.value,partId:$('filterPartNumber')?.value}).filter(r=>!$('filterMachine')?.value||r.machineId===$('filterMachine').value)}
+function renderGeneralSix(runs){const m=metricsForRuns(runs),o=oeeMetrics(runs);if($('generalOeeValue'))$('generalOeeValue').textContent=o.available?percent(o.oee):'—';if($('generalProductionValue'))$('generalProductionValue').textContent=number(m.produced)}
 export function renderDashboard(){
  const runs=activeRuns(),m=metricsForRuns(runs);$('kpiProduction').textContent=number(m.produced);$('kpiScrap').textContent=percent(m.scrapRate);$('kpiScrapQty').textContent=`${number(m.scrap)} piezas`;$('kpiPpm').textContent=number(Math.round(m.ppm));$('kpiYield').textContent=percent(m.yieldRate);$('kpiCopq').textContent=money(m.copq,'USD');
  const de=state.downtimeEvents.filter(e=>runs.some(r=>r.id===e.runId));const mins=de.reduce((s,e)=>s+e.minutes,0);$('kpiDowntime').textContent=`${number(mins)} min`;$('kpiDowntimeEvents').textContent=number(de.length);
