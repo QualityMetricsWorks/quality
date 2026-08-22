@@ -264,13 +264,14 @@ function initEvents(){
    if(add){
      const kind=add.dataset.addCustomDashboard,modal=$('customDashboardModal'),sel=$('customDashboardMetric');if(!modal||!sel)return;
      $('customDashboardModalTitle').textContent='Añadir dashboard';$('customDashboardId').value='';$('customDashboardKind').value=kind;$('customDashboardName').value='';$('customDashboardSpan').value='1';
-     sel.innerHTML=ui.dashboardMetricOptions(kind).map(x=>`<option value="${x[0]}">${x[1]}</option>`).join('');modal.hidden=false;
+     sel.innerHTML=ui.dashboardMetricOptions(kind).map(x=>`<option value="${x[0]}">${x[1]}</option>`).join('');
+     populateCustomDashboardScope('','');modal.hidden=false;
    }
    const edit=e.target.closest('[data-edit-custom-dashboard]');
    if(edit){
      const kind=edit.dataset.editCustomDashboard,id=edit.dataset.customDashboardId,x=ui.getCustomDashboard(kind,id);if(!x)return;
      const modal=$('customDashboardModal'),sel=$('customDashboardMetric');$('customDashboardModalTitle').textContent='Editar dashboard';$('customDashboardId').value=id;$('customDashboardKind').value=kind;$('customDashboardName').value=x.name;$('customDashboardSpan').value=String(x.span||1);
-     sel.innerHTML=ui.dashboardMetricOptions(kind).map(o=>`<option value="${o[0]}">${o[1]}</option>`).join('');sel.value=x.metric;modal.hidden=false;
+     sel.innerHTML=ui.dashboardMetricOptions(kind).map(o=>`<option value="${o[0]}">${o[1]}</option>`).join('');sel.value=x.metric;populateCustomDashboardScope(x.clientId||'',x.partId||'');modal.hidden=false;
    }
    const del=e.target.closest('[data-delete-custom-dashboard]');
    if(del){const kind=del.dataset.deleteCustomDashboard,id=del.dataset.customDashboardId;if(confirm('¿Eliminar este dashboard?')){ui.removeCustomDashboard(kind,id);ui.renderDashboard()}}
@@ -291,13 +292,20 @@ function initEvents(){
    closeDash();ui.renderDashboard();
  });
  const closeCustom=()=>{$('customDashboardModal').hidden=true};$('closeCustomDashboardModalBtn')?.addEventListener('click',closeCustom);$('cancelCustomDashboardBtn')?.addEventListener('click',closeCustom);
- $('customDashboardForm')?.addEventListener('submit',e=>{
-   e.preventDefault();const kind=$('customDashboardKind').value,id=$('customDashboardId').value,name=$('customDashboardName').value.trim(),metric=$('customDashboardMetric').value,span=Number($('customDashboardSpan').value||1);
+ function populateCustomDashboardScope(clientId='',partId=''){
+ const cs=$('customDashboardClient'),ps=$('customDashboardPart');if(!cs||!ps)return;
+ const clients=state.clients||[];cs.innerHTML='<option value="">Todos los clientes</option>'+clients.map(c=>`<option value="${c.id}">${esc(c.name||c.code||c.id)}</option>`).join('');cs.value=clientId||'';
+ const parts=state.parts||[];const filtered=clientId?parts.filter(p=>p.clientId===clientId):parts;
+ ps.innerHTML='<option value="">Todos los números de parte</option>'+filtered.map(p=>`<option value="${p.id}">${esc(p.number||p.partNumber||p.id)}</option>`).join('');ps.value=partId||'';
+}
+$('customDashboardForm')?.addEventListener('submit',e=>{
+   e.preventDefault();const kind=$('customDashboardKind').value,id=$('customDashboardId').value,name=$('customDashboardName').value.trim(),metric=$('customDashboardMetric').value,span=Number($('customDashboardSpan').value||1),clientId=$('customDashboardClient').value||'',partId=$('customDashboardPart').value||'';
    if(!name)return;
-   if(id){const old=ui.getCustomDashboard(kind,id);ui.updateCustomDashboard(kind,id,{name,metric,metricLabel:ui.dashboardMetricOptions(kind).find(x=>x[0]===metric)?.[1]||metric,span})}
-   else ui.addCustomDashboard(kind,name,metric,span);
+   if(id){ui.updateCustomDashboard(kind,id,{name,metric,metricLabel:ui.dashboardMetricOptions(kind).find(x=>x[0]===metric)?.[1]||metric,span,clientId,partId})}
+   else ui.addCustomDashboard(kind,name,metric,span,clientId,partId);
    closeCustom();ui.renderDashboard();
  });
+ $('customDashboardClient')?.addEventListener('change',e=>populateCustomDashboardScope(e.target.value||'',''));
  // Searches
  $('clientSearch').addEventListener('input',ui.renderClients);$('partSearch').addEventListener('input',ui.renderParts);$('machineSearch').addEventListener('input',ui.renderMachines);$('personnelSearch').addEventListener('input',ui.renderPersonnel);$('defectSearch').addEventListener('input',ui.renderCatalog);$('downtimeSearch').addEventListener('input',ui.renderDowntimeCatalog);$('runSearch').addEventListener('input',ui.renderRuns);$('productionHistorySearch').addEventListener('input',ui.renderHistory);$('scrapHistorySearch').addEventListener('input',ui.renderHistory);
  document.querySelectorAll('.form-cancel-btn').forEach(b=>b.addEventListener('click',()=>b.closest('form')?.reset()));
