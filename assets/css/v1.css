@@ -607,18 +607,79 @@ html[data-theme="dark"] .top-product .metrics{background:var(--color-surface-sub
 @media(max-width:1000px){.top-products-grid{grid-template-columns:1fr 1fr}}
 @media(max-width:650px){.top-products-grid{grid-template-columns:1fr}}
 
-/* PowerPoint-style theme reveal: next theme expands from the toggle button */
-html.theme-transitioning,html.theme-transitioning body{overflow:hidden}
-.theme-transition-layer{position:fixed;inset:0;z-index:10001;pointer-events:none;opacity:1;
-  clip-path:circle(0 at var(--wave-x) var(--wave-y));transition:clip-path .56s cubic-bezier(.22,.8,.2,1),opacity .18s ease}
-.theme-transition-layer.dark{background:#111820}
-.theme-transition-layer.light{background:#f5f7f9}
-.theme-transition-layer.expand{clip-path:circle(160vmax at var(--wave-x) var(--wave-y))}
-.theme-transition-layer.fade{opacity:0}
 
-html.theme-transitioning,html.theme-transitioning body{overflow:hidden}.theme-transition-layer{position:fixed;inset:-2px;z-index:10001;pointer-events:none;clip-path:polygon(100% 0,100% 0,100% 0,100% 0);transition:clip-path .95s cubic-bezier(.22,.72,.16,1),opacity .22s ease}.theme-transition-layer.dark{background:#111820}.theme-transition-layer.light{background:#f5f7f9}.theme-transition-layer.expand{clip-path:polygon(100% 0,100% 100%,0 100%,0 100%)}.theme-transition-layer.fade{opacity:0}
-/* v1.4.8.9 Patch — Top 3 Scrap dark mode */
-html[data-theme="dark"] #topProductsGrid,html[data-theme="dark"] #topProductsGrid .top-product,html[data-theme="dark"] #topProductsGrid .top-product *,html[data-theme="dark"] #topProductsGrid .entity-item,html[data-theme="dark"] #topProductsGrid .entity-item *{color:var(--color-text);border-color:var(--color-border)}
-html[data-theme="dark"] #topProductsGrid .top-product,html[data-theme="dark"] #topProductsGrid .top-product .metrics,html[data-theme="dark"] #topProductsGrid .top-product .entity-item{background:var(--color-surface)!important}
-html[data-theme="dark"] #topProductsGrid .top-product .metrics{background:var(--color-surface-subtle)!important}
-html[data-theme="dark"] #topProductsGrid small,html[data-theme="dark"] #topProductsGrid .rank,html[data-theme="dark"] #topProductsGrid .metrics span{color:var(--color-text-muted)!important}
+
+/* v1.4.8.8 — Visual: dark-mode wave + phosphor cursor */
+html{transition:background-color .22s ease,color .22s ease}
+html::before{
+  content:"";position:fixed;inset:0;pointer-events:none;z-index:9997;
+  opacity:0;background:radial-gradient(circle at var(--theme-wave-x,50%) var(--theme-wave-y,8%),rgba(12,193,224,.22) 0,rgba(12,193,224,.12) 9%,transparent 36%);
+}
+html.theme-wave::before{animation:guvel-theme-wave .68s cubic-bezier(.2,.7,.2,1) both}
+@keyframes guvel-theme-wave{
+  0%{opacity:.95;background-size:0 0}
+  35%{opacity:.75}
+  100%{opacity:0;background-size:220vmax 220vmax}
+}
+.guvel-cursor-dot{
+  position:fixed;left:0;top:0;width:9px;height:9px;border-radius:50%;
+  background:#FF3131;box-shadow:0 0 5px #FF3131,0 0 12px rgba(255,49,49,.85),0 0 22px rgba(255,49,49,.42);
+  pointer-events:none;z-index:10000;transform:translate(-50%,-50%);
+  opacity:0;transition:opacity .12s ease,width .12s ease,height .12s ease;
+}
+.guvel-cursor-dot.is-visible{opacity:1}
+.guvel-cursor-dot.is-clicking{width:13px;height:13px}
+@media (pointer:coarse){.guvel-cursor-dot{display:none}}
+/* Dark-mode controls, menus and cards that previously inherited white surfaces */
+html[data-theme="dark"] .top-product,
+html[data-theme="dark"] .top-product .metrics,
+html[data-theme="dark"] .top-product .metrics small,
+html[data-theme="dark"] .custom-dashboard-toolbar,
+html[data-theme="dark"] .dashboard-panel .section-intro,
+html[data-theme="dark"] .dashboard-panel .card-header,
+html[data-theme="dark"] .dashboard-panel .card-header h3,
+html[data-theme="dark"] .dashboard-panel .card-header p{
+  color:var(--color-text);
+}
+html[data-theme="dark"] .top-product,
+html[data-theme="dark"] .top-product .metrics{
+  background:var(--color-surface);
+  border-color:var(--color-border);
+}
+html[data-theme="dark"] .custom-dashboard-toolbar,
+html[data-theme="dark"] .custom-dashboard-toolbar span{
+  color:var(--color-text-muted);
+}
+html[data-theme="dark"] .theme-trigger{
+  background:var(--color-surface);color:var(--color-text);border-color:var(--color-border);
+}
+@media (prefers-reduced-motion:reduce){
+  html,.guvel-cursor-dot{transition:none}
+  html.theme-wave::before{animation:none;opacity:0}
+}
+
+/* v1.4.8.9 — Top 3 Scrap dark-mode correction */
+html[data-theme="dark"] #topProductsGrid .top-product,
+html[data-theme="dark"] #topProductsGrid .top-product .metrics,
+html[data-theme="dark"] #topProductsGrid .top-product .metrics > div,
+html[data-theme="dark"] #topProductsGrid .top-product .entity-item{
+  background:var(--color-surface)!important;
+  color:var(--color-text)!important;
+  border-color:var(--color-border)!important;
+}
+html[data-theme="dark"] #topProductsGrid .top-product .metrics{
+  background:var(--color-surface-subtle)!important;
+}
+html[data-theme="dark"] #topProductsGrid .top-product .metrics > div{
+  background:var(--color-surface)!important;
+  color:var(--color-text)!important;
+}
+html[data-theme="dark"] #topProductsGrid .top-product .metrics span,
+html[data-theme="dark"] #topProductsGrid .top-product .metrics small,
+html[data-theme="dark"] #topProductsGrid .top-product .entity-item small{
+  color:var(--color-text-muted)!important;
+}
+html[data-theme="dark"] #topProductsGrid .top-product .metrics strong,
+html[data-theme="dark"] #topProductsGrid .top-product .entity-item strong{
+  color:var(--color-text)!important;
+}

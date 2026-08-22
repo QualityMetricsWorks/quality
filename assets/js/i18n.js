@@ -533,16 +533,9 @@ export function initI18n(){
  initGuvelCursor();
  const savedTheme=localStorage.getItem('guvel_theme')||'light';document.documentElement.dataset.theme=savedTheme;
  const themeBtn=document.getElementById('themeToggleBtn');themeBtn?.addEventListener('click',()=>{
-  const root=document.documentElement,current=root.dataset.theme||'light',next=current==='dark'?'light':'dark';
-  if(root.classList.contains('theme-transitioning'))return;
-  const layer=document.createElement('div');layer.className='theme-transition-layer '+next;
-  document.body.appendChild(layer);root.classList.add('theme-transitioning');
-  requestAnimationFrame(()=>layer.classList.add('expand'));
-  window.setTimeout(()=>{
-    root.dataset.theme=next;localStorage.setItem('guvel_theme',next);updateControl();
-    layer.classList.add('fade');
-    window.setTimeout(()=>{layer.remove();root.classList.remove('theme-transitioning')},240);
-  },780);
+  const root=document.documentElement,next=(root.dataset.theme||'light')==='dark'?'light':'dark';
+  root.classList.remove('theme-wave');void root.offsetWidth;root.dataset.theme=next;localStorage.setItem('guvel_theme',next);root.classList.add('theme-wave');
+  window.setTimeout(()=>root.classList.remove('theme-wave'),700);updateControl();
 });
 
  const trigger=document.getElementById('languageMenuBtn'),menu=document.getElementById('languageMenu');
