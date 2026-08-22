@@ -6,7 +6,9 @@ export function metricsForRuns(runs){
  const produced=runs.reduce((s,r)=>s+Number(r.produced||0),0);
  const scrap=events.filter(e=>e.disposition==='scrap').reduce((s,e)=>s+Number(e.quantity||0),0);
  const copq=events.reduce((s,e)=>s+copqForEvent(e),0);
- return {produced,scrap,scrapRate:produced?scrap/produced*100:0,ppm:produced?scrap/produced*1e6:0,yieldRate:produced?(produced-scrap)/produced*100:100,copq};
+ const productionValue=runs.reduce((s,r)=>{const p=getPart(r.partId);return s+Number(r.produced||0)*Number(p?.costPerPiece||0)},0);
+ const copqPercent=productionValue?copq/productionValue*100:0;
+ return {produced,scrap,scrapRate:produced?scrap/produced*100:0,ppm:produced?scrap/produced*1e6:0,yieldRate:produced?(produced-scrap)/produced*100:100,copq,copqPercent,productionValue};
 }
 export function filteredRuns({start='',end='',clientId='',partId=''}={}){
  return state.runs.filter(r=>(!start||r.date>=start)&&(!end||r.date<=end)&&(!clientId||r.clientId===clientId)&&(!partId||r.partId===partId));
