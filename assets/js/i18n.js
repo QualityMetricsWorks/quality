@@ -18,6 +18,24 @@ const ES_EN={
   "Calidad": "Quality",
   "Mantenimiento": "Maintenance",
   "Periodo": "Period",
+  "Hoy": "Today",
+  "Esta semana": "This week",
+  "Este mes": "This month",
+  "Configurar meta": "Configure target",
+  "Producción por día": "Production by day",
+  "OEE y Desempeño": "OEE & Performance",
+  "Disponibilidad": "Availability",
+  "Performance": "Performance",
+  "Quality": "Quality",
+  "Producción": "Production",
+  "Distribución": "Distribution",
+  "Mover dashboard": "Move dashboard",
+  "Editar dashboard": "Edit dashboard",
+  "Eliminar dashboard": "Delete dashboard",
+  "Añadir dashboard": "Add dashboard",
+  "No hay dashboards adicionales. Usa “+ Añadir dashboard”.": "No additional dashboards. Use “+ Add dashboard”.",
+  "Sin datos para el periodo seleccionado.": "No data for the selected period.",
+  "Top 3 productos con mayor scrap": "Top 3 products with highest scrap",
   "Actual": "Current",
   "Semana anterior": "Previous week",
   "Día anterior": "Previous day",
@@ -515,9 +533,20 @@ export function initI18n(){
  initGuvelCursor();
  const savedTheme=localStorage.getItem('guvel_theme')||'light';document.documentElement.dataset.theme=savedTheme;
  const themeBtn=document.getElementById('themeToggleBtn');themeBtn?.addEventListener('click',()=>{
-  const root=document.documentElement,next=(root.dataset.theme||'light')==='dark'?'light':'dark';
-  root.classList.remove('theme-wave');void root.offsetWidth;root.dataset.theme=next;localStorage.setItem('guvel_theme',next);root.classList.add('theme-wave');
-  window.setTimeout(()=>root.classList.remove('theme-wave'),700);updateControl();
+  const root=document.documentElement,current=root.dataset.theme||'light',next=current==='dark'?'light':'dark';
+  if(root.classList.contains('theme-transitioning'))return;
+  const layer=document.createElement('div');layer.className='theme-transition-layer '+next;
+  const rect=themeBtn.getBoundingClientRect();
+  layer.style.setProperty('--wave-x',`${rect.left+rect.width/2}px`);
+  layer.style.setProperty('--wave-y',`${rect.top+rect.height/2}px`);
+  document.body.appendChild(layer);root.classList.add('theme-transitioning');
+  requestAnimationFrame(()=>{
+    layer.classList.add('expand');
+    window.setTimeout(()=>{
+      root.dataset.theme=next;localStorage.setItem('guvel_theme',next);updateControl();
+      layer.classList.add('fade');window.setTimeout(()=>{layer.remove();root.classList.remove('theme-transitioning')},180);
+    },560);
+  });
 });
 
  const trigger=document.getElementById('languageMenuBtn'),menu=document.getElementById('languageMenu');

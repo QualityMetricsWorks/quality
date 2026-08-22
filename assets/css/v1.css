@@ -582,3 +582,36 @@ html[data-theme="dark"] .theme-trigger{
   html,.guvel-cursor-dot{transition:none}
   html.theme-wave::before{animation:none;opacity:0}
 }
+
+/* v1.4.8.9 — Top 3 visual balance + dark mode */
+.top-products-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+.top-product{min-width:0;border:1px solid var(--color-border);background:var(--color-surface);color:var(--color-text);padding:13px;box-shadow:var(--shadow-xs)}
+.top-product .rank{display:block;color:var(--color-text-muted);font-size:8px;font-weight:800;letter-spacing:.08em}
+.top-product h4{margin:6px 0 2px;color:var(--color-text);font-size:15px}
+.top-product>small{color:var(--color-text-muted)}
+.top-product .metrics{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin:12px 0 9px;padding:8px;border:1px solid var(--color-border);background:var(--color-surface-subtle)}
+.top-product .metrics>div{min-width:0}
+.top-product .metrics span{display:block;color:var(--color-text-muted);font-size:8px}
+.top-product .metrics strong{display:block;color:var(--color-text);font-size:12px}
+.top-product .metrics small{color:var(--color-text-muted)}
+.top-product .entity-item{background:var(--color-surface-subtle);color:var(--color-text);border-color:var(--color-border)}
+html[data-theme="dark"] .top-product,
+html[data-theme="dark"] .top-product .metrics,
+html[data-theme="dark"] .top-product .entity-item{background:var(--color-surface);color:var(--color-text);border-color:var(--color-border)}
+html[data-theme="dark"] .top-product .metrics{background:var(--color-surface-subtle)}
+.quality-top-scrap-card{margin-bottom:20px!important}
+.quality-top-scrap-card + .dashboard-grid{margin-top:0!important}
+.kpi-card-head{display:flex;align-items:center;justify-content:space-between;gap:6px}
+.kpi-settings-btn{width:22px!important;height:22px!important;padding:0!important;flex:0 0 22px}
+.production-kpi-grid .kpi-card{min-width:0}
+@media(max-width:1000px){.top-products-grid{grid-template-columns:1fr 1fr}}
+@media(max-width:650px){.top-products-grid{grid-template-columns:1fr}}
+
+/* PowerPoint-style theme reveal: next theme expands from the toggle button */
+html.theme-transitioning,html.theme-transitioning body{overflow:hidden}
+.theme-transition-layer{position:fixed;inset:0;z-index:10001;pointer-events:none;opacity:1;
+  clip-path:circle(0 at var(--wave-x) var(--wave-y));transition:clip-path .56s cubic-bezier(.22,.8,.2,1),opacity .18s ease}
+.theme-transition-layer.dark{background:#111820}
+.theme-transition-layer.light{background:#f5f7f9}
+.theme-transition-layer.expand{clip-path:circle(160vmax at var(--wave-x) var(--wave-y))}
+.theme-transition-layer.fade{opacity:0}
