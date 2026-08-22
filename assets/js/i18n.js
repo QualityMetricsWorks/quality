@@ -501,9 +501,24 @@ function updateControl(){
 export function applyLanguage(lang=current){
  current=lang;localStorage.setItem('guvel_language',lang);translateRoot(document.body,lang);updateControl();
 }
+function initGuvelCursor(){
+  if(matchMedia('(pointer:coarse)').matches||document.querySelector('.guvel-cursor-dot'))return;
+  const dot=document.createElement('div');dot.className='guvel-cursor-dot';dot.setAttribute('aria-hidden','true');document.body.appendChild(dot);
+  let raf=0,lastX=0,lastY=0;
+  const move=e=>{lastX=e.clientX;lastY=e.clientY;if(!raf)raf=requestAnimationFrame(()=>{dot.style.transform=`translate(${lastX}px,${lastY}px) translate(-50%,-50%)`;raf=0});dot.classList.add('is-visible')};
+  document.addEventListener('mousemove',move,{passive:true});
+  document.addEventListener('mouseleave',()=>dot.classList.remove('is-visible'));
+  document.addEventListener('mousedown',()=>dot.classList.add('is-clicking'));
+  document.addEventListener('mouseup',()=>dot.classList.remove('is-clicking'));
+}
 export function initI18n(){
+ initGuvelCursor();
  const savedTheme=localStorage.getItem('guvel_theme')||'light';document.documentElement.dataset.theme=savedTheme;
- const themeBtn=document.getElementById('themeToggleBtn');themeBtn?.addEventListener('click',()=>{const next=(document.documentElement.dataset.theme||'light')==='dark'?'light':'dark';document.documentElement.dataset.theme=next;localStorage.setItem('guvel_theme',next);updateControl()});
+ const themeBtn=document.getElementById('themeToggleBtn');themeBtn?.addEventListener('click',()=>{
+  const root=document.documentElement,next=(root.dataset.theme||'light')==='dark'?'light':'dark';
+  root.classList.remove('theme-wave');void root.offsetWidth;root.dataset.theme=next;localStorage.setItem('guvel_theme',next);root.classList.add('theme-wave');
+  window.setTimeout(()=>root.classList.remove('theme-wave'),700);updateControl();
+});
 
  const trigger=document.getElementById('languageMenuBtn'),menu=document.getElementById('languageMenu');
  trigger?.addEventListener('click',e=>{e.stopPropagation();const open=menu.hidden;menu.hidden=!open;trigger.setAttribute('aria-expanded',String(open))});

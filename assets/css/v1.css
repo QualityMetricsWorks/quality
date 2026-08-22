@@ -533,3 +533,52 @@ html[data-theme="dark"] .custom-dashboard-card{background:var(--color-surface);b
 @media(max-width:700px){.partDetail .mini-kpi-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
 
 .custom-dashboard-card-title small{display:block;max-width:260px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+
+/* v1.4.8.8 — Visual: dark-mode wave + phosphor cursor */
+html{transition:background-color .22s ease,color .22s ease}
+html::before{
+  content:"";position:fixed;inset:0;pointer-events:none;z-index:9997;
+  opacity:0;background:radial-gradient(circle at var(--theme-wave-x,50%) var(--theme-wave-y,8%),rgba(12,193,224,.22) 0,rgba(12,193,224,.12) 9%,transparent 36%);
+}
+html.theme-wave::before{animation:guvel-theme-wave .68s cubic-bezier(.2,.7,.2,1) both}
+@keyframes guvel-theme-wave{
+  0%{opacity:.95;background-size:0 0}
+  35%{opacity:.75}
+  100%{opacity:0;background-size:220vmax 220vmax}
+}
+.guvel-cursor-dot{
+  position:fixed;left:0;top:0;width:9px;height:9px;border-radius:50%;
+  background:#FF3131;box-shadow:0 0 5px #FF3131,0 0 12px rgba(255,49,49,.85),0 0 22px rgba(255,49,49,.42);
+  pointer-events:none;z-index:10000;transform:translate(-50%,-50%);
+  opacity:0;transition:opacity .12s ease,width .12s ease,height .12s ease;
+}
+.guvel-cursor-dot.is-visible{opacity:1}
+.guvel-cursor-dot.is-clicking{width:13px;height:13px}
+@media (pointer:coarse){.guvel-cursor-dot{display:none}}
+/* Dark-mode controls, menus and cards that previously inherited white surfaces */
+html[data-theme="dark"] .top-product,
+html[data-theme="dark"] .top-product .metrics,
+html[data-theme="dark"] .top-product .metrics small,
+html[data-theme="dark"] .custom-dashboard-toolbar,
+html[data-theme="dark"] .dashboard-panel .section-intro,
+html[data-theme="dark"] .dashboard-panel .card-header,
+html[data-theme="dark"] .dashboard-panel .card-header h3,
+html[data-theme="dark"] .dashboard-panel .card-header p{
+  color:var(--color-text);
+}
+html[data-theme="dark"] .top-product,
+html[data-theme="dark"] .top-product .metrics{
+  background:var(--color-surface);
+  border-color:var(--color-border);
+}
+html[data-theme="dark"] .custom-dashboard-toolbar,
+html[data-theme="dark"] .custom-dashboard-toolbar span{
+  color:var(--color-text-muted);
+}
+html[data-theme="dark"] .theme-trigger{
+  background:var(--color-surface);color:var(--color-text);border-color:var(--color-border);
+}
+@media (prefers-reduced-motion:reduce){
+  html,.guvel-cursor-dot{transition:none}
+  html.theme-wave::before{animation:none;opacity:0}
+}
