@@ -527,3 +527,7 @@ html[data-theme="dark"] .custom-dashboard-card{background:var(--color-surface);b
 /* v1.4.8.5 — COPQ percentage + USD secondary value */
 .kpi-card.money #kpiCopqUsd{display:block}
 .top-product .metrics small{display:block;margin-top:2px;font-size:9px;color:var(--color-text-muted)}
+
+.partDetail .mini-kpi-grid{grid-template-columns:repeat(7,minmax(0,1fr))}
+@media(max-width:1100px){.partDetail .mini-kpi-grid{grid-template-columns:repeat(4,minmax(0,1fr))}}
+@media(max-width:700px){.partDetail .mini-kpi-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}

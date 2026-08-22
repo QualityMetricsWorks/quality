@@ -1,6 +1,6 @@
 import {state,getPart,getRun,getDefect,getShift} from './state.js';
 export function scrapQtyForRun(runId){return state.scrapEvents.filter(e=>e.runId===runId&&e.disposition==='scrap').reduce((s,e)=>s+Number(e.quantity||0),0)}
-export function copqForEvent(e){const run=getRun(e.runId),part=getPart(run?.partId);return e.disposition==='scrap'?(Number(e.quantity||0)*Number(part?.costPerPiece||0)+Number(e.extraCost||0)):Number(e.extraCost||0)}
+export function copqForEvent(e){const run=getRun(e.runId),part=getPart(run?.partId);return e.disposition==='scrap'?Math.max(0,Number(e.quantity||0)*(Number(part?.costPerPiece||0)-Number(part?.scrapCostPerPiece||0))+Number(e.extraCost||0)):Number(e.extraCost||0)}
 export function metricsForRuns(runs){
  const ids=new Set(runs.map(r=>r.id));const events=state.scrapEvents.filter(e=>ids.has(e.runId));
  const produced=runs.reduce((s,r)=>s+Number(r.produced||0),0);

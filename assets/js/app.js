@@ -230,8 +230,8 @@ function initEvents(){
 
  // Masters
  $('clientForm').addEventListener('submit',e=>{e.preventDefault();if(!canManage())return toast('Solo Admin o Manager.');run(()=>api.insertClient({name:$('clientName').value.trim(),code:$('clientCode').value.trim()})).then(()=>e.target.reset())});
- $('partForm').addEventListener('submit',e=>{e.preventDefault();if(!canManage())return toast('Solo Admin o Manager.');run(()=>api.insertPart({clientId:$('partClient').value,number:$('partNumberName').value.trim(),description:$('partDescription').value.trim(),costPerPiece:Number($('partCost').value||0),currency:$('partCurrency').value})).then(()=>e.target.reset())});
- $('partEditForm').addEventListener('submit',e=>{e.preventDefault();if(!canManage())return toast('Solo Admin o Manager.');if(!state.selectedPartId)return;run(()=>api.updatePart(state.selectedPartId,{description:$('editPartDescription').value.trim(),costPerPiece:Number($('editPartCost').value||0),currency:$('editPartCurrency').value})).then(()=>{$('partEditForm').hidden=true})});
+ $('partForm').addEventListener('submit',e=>{e.preventDefault();if(!canManage())return toast('Solo Admin o Manager.');run(()=>api.insertPart({clientId:$('partClient').value,number:$('partNumberName').value.trim(),description:$('partDescription').value.trim(),costPerPiece:Number($('partCost').value||0),scrapCostPerPiece:Number($('partScrapCost').value||0),currency:$('partCurrency').value})).then(()=>e.target.reset())});
+ $('partEditForm').addEventListener('submit',e=>{e.preventDefault();if(!canManage())return toast('Solo Admin o Manager.');if(!state.selectedPartId)return;run(()=>api.updatePart(state.selectedPartId,{description:$('editPartDescription').value.trim(),costPerPiece:Number($('editPartCost').value||0),scrapCostPerPiece:Number($('editPartScrapCost').value||0),currency:$('editPartCurrency').value})).then(()=>{$('partEditForm').hidden=true})});
  $('editPartBtn').addEventListener('click',()=>{$('partEditForm').hidden=false});
  $('cancelPartEditBtn').addEventListener('click',()=>{$('partEditForm').hidden=true});
 

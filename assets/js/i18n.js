@@ -151,6 +151,7 @@ const ES_EN={
   "Editar": "Edit",
   "Descripción": "Description",
   "Costo por pieza": "Cost per piece",
+  "Costo de chatarra": "Scrap recovery cost",
   "Moneda": "Currency",
   "Guardar cambios": "Save changes",
   "Costo": "Cost",
