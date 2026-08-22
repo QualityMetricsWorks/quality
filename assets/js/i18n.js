@@ -536,17 +536,13 @@ export function initI18n(){
   const root=document.documentElement,current=root.dataset.theme||'light',next=current==='dark'?'light':'dark';
   if(root.classList.contains('theme-transitioning'))return;
   const layer=document.createElement('div');layer.className='theme-transition-layer '+next;
-  const rect=themeBtn.getBoundingClientRect();
-  layer.style.setProperty('--wave-x',`${rect.left+rect.width/2}px`);
-  layer.style.setProperty('--wave-y',`${rect.top+rect.height/2}px`);
   document.body.appendChild(layer);root.classList.add('theme-transitioning');
-  requestAnimationFrame(()=>{
-    layer.classList.add('expand');
-    window.setTimeout(()=>{
-      root.dataset.theme=next;localStorage.setItem('guvel_theme',next);updateControl();
-      layer.classList.add('fade');window.setTimeout(()=>{layer.remove();root.classList.remove('theme-transitioning')},180);
-    },560);
-  });
+  requestAnimationFrame(()=>layer.classList.add('expand'));
+  window.setTimeout(()=>{
+    root.dataset.theme=next;localStorage.setItem('guvel_theme',next);updateControl();
+    layer.classList.add('fade');
+    window.setTimeout(()=>{layer.remove();root.classList.remove('theme-transitioning')},240);
+  },780);
 });
 
  const trigger=document.getElementById('languageMenuBtn'),menu=document.getElementById('languageMenu');

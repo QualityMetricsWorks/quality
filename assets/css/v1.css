@@ -615,3 +615,10 @@ html.theme-transitioning,html.theme-transitioning body{overflow:hidden}
 .theme-transition-layer.light{background:#f5f7f9}
 .theme-transition-layer.expand{clip-path:circle(160vmax at var(--wave-x) var(--wave-y))}
 .theme-transition-layer.fade{opacity:0}
+
+html.theme-transitioning,html.theme-transitioning body{overflow:hidden}.theme-transition-layer{position:fixed;inset:-2px;z-index:10001;pointer-events:none;clip-path:polygon(100% 0,100% 0,100% 0,100% 0);transition:clip-path .95s cubic-bezier(.22,.72,.16,1),opacity .22s ease}.theme-transition-layer.dark{background:#111820}.theme-transition-layer.light{background:#f5f7f9}.theme-transition-layer.expand{clip-path:polygon(100% 0,100% 100%,0 100%,0 100%)}.theme-transition-layer.fade{opacity:0}
+/* v1.4.8.9 Patch — Top 3 Scrap dark mode */
+html[data-theme="dark"] #topProductsGrid,html[data-theme="dark"] #topProductsGrid .top-product,html[data-theme="dark"] #topProductsGrid .top-product *,html[data-theme="dark"] #topProductsGrid .entity-item,html[data-theme="dark"] #topProductsGrid .entity-item *{color:var(--color-text);border-color:var(--color-border)}
+html[data-theme="dark"] #topProductsGrid .top-product,html[data-theme="dark"] #topProductsGrid .top-product .metrics,html[data-theme="dark"] #topProductsGrid .top-product .entity-item{background:var(--color-surface)!important}
+html[data-theme="dark"] #topProductsGrid .top-product .metrics{background:var(--color-surface-subtle)!important}
+html[data-theme="dark"] #topProductsGrid small,html[data-theme="dark"] #topProductsGrid .rank,html[data-theme="dark"] #topProductsGrid .metrics span{color:var(--color-text-muted)!important}
