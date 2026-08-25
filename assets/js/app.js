@@ -188,7 +188,7 @@ function initEvents(){
  bindTabs();
  bindUserAdmin();$('refreshUsersBtn')?.addEventListener('click',renderUsersAdmin);
 
- $('clearFiltersBtn').addEventListener('click',()=>{['filterStart','filterEnd','filterClient','filterPartNumber','filterMachine'].forEach(id=>$(id).value='');$('filterPeriod').value='all';ui.updateFilterParts();ui.renderDashboard()});
+ $('clearFiltersBtn').addEventListener('click',()=>{['filterStart','filterEnd','filterClient','filterPartNumber','filterMachine'].forEach(id=>$(id).value='');$('filterPeriod').value='current';applyPeriod('current');ui.updateFilterParts();ui.renderDashboard()});
  ['filterStart','filterEnd','filterPartNumber','filterMachine'].forEach(id=>$(id).addEventListener('change',ui.renderDashboard));
  $('filterClient').addEventListener('change',()=>{ui.updateFilterParts();ui.renderDashboard()});
  $('filterPeriod').addEventListener('change',()=>{applyPeriod($('filterPeriod').value);ui.renderDashboard()});
@@ -313,7 +313,7 @@ $('customDashboardForm')?.addEventListener('submit',e=>{
  });
  $('customDashboardClient')?.addEventListener('change',e=>populateCustomDashboardScope(e.target.value||'',''));
  // Searches
- $('clientSearch').addEventListener('input',ui.renderClients);$('partSearch').addEventListener('input',ui.renderParts);$('machineSearch').addEventListener('input',ui.renderMachines);$('personnelSearch').addEventListener('input',ui.renderPersonnel);$('defectSearch').addEventListener('input',ui.renderCatalog);$('downtimeSearch').addEventListener('input',ui.renderDowntimeCatalog);$('runSearch').addEventListener('input',ui.renderRuns);$('productionHistorySearch').addEventListener('input',ui.renderHistory);$('scrapHistorySearch').addEventListener('input',ui.renderHistory);$('downtimeHistorySearch').addEventListener('input',ui.renderHistory);
+ $('clientSearch').addEventListener('input',ui.renderClients);$('partSearch').addEventListener('input',ui.renderParts);$('machineSearch').addEventListener('input',ui.renderMachines);$('personnelSearch').addEventListener('input',ui.renderPersonnel);$('defectSearch').addEventListener('input',ui.renderCatalog);$('downtimeSearch').addEventListener('input',ui.renderDowntimeCatalog);$('runSearch').addEventListener('input',ui.renderRuns);$('productionHistorySearch').addEventListener('input',ui.renderHistory);$('scrapHistorySearch').addEventListener('input',ui.renderHistory);$('scrapHistoryShift')?.addEventListener('change',ui.renderHistory);$('downtimeHistoryShift')?.addEventListener('change',ui.renderHistory);
  document.querySelectorAll('.form-cancel-btn').forEach(b=>b.addEventListener('click',()=>b.closest('form')?.reset()));
 
  document.body.addEventListener('click',e=>{
@@ -411,7 +411,7 @@ async function startSession(user){
 function iso(d){const y=d.getFullYear(),m=String(d.getMonth()+1).padStart(2,'0'),day=String(d.getDate()).padStart(2,'0');return `${y}-${m}-${day}`} 
 function applyPeriod(v){
  const now=new Date();let s,e;
- if(v==='custom'||v==='all'){if(v==='all'){$('filterStart').value='';$('filterEnd').value='';}return;
+ if(v==='custom')return;
  if(v==='today'){s=new Date(now.getFullYear(),now.getMonth(),now.getDate());e=new Date(s)}
  else if(v==='current_week'){const day=(now.getDay()+6)%7;s=new Date(now.getFullYear(),now.getMonth(),now.getDate()-day);e=new Date(now.getFullYear(),now.getMonth(),now.getDate())}
  else if(v==='current_month'||v==='current'){s=new Date(now.getFullYear(),now.getMonth(),1);e=new Date(now.getFullYear(),now.getMonth(),now.getDate())}

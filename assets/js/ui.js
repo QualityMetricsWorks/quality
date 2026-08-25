@@ -8,27 +8,7 @@ export function renderSelects(){
  const clientSelects=['filterClient','scrapClient','downtimeClient','partClient','defectClient'];clientSelects.forEach(id=>populateSelect($(id),state.clients,id==='filterClient'?'Todos los clientes':'Selecciona cliente',x=>x.code?`${x.code} · ${x.name}`:x.name));
  updateFilterParts();updateScrapParts();updateDowntimeParts();updateDefectParts();updatePartMachineSelect();populateSelect($('filterMachine'),state.machines,'Todas las máquinas',x=>x.code);
 }
-export function renderHistory(){
- const qProd=($('productionHistorySearch')?.value||'').trim().toLowerCase();
- const qScrap=($('scrapHistorySearch')?.value||'').trim().toLowerCase();
- const qDown=($('downtimeHistorySearch')?.value||'').trim().toLowerCase();
- const prodBody=$('productionHistoryBody'),scrapBody=$('scrapHistoryBody'),downBody=$('downtimeHistoryBody');
- if(prodBody){
-  const rows=state.runs.slice().sort((a,b)=>String(b.createdAt||b.date).localeCompare(String(a.createdAt||a.date))).filter(r=>{
-   const p=getPart(r.partId),c=getClient(r.clientId)||getClient(p?.clientId),o=getOperation(r.operationId),m=getMachine(r.machineId),op=getPersonnel(r.operatorId);
-   return `${r.date} ${r.shift||''} ${r.lotNumber||''} ${c?.name||''} ${p?.number||''} ${o?.code||''} ${m?.code||r.machine||''} ${op?.fullName||''} ${r.status||''}`.toLowerCase().includes(qProd);
-  });
-  prodBody.innerHTML=rows.map(r=>{const p=getPart(r.partId),c=getClient(r.clientId)||getClient(p?.clientId),o=getOperation(r.operationId),m=getMachine(r.machineId),scr=state.scrapEvents.filter(e=>e.runId===r.id&&e.disposition==='scrap').reduce((s,e)=>s+Number(e.quantity||0),0),y=r.produced?(r.produced-scr)/r.produced*100:100;return `<tr><td>${esc(r.date||'—')}</td><td>${esc(r.shift||'—')}</td><td>${esc(r.lotNumber||'—')}</td><td>${esc(c?.name||'—')}</td><td>${esc(p?.number||'—')}</td><td>${esc(o?.code||'—')}</td><td>${esc(m?.code||r.machine||'—')}</td><td>${esc(getPersonnel(r.operatorId)?.fullName||'—')}</td><td>${esc(r.status||'completed')}</td><td>${number(r.produced)}</td><td>${number(scr)}</td><td>${percent(y)}</td><td></td></tr>`}).join('')||'<tr><td colspan="13" class="empty-state">Sin resultados.</td></tr>';
- }
- if(scrapBody){
-  const rows=state.scrapEvents.slice().sort((a,b)=>String(b.createdAt).localeCompare(String(a.createdAt))).filter(e=>{const r=getRun(e.runId),p=getPart(r?.partId),c=getClient(r?.clientId)||getClient(p?.clientId),o=getOperation(r?.operationId),d=getDefect(e.defectId);return `${r?.date||''} ${r?.shift||''} ${r?.lotNumber||''} ${c?.name||''} ${p?.number||''} ${o?.code||''} ${d?.name||''} ${e.disposition||''} ${e.reason||''} ${e.notes||''}`.toLowerCase().includes(qScrap)});
-  scrapBody.innerHTML=rows.map(e=>{const r=getRun(e.runId),p=getPart(r?.partId),c=getClient(r?.clientId)||getClient(p?.clientId),o=getOperation(r?.operationId);return `<tr><td>${esc(r?.date||'—')}</td><td>${esc(r?.shift||'—')}</td><td>${esc(c?.name||'—')}</td><td>${esc(p?.number||'—')}</td><td>${esc(o?.code||'—')}</td><td>${esc(getDefect(e.defectId)?.name||'—')}</td><td>${number(e.quantity)}</td><td>${esc(dispositionLabel(e.disposition))}</td><td>${esc(e.reason||e.notes||'—')}</td><td>${money(copqForEvent(e),p?.currency||'USD')}</td><td></td></tr>`}).join('')||'<tr><td colspan="11" class="empty-state">Sin resultados.</td></tr>';
- }
- if(downBody){
-  const rows=state.downtimeEvents.slice().sort((a,b)=>String(b.createdAt).localeCompare(String(a.createdAt))).filter(e=>{const r=getRun(e.runId),p=getPart(r?.partId),c=getClient(r?.clientId)||getClient(p?.clientId),m=getMachine(r?.machineId),rs=getDowntimeReason(e.reasonId);return `${r?.date||''} ${r?.shift||''} ${r?.lotNumber||''} ${c?.name||''} ${p?.number||''} ${m?.code||r?.machine||''} ${rs?.name||''} ${e.eventType||''} ${e.notes||''}`.toLowerCase().includes(qDown)});
-  downBody.innerHTML=rows.map(e=>{const r=getRun(e.runId),p=getPart(r?.partId),c=getClient(r?.clientId)||getClient(p?.clientId),m=getMachine(r?.machineId),rs=getDowntimeReason(e.reasonId);return `<tr><td>${esc(r?.date||'—')}</td><td>${esc(r?.shift||'—')}</td><td>${esc(c?.name||'—')}</td><td>${esc(p?.number||'—')}</td><td>${esc(m?.code||r?.machine||'—')}</td><td>${esc(rs?.name||'—')}</td><td>${esc(e.eventType||'unplanned')}</td><td>${esc(e.notes||'—')}</td><td>${number(e.minutes)}</td><td></td></tr>`}).join('')||'<tr><td colspan="10" class="empty-state">Sin resultados.</td></tr>';
- }
-}
+ ['scrapHistoryShift','downtimeHistoryShift'].forEach(id=>{const el=$(id);if(!el)return;const old=el.value;el.innerHTML='<option value="">Todos los turnos</option>'+state.shiftSchedules.map(s=>`<option value="${esc(s.code)}">${esc(s.code)} · ${esc(s.name)}</option>`).join('');if([...el.options].some(o=>o.value===old))el.value=old;});
 function updateFilterParts(){populateSelect($('filterPartNumber'),partsForClient($('filterClient')?.value),'Todos los NP',x=>x.number)}
 export function updateScrapParts(){populateSelect($('scrapPart'),partsForClient($('scrapClient')?.value),'Selecciona NP',x=>x.number);updateScrapOperations()}
 export function updateScrapOperations(){populateSelect($('scrapOperation'),operationsForPart($('scrapPart')?.value),'Selecciona operación',x=>`${x.code} · ${x.name}`);updateScrapMachines()}

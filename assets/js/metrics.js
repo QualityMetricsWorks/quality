@@ -16,7 +16,7 @@ export function metricsForRuns(runs){
  return {produced,scrap,scrapRate:produced?scrap/produced*100:0,ppm:produced?scrap/produced*1e6:0,yieldRate:produced?(produced-scrap)/produced*100:100,copq,copqPercent,productionValue};
 }
 export function filteredRuns({start='',end='',clientId='',partId=''}={}){
- return state.runs.filter(r=>(!start||r.date>=start)&&(!end||r.date<=end)&&(!clientId||(r.clientId===clientId||getPart(r.partId)?.clientId===clientId))&&(!partId||r.partId===partId));
+ return state.runs.filter(r=>(!start||r.date>=start)&&(!end||r.date<=end)&&(!clientId||r.clientId===clientId)&&(!partId||r.partId===partId));
 }
 export function defectPareto(runs){
  const ids=new Set(runs.map(r=>r.id)),m=new Map();
