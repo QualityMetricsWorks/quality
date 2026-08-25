@@ -307,7 +307,7 @@ $('customDashboardForm')?.addEventListener('submit',e=>{
  });
  $('customDashboardClient')?.addEventListener('change',e=>populateCustomDashboardScope(e.target.value||'',''));
  // Searches
- $('clientSearch').addEventListener('input',ui.renderClients);$('partSearch').addEventListener('input',ui.renderParts);$('machineSearch').addEventListener('input',ui.renderMachines);$('personnelSearch').addEventListener('input',ui.renderPersonnel);$('defectSearch').addEventListener('input',ui.renderCatalog);$('downtimeSearch').addEventListener('input',ui.renderDowntimeCatalog);$('runSearch').addEventListener('input',ui.renderRuns);$('productionHistorySearch').addEventListener('input',ui.renderHistory);$('scrapHistorySearch').addEventListener('input',ui.renderHistory);
+ $('clientSearch').addEventListener('input',ui.renderClients);$('partSearch').addEventListener('input',ui.renderParts);$('machineSearch').addEventListener('input',ui.renderMachines);$('personnelSearch').addEventListener('input',ui.renderPersonnel);$('defectSearch').addEventListener('input',ui.renderCatalog);$('downtimeSearch').addEventListener('input',ui.renderDowntimeCatalog);$('runSearch').addEventListener('input',ui.renderRuns);$('productionHistorySearch').addEventListener('input',ui.renderHistory);$('scrapHistorySearch').addEventListener('input',ui.renderHistory);$('scrapHistoryShift')?.addEventListener('change',ui.renderHistory);$('downtimeHistoryShift')?.addEventListener('change',ui.renderHistory);
  document.querySelectorAll('.form-cancel-btn').forEach(b=>b.addEventListener('click',()=>b.closest('form')?.reset()));
 
  document.body.addEventListener('click',e=>{
@@ -325,7 +325,7 @@ $('customDashboardForm')?.addEventListener('submit',e=>{
   if(t.dataset.deleteOperation&&confirm('¿Eliminar operación?'))run(()=>api.deleteOperation(t.dataset.deleteOperation));
   if(t.dataset.deleteDefect&&confirm('¿Eliminar defecto?'))run(()=>api.deleteDefect(t.dataset.deleteDefect));
   if(t.dataset.deleteRun&&confirm('¿Eliminar corrida y sus eventos?'))run(()=>api.deleteRun(t.dataset.deleteRun));
-  if(t.dataset.deleteScrap&&confirm('¿Eliminar evento?'))run(()=>api.deleteScrapEvent(t.dataset.deleteScrap));
+  if(t.dataset.deleteScrap&&confirm('¿Eliminar evento?'))run(()=>api.deleteScrapEvent(t.dataset.deleteScrap));  if(t.dataset.deleteDowntime&&confirm('¿Eliminar tiempo muerto?'))run(()=>api.deleteDowntimeEvent(t.dataset.deleteDowntime),'Tiempo muerto eliminado');
   if(t.dataset.deleteDowntimeReason&&confirm('¿Desactivar motivo de paro?'))run(()=>api.deleteDowntimeReason(t.dataset.deleteDowntimeReason));
   if(t.dataset.deleteCycleTime&&confirm('¿Eliminar este tiempo ciclo?'))run(()=>api.deleteCycleTime(t.dataset.deleteCycleTime),'Tiempo ciclo eliminado');
   if(t.dataset.deleteShift&&confirm('¿Desactivar este turno?'))run(()=>api.deactivateShift(t.dataset.deleteShift),'Turno desactivado');
