@@ -307,7 +307,7 @@ $('customDashboardForm')?.addEventListener('submit',e=>{
  });
  $('customDashboardClient')?.addEventListener('change',e=>populateCustomDashboardScope(e.target.value||'',''));
  // Searches
- $('clientSearch').addEventListener('input',ui.renderClients);$('partSearch').addEventListener('input',ui.renderParts);$('machineSearch').addEventListener('input',ui.renderMachines);$('personnelSearch').addEventListener('input',ui.renderPersonnel);$('defectSearch').addEventListener('input',ui.renderCatalog);$('downtimeSearch').addEventListener('input',ui.renderDowntimeCatalog);$('runSearch').addEventListener('input',ui.renderRuns);$('productionHistorySearch').addEventListener('input',ui.renderHistory);$('scrapHistorySearch').addEventListener('input',ui.renderHistory);$('scrapHistoryShift')?.addEventListener('change',ui.renderHistory);$('downtimeHistoryShift')?.addEventListener('change',ui.renderHistory);
+ $('clientSearch').addEventListener('input',ui.renderClients);$('partSearch').addEventListener('input',ui.renderParts);$('machineSearch').addEventListener('input',ui.renderMachines);$('personnelSearch').addEventListener('input',ui.renderPersonnel);$('defectSearch').addEventListener('input',ui.renderCatalog);$('downtimeSearch').addEventListener('input',ui.renderDowntimeCatalog);$('runSearch').addEventListener('input',ui.renderRuns);$('productionHistorySearch').addEventListener('input',ui.renderHistory);$('scrapHistorySearch').addEventListener('input',ui.renderHistory);
  document.querySelectorAll('.form-cancel-btn').forEach(b=>b.addEventListener('click',()=>b.closest('form')?.reset()));
 
  document.body.addEventListener('click',e=>{
@@ -325,7 +325,7 @@ $('customDashboardForm')?.addEventListener('submit',e=>{
   if(t.dataset.deleteOperation&&confirm('¿Eliminar operación?'))run(()=>api.deleteOperation(t.dataset.deleteOperation));
   if(t.dataset.deleteDefect&&confirm('¿Eliminar defecto?'))run(()=>api.deleteDefect(t.dataset.deleteDefect));
   if(t.dataset.deleteRun&&confirm('¿Eliminar corrida y sus eventos?'))run(()=>api.deleteRun(t.dataset.deleteRun));
-  if(t.dataset.deleteScrap&&confirm('¿Eliminar evento?'))run(()=>api.deleteScrapEvent(t.dataset.deleteScrap));  if(t.dataset.deleteDowntime&&confirm('¿Eliminar tiempo muerto?'))run(()=>api.deleteDowntimeEvent(t.dataset.deleteDowntime),'Tiempo muerto eliminado');
+  if(t.dataset.deleteScrap&&confirm('¿Eliminar evento?'))run(()=>api.deleteScrapEvent(t.dataset.deleteScrap));
   if(t.dataset.deleteDowntimeReason&&confirm('¿Desactivar motivo de paro?'))run(()=>api.deleteDowntimeReason(t.dataset.deleteDowntimeReason));
   if(t.dataset.deleteCycleTime&&confirm('¿Eliminar este tiempo ciclo?'))run(()=>api.deleteCycleTime(t.dataset.deleteCycleTime),'Tiempo ciclo eliminado');
   if(t.dataset.deleteShift&&confirm('¿Desactivar este turno?'))run(()=>api.deactivateShift(t.dataset.deleteShift),'Turno desactivado');
@@ -344,58 +344,10 @@ $('customDashboardForm')?.addEventListener('submit',e=>{
 
 function exportExcel(){
  if(!window.XLSX)return toast('La librería de Excel no está disponible.');
- const production=state.runs.map(r=>{
-  const m=metricsForRuns([r]);
-  return {
-   Fecha:r.date,
-   Turno:r.shift||'',
-   Cliente:getClient(r.clientId)?.name||'',
-   NP:getPart(r.partId)?.number||'',
-   Operacion:state.operations.find(x=>x.id===r.operationId)?.code||'',
-   Maquina:state.machines.find(x=>x.id===r.machineId)?.code||'',
-   Produccion:r.produced,
-   Scrap:m.scrap,
-   Yield:m.yieldRate,
-   PPM:m.ppm,
-   COPQ:m.copq
-  };
- });
- const quality=state.scrapEvents.map(e=>{
-  const r=getRun(e.runId),p=getPart(r?.partId);
-  return {
-   Fecha:r?.date||'',
-   Turno:e.shift||r?.shift||'',
-   Cliente:getClient(r?.clientId)?.name||'',
-   NP:p?.number||'',
-   Operacion:state.operations.find(x=>x.id===r?.operationId)?.code||'',
-   Defecto:state.defects.find(x=>x.id===e.defectId)?.name||'',
-   Cantidad:e.quantity,
-   Disposicion:e.disposition||'',
-   Razon:e.reason||'',
-   Comentarios:e.notes||'',
-   COPQ:copqForEvent(e)
-  };
- });
- const downtime=state.downtimeEvents.map(e=>{
-  const r=getRun(e.runId),reason=state.downtimeReasons.find(x=>x.id===e.reasonId);
-  return {
-   Fecha:r?.date||'',
-   Turno:e.shift||r?.shift||'',
-   Cliente:getClient(r?.clientId)?.name||'',
-   NP:getPart(r?.partId)?.number||'',
-   Maquina:state.machines.find(x=>x.id===r?.machineId)?.code||'',
-   Paro:reason?.name||'',
-   Tipo:e.eventType||reason?.downtimeType||'',
-   Razon:e.reason||'',
-   Comentarios:e.notes||'',
-   Minutos:Number(e.minutes||0)
-  };
- });
- const wb=XLSX.utils.book_new();
- XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(production),'Produccion');
- XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(quality),'Calidad');
- XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(downtime),'Mantenimiento');
- XLSX.writeFile(wb,'Data Export GUVEL.xlsx');
+ const production=state.runs.map(r=>{const m=metricsForRuns([r]);return{Fecha:r.date,Turno:r.shift,Cliente:getClient(r.clientId)?.name,NP:getPart(r.partId)?.number,Operacion:state.operations.find(x=>x.id===r.operationId)?.code,Maquina:state.machines.find(x=>x.id===r.machineId)?.code,Produccion:r.produced,Scrap:m.scrap,Yield:m.yieldRate,PPM:m.ppm,COPQ:m.copq}});
+ const quality=state.scrapEvents.map(e=>{const r=getRun(e.runId),p=getPart(r?.partId);return{Fecha:r?.date,Cliente:getClient(r?.clientId)?.name,NP:p?.number,Defecto:state.defects.find(x=>x.id===e.defectId)?.name,Cantidad:e.quantity,Disposicion:e.disposition,COPQ:copqForEvent(e)}});
+ const downtime=state.downtimeEvents.map(e=>{const r=getRun(e.runId),reason=state.downtimeReasons.find(x=>x.id===e.reasonId);return{Fecha:r?.date,Cliente:getClient(r?.clientId)?.name,NP:getPart(r?.partId)?.number,Maquina:state.machines.find(x=>x.id===r?.machineId)?.code,Paro:reason?.name,Tipo:reason?.downtimeType,Minutos:e.minutes}});
+ const wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(production),'Produccion');XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(quality),'Calidad');XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(downtime),'Mantenimiento');XLSX.writeFile(wb,'GUVEL_General_System_v1.0.1.xlsx');
 }
 
 async function startSession(user){

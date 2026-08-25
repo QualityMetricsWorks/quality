@@ -67,8 +67,6 @@ export async function updatePart(id,x){const row=check(await db.from('part_numbe
 
 export async function insertDowntimeReason(x){const row=check(await db.from('downtime_reasons').insert({...common(),code:x.code,name:x.name,category:x.category,downtime_type:x.downtimeType||'unplanned',active:true}).select().single());localAdd('downtimeReasons',row);return row}
 export async function deleteDowntimeReason(id){const row=check(await db.from('downtime_reasons').update({active:false}).eq('id',id).select().single());localRemove('downtimeReasons',id);return row}
-export async function deleteDowntimeEvent(id){const r=await db.from('downtime_events').delete().eq('id',id);check(r);localRemove('downtimeEvents',id);return {id};}
-
 export async function insertDowntimeEvents(runId,items){if(!items?.length)return [];const rows=check(await db.from('downtime_events').insert(items.map(x=>({...common(),run_id:runId,reason_id:x.reasonId,minutes:x.minutes,event_type:x.eventType||'unplanned',notes:x.notes||null}))).select());state.downtimeEvents=[...rows.map(x=>({id:x.id,runId:x.run_id,reasonId:x.reason_id,minutes:Number(x.minutes||0),eventType:x.event_type||'unplanned',notes:x.notes||'',createdAt:x.created_at||new Date().toISOString()})),...state.downtimeEvents];return rows}
 
 

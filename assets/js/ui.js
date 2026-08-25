@@ -8,8 +8,7 @@ export function renderSelects(){
  const clientSelects=['filterClient','scrapClient','downtimeClient','partClient','defectClient'];clientSelects.forEach(id=>populateSelect($(id),state.clients,id==='filterClient'?'Todos los clientes':'Selecciona cliente',x=>x.code?`${x.code} · ${x.name}`:x.name));
  updateFilterParts();updateScrapParts();updateDowntimeParts();updateDefectParts();updatePartMachineSelect();populateSelect($('filterMachine'),state.machines,'Todas las máquinas',x=>x.code);
 }
- ['scrapHistoryShift','downtimeHistoryShift'].forEach(id=>{const el=$(id);if(!el)return;const old=el.value;el.innerHTML='<option value="">Todos los turnos</option>'+state.shiftSchedules.map(s=>`<option value="${esc(s.code)}">${esc(s.code)} · ${esc(s.name)}</option>`).join('');if([...el.options].some(o=>o.value===old))el.value=old;});
-function updateFilterParts(){populateSelect($('filterPartNumber'),partsForClient($('filterClient')?.value),'Todos los NP',x=>x.number)}
+export function updateFilterParts(){populateSelect($('filterPartNumber'),partsForClient($('filterClient')?.value),'Todos los NP',x=>x.number)}
 export function updateScrapParts(){populateSelect($('scrapPart'),partsForClient($('scrapClient')?.value),'Selecciona NP',x=>x.number);updateScrapOperations()}
 export function updateScrapOperations(){populateSelect($('scrapOperation'),operationsForPart($('scrapPart')?.value),'Selecciona operación',x=>`${x.code} · ${x.name}`);updateScrapMachines()}
 export function updateScrapMachines(){populateSelect($('scrapMachine'),machinesForPart($('scrapPart')?.value),'Selecciona máquina',x=>`${x.code}${x.name?' · '+x.name:''}`)}
@@ -92,9 +91,9 @@ function renderKpiComparisons(){
 }
 function renderGeneralCharts(runs){
  const d=daily(runs),labels=d.map(x=>x.date);
- chart('generalProductionTrendChart',rangedLineConfig(labels,d.map(x=>x.produced),'cyan',chartRange('general','production')));
- const oeeData=labels.map(date=>{const o=oeeMetrics(runs.filter(r=>r.date===date));return o.available?Number(o.oee):null});
- chart('oeeTrendChart',rangedLineConfig(labels,oeeData,'blue',chartRange('general','oee')));
+ chart('generalProductionTrendChart',rangedLineConfig(labels,d.map(x=>x.produced),'cyan',chartRange('production','production')));
+ const oeeData=labels.map(date=>{const o=oeeMetrics(runs.filter(r=>r.date===date));return o.available?o.oee:null});
+ chart('oeeTrendChart',rangedLineConfig(labels,oeeData,'blue',chartRange('production','oee')));
 }
 export function renderDashboard(){
  const runs=activeRuns(),m=metricsForRuns(runs);$('kpiProduction').textContent=number(m.produced);$('kpiScrap').textContent=percent(m.scrapRate);$('kpiScrapQty').textContent=`${number(m.scrap)} piezas`;$('kpiPpm').textContent=number(Math.round(m.ppm));$('kpiYield').textContent=percent(m.yieldRate);$('kpiCopq').textContent=percent(m.copqPercent);$('kpiCopqUsd').textContent=`${money(m.copq,'USD')} USD`;
@@ -105,13 +104,11 @@ export function renderDashboard(){
  renderGeneralCharts(runs);renderCharts(runs,de);renderTopProducts(runs);renderKpiComparisons();renderCustomDashboard('production',runs,de);renderCustomDashboard('scrap',runs,de);renderCustomDashboard('maintenance',runs,de);
 }
 
-const dashboardSettingsKey='guvel.dashboard.settings.v1504';
+const dashboardSettingsKey='guvel.dashboard.settings.v146';
 const customDashboardsKey='guvel.custom.dashboards.v146';
 function readDashboardSettings(){try{return JSON.parse(localStorage.getItem(dashboardSettingsKey)||'{}')}catch{return {}}}
 function writeDashboardSettings(x){localStorage.setItem(dashboardSettingsKey,JSON.stringify(x))}
 function dashboardDefault(kind,metric){
- if(kind==='general'&&metric==='oee')return {min:0,max:100,target:85};
- if(kind==='general'&&metric==='production')return {min:0,max:1000,target:800};
  const d={min:0,max:100,target:50};
  if(metric==='scrap'||metric==='ppm'||metric==='copq'||metric==='production'||metric==='downtime')return {min:0,max:metric==='ppm'?1000:metric==='production'?1000:metric==='copq'?1000:metric==='downtime'?600:100,target:metric==='scrap'?5:metric==='ppm'?100:metric==='downtime'?60:50};
  return d;
@@ -125,23 +122,16 @@ function applyTargetLine(cfg,target){
  return cfg;
 }
 function rangedLineConfig(labels,data,tone,range){
- const cfg=lineConfig(labels,data,tone);
- const min=Number(range.min),max=Number(range.max);
- cfg.options.scales.y.beginAtZero=false;
- cfg.options.scales.y.min=min;
- cfg.options.scales.y.max=max;
- cfg.options.scales.y.suggestedMin=min;
- cfg.options.scales.y.suggestedMax=max;
- return applyTargetLine(cfg,Number(range.target));
+ const cfg=lineConfig(labels,data,tone);cfg.options.scales.y.min=Number(range.min);cfg.options.scales.y.max=Number(range.max);return applyTargetLine(cfg,Number(range.target));
 }
 export function getDashboardSetting(kind,metric){return chartRange(kind,metric)}
 export function saveDashboardSetting(kind,metric,value){const all=readDashboardSettings();all[kind]=all[kind]||{};all[kind][metric]=value;writeDashboardSettings(all)}
 export function dashboardMetricOptions(kind){
  const map={
-  general:[['oee','OEE %'],['production','Production'],['scrap','Scrap %'],['ppm','PPM'],['yield','Yield %'],['copq','COPQ %']],
-  production:[['production','Production']],
-  scrap:[],
-  maintenance:[]
+  general:[['scrap','Scrap %'],['ppm','PPM'],['yield','Yield %'],['copq','COPQ'],['production','Production']],
+  production:[['production','Production'],['oee','OEE %'],['availability','Availability %'],['performance','Performance %'],['quality','Quality %']],
+  scrap:[['scrap','Scrap %'],['ppm','PPM'],['yield','Yield %'],['defect_pie','Pie · Defectos'],['part_pie','Pie · Números de Parte'],['defect_pareto','Pareto · Defectos'],['part_pareto','Pareto · Números de Parte']],
+  maintenance:[['downtime','Tiempo muerto'],['reason_pie','Pie · Motivos de paro'],['machine_pie','Pie · Máquinas'],['reason_pareto','Pareto · Motivos de paro'],['machine_pareto','Pareto · Máquinas']]
  };return map[kind]||map.general;
 }
 function getCustomDashboards(){try{return JSON.parse(localStorage.getItem(customDashboardsKey)||'{}')}catch{return {}}}
@@ -319,28 +309,9 @@ export function renderSettings(){
 }
 export function renderHistory(){
  const newest=(a,b)=>String(b.createdAt||b.date||'').localeCompare(String(a.createdAt||a.date||''));
- const qp=($('productionHistorySearch')?.value||'').toLowerCase();
- const rs=[...state.runs].sort(newest).filter(r=>`${r.date} ${getClient(r.clientId)?.name} ${getPart(r.partId)?.number} ${getOperation(r.operationId)?.code} ${r.machine}`.toLowerCase().includes(qp));
- $('productionHistoryBody').innerHTML=rs.map(r=>{const m=metricsForRuns([r]);return `<tr><td>${r.createdAt?new Date(r.createdAt).toLocaleString('es-MX'):r.date}</td><td>${esc(r.shift||'—')}</td><td>${esc(r.lotNumber||'—')}</td><td>${esc(getClient(r.clientId)?.name||'—')}</td><td>${esc(getPart(r.partId)?.number||'—')}</td><td>${esc(getOperation(r.operationId)?.code||'—')}</td><td>${esc(getMachine(r.machineId)?.code||r.machine||'—')}</td><td>${esc(getPersonnel(r.operatorId)?.fullName||'—')}</td><td>${esc(r.status||'completed')}</td><td>${number(r.produced)}</td><td class="${m.scrap?'metric-bad':''}">${number(m.scrap)}</td><td>${percent(m.yieldRate)}</td><td><button class="icon-btn" data-delete-run="${r.id}">×</button></td></tr>`}).join('')||'<tr><td colspan="13" class="empty-state">Sin producción.</td></tr>';
-
- const qs=($('scrapHistorySearch')?.value||'').toLowerCase(), sf=$('scrapHistoryShift')?.value||'';
- const es=[...state.scrapEvents].sort(newest).filter(e=>{
-   const r=getRun(e.runId);
-   return (!sf||r?.shift===sf)&&`${r?.date} ${r?.shift} ${getClient(r?.clientId)?.name} ${getPart(r?.partId)?.number} ${getDefect(e.defectId)?.name} ${e.disposition} ${e.reason||''} ${e.notes||''}`.toLowerCase().includes(qs)
- });
- $('scrapHistoryBody').innerHTML=es.map(e=>{
-   const r=getRun(e.runId),p=getPart(r?.partId);
-   return `<tr><td>${r?.date||'—'}</td><td>${esc(r?.shift||'—')}</td><td>${esc(getClient(r?.clientId)?.name||'—')}</td><td>${esc(p?.number||'—')}</td><td>${esc(getOperation(r?.operationId)?.code||'—')}</td><td>${esc(getDefect(e.defectId)?.name||'—')}</td><td>${number(e.quantity)}</td><td>${esc(dispositionLabel(e.disposition))}</td><td>${esc([e.reason,e.notes].filter(Boolean).join(' · ')||'—')}</td><td>${money(copqForEvent(e),p?.currency||'USD')}</td><td><button class="icon-btn" data-delete-scrap="${e.id}">×</button></td></tr>`
- }).join('')||'<tr><td colspan="11" class="empty-state">Sin eventos.</td></tr>';
-
- const df=$('downtimeHistoryShift')?.value||'',dh=$('downtimeHistoryBody');
- if(dh)dh.innerHTML=[...state.downtimeEvents].sort(newest).filter(e=>{
-   const r=getRun(e.runId);
-   return !df||r?.shift===df;
- }).map(e=>{
-   const r=getRun(e.runId),reason=getDowntimeReason(e.reasonId);
-   return `<tr><td>${r?.date||'—'}</td><td>${esc(r?.shift||'—')}</td><td>${esc(getClient(r?.clientId)?.name||'—')}</td><td>${esc(getPart(r?.partId)?.number||'—')}</td><td>${esc(getMachine(r?.machineId)?.code||'—')}</td><td>${esc(reason?.name||'—')}</td><td>${esc(e.eventType==='planned'?'Planned':'Unplanned')}</td><td>${esc(e.notes||'—')}</td><td>${number(e.minutes)}</td><td><button class="icon-btn" data-delete-downtime="${e.id}">×</button></td></tr>`
- }).join('')||'<tr><td colspan="10" class="empty-state">Sin tiempos muertos.</td></tr>';
+ const qp=($('productionHistorySearch')?.value||'').toLowerCase();const rs=[...state.runs].sort(newest).filter(r=>`${r.date} ${getClient(r.clientId)?.name} ${getPart(r.partId)?.number} ${getOperation(r.operationId)?.code} ${r.machine}`.toLowerCase().includes(qp));$('productionHistoryBody').innerHTML=rs.map(r=>{const m=metricsForRuns([r]);return `<tr><td>${r.createdAt?new Date(r.createdAt).toLocaleString('es-MX'):r.date}</td><td>${esc(r.shift)}</td><td>${esc(r.lotNumber||'—')}</td><td>${esc(getClient(r.clientId)?.name||'—')}</td><td>${esc(getPart(r.partId)?.number||'—')}</td><td>${esc(getOperation(r.operationId)?.code||'—')}</td><td>${esc(getMachine(r.machineId)?.code||r.machine||'—')}</td><td>${esc(getPersonnel(r.operatorId)?.fullName||'—')}</td><td>${esc(r.status||'completed')}</td><td>${number(r.produced)}</td><td class="${m.scrap?'metric-bad':''}">${number(m.scrap)}</td><td>${percent(m.yieldRate)}</td><td><button class="icon-btn" data-delete-run="${r.id}">×</button></td></tr>`}).join('')||'<tr><td colspan="13" class="empty-state">Sin producción.</td></tr>';
+ const qs=($('scrapHistorySearch')?.value||'').toLowerCase();const es=[...state.scrapEvents].sort(newest).filter(e=>{const r=getRun(e.runId);return `${r?.date} ${getClient(r?.clientId)?.name} ${getPart(r?.partId)?.number} ${getDefect(e.defectId)?.name} ${e.disposition}`.toLowerCase().includes(qs)});$('scrapHistoryBody').innerHTML=es.map(e=>{const r=getRun(e.runId),p=getPart(r?.partId);return `<tr><td>${r?.date||'—'}</td><td>${esc(getClient(r?.clientId)?.name||'—')}</td><td>${esc(p?.number||'—')}</td><td>${esc(getOperation(r?.operationId)?.code||'—')}</td><td>${esc(getDefect(e.defectId)?.name||'—')}</td><td>${number(e.quantity)}</td><td>${esc(dispositionLabel(e.disposition))}</td><td>${money(copqForEvent(e),p?.currency||'USD')}</td><td><button class="icon-btn" data-delete-scrap="${e.id}">×</button></td></tr>`}).join('')||'<tr><td colspan="9" class="empty-state">Sin eventos.</td></tr>';
+ const dh=$('downtimeHistoryBody');if(dh)dh.innerHTML=[...state.downtimeEvents].sort(newest).map(e=>{const r=getRun(e.runId),p=getPart(r?.partId);return `<tr><td>${r?.date||'—'}</td><td>${esc(getClient(r?.clientId)?.name||'—')}</td><td>${esc(p?.number||'—')}</td><td>${esc(getMachine(r?.machineId)?.code||'—')}</td><td>${esc(getDowntimeReason(e.reasonId)?.name||'—')}</td><td>${esc(e.eventType==='planned'?'Planned':'Unplanned')}</td><td>${number(e.minutes)}</td></tr>`}).join('')||'<tr><td colspan="6" class="empty-state">Sin tiempos muertos.</td></tr>';
 }
 export function renderRunScrapEvents(){
  const runId=$('scrapRun')?.value,body=$('runScrapEventsBody');if(!body)return;body.innerHTML=eventsForRun(runId).map(e=>`<tr><td>${esc(getDefect(e.defectId)?.name||'—')}</td><td>${number(e.quantity)}</td><td>${esc(dispositionLabel(e.disposition))}</td><td>${money(copqForEvent(e),getPart(getRun(e.runId)?.partId)?.currency||'USD')}</td><td><button class="icon-btn" data-delete-scrap="${e.id}">×</button></td></tr>`).join('')||'<tr><td colspan="5" class="empty-state">Sin eventos para esta corrida.</td></tr>';
