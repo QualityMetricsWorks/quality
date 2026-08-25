@@ -93,7 +93,7 @@ function renderKpiComparisons(){
 function renderGeneralCharts(runs){
  const d=daily(runs),labels=d.map(x=>x.date);
  chart('generalProductionTrendChart',rangedLineConfig(labels,d.map(x=>x.produced),'cyan',chartRange('general','production')));
- const oeeData=labels.map(date=>{const o=oeeMetrics(runs.filter(r=>r.date===date));return o.available?Number(o.oee)*100:null});
+ const oeeData=labels.map(date=>{const o=oeeMetrics(runs.filter(r=>r.date===date));return o.available?Number(o.oee):null});
  chart('oeeTrendChart',rangedLineConfig(labels,oeeData,'blue',chartRange('general','oee')));
 }
 export function renderDashboard(){
