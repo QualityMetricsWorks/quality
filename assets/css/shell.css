@@ -322,3 +322,10 @@ html[data-theme="dark"] .nav-item.active:hover{
   color:var(--color-text)!important;
   background:var(--color-surface-subtle)!important;
 }
+
+
+/* v1.5.0.5 Patch — navigation hover consistency */
+html[data-theme="dark"] .navigation-bar .nav-item:hover{
+  background:#1f2c38!important;
+  color:var(--color-text)!important;
+}

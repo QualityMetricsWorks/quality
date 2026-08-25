@@ -704,3 +704,29 @@ html[data-theme="dark"] #resetTraceBtn:hover{
   color:var(--color-text)!important;
   background:var(--color-surface-subtle)!important;
 }
+
+
+/* v1.5.0.5 Patch — Cancel Capture (Light Mode) */
+html:not([data-theme="dark"]) #resetTraceBtn{
+  background:#2b3640!important;
+  color:#ffffff!important;
+  border:1px solid #2b3640!important;
+}
+html:not([data-theme="dark"]) #resetTraceBtn:hover{
+  background:#1f2932!important;
+  color:#ffffff!important;
+  border-color:#1f2932!important;
+}
+
+/* Dark Mode: readable rows/cards while hovering in Catalog & History */
+html[data-theme="dark"] .table-card tbody tr:hover,
+html[data-theme="dark"] .history-panel tbody tr:hover,
+html[data-theme="dark"] .catalog-table tbody tr:hover{
+  background:#1f2c38!important;
+  color:var(--color-text)!important;
+}
+html[data-theme="dark"] .table-card tbody tr:hover td,
+html[data-theme="dark"] .history-panel tbody tr:hover td,
+html[data-theme="dark"] .catalog-table tbody tr:hover td{
+  color:var(--color-text)!important;
+}

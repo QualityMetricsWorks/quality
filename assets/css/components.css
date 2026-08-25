@@ -197,3 +197,19 @@ html[data-theme="dark"] .btn-ghost:hover{
   color:var(--color-text)!important;
   background:var(--color-surface-subtle)!important;
 }
+
+
+/* v1.5.0.5 Patch — global interactive readability */
+html[data-theme="dark"] .list-row:hover,
+html[data-theme="dark"] .list-item:hover,
+html[data-theme="dark"] .history-row:hover,
+html[data-theme="dark"] .catalog-row:hover{
+  background:#1f2c38!important;
+  color:var(--color-text)!important;
+}
+html[data-theme="dark"] .list-row:hover *,
+html[data-theme="dark"] .list-item:hover *,
+html[data-theme="dark"] .history-row:hover *,
+html[data-theme="dark"] .catalog-row:hover *{
+  color:inherit!important;
+}
