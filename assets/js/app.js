@@ -245,12 +245,6 @@ function initEvents(){
  $('cancelPersonnelEditBtn')?.addEventListener('click',()=>{$('personnelEditForm').hidden=true});
  $('personnelEditForm')?.addEventListener('submit',e=>{e.preventDefault();if(!canManage())return;const id=state.selectedPersonnelId;run(()=>api.updatePersonnel(id,{employeeNo:$('editPersonnelEmployeeNo').value.trim(),fullName:$('editPersonnelName').value.trim(),role:$('editPersonnelRole').value}),'Personal actualizado').then(()=>{$('personnelEditForm').hidden=true})});
  $('operationForm').addEventListener('submit',e=>{e.preventDefault();if(!state.selectedPartId)return toast('Selecciona un NP.');run(()=>api.insertOperation({partId:state.selectedPartId,code:$('operationCode').value.trim(),name:$('operationName').value.trim()})).then(()=>e.target.reset())});
- document.body.addEventListener('change',e=>{
-   const t=e.target.closest('[data-toggle-fg]');
-   if(!t)return;
-   run(()=>api.setOperationFinishGood(t.dataset.toggleFg,t.checked),'Finish Good actualizado').catch(()=>{t.checked=!t.checked});
- });
-
  $('defectForm').addEventListener('submit',e=>{e.preventDefault();if(!canManage())return toast('Solo Admin o Manager.');run(()=>api.insertDefect({partId:$('defectPartNumber').value,operationId:$('defectOperation').value,code:$('defectCode').value.trim(),name:$('defectName').value.trim(),category:$('defectCategory').value})).then(()=>{e.target.reset();ui.renderSelects()})});
  $('downtimeReasonForm').addEventListener('submit',e=>{e.preventDefault();if(!canManage())return toast('Solo Admin o Manager.');run(()=>api.insertDowntimeReason({code:$('downtimeCode').value.trim(),name:$('downtimeName').value.trim(),category:$('downtimeCategory').value,downtimeType:$('downtimeType').value})).then(()=>e.target.reset())});
 
@@ -317,10 +311,10 @@ $('customDashboardForm')?.addEventListener('submit',e=>{
  document.querySelectorAll('.form-cancel-btn').forEach(b=>b.addEventListener('click',()=>b.closest('form')?.reset()));
 
  document.body.addEventListener('click',e=>{
-  const t=e.target.closest('[data-client-id],[data-part-id],[data-run-id],[data-run-group],[data-open-part],[data-machine-id],[data-personnel-id],[data-match-run],[data-match-downtime-run],[data-unlink-machine],[data-delete-operation],[data-delete-defect],[data-delete-run],[data-delete-scrap],[data-delete-downtime-reason],[data-delete-cycle-time],[data-delete-shift]');
+  const t=e.target.closest('[data-client-id],[data-part-id],[data-run-id],[data-open-part],[data-machine-id],[data-personnel-id],[data-match-run],[data-match-downtime-run],[data-unlink-machine],[data-delete-operation],[data-delete-defect],[data-delete-run],[data-delete-scrap],[data-delete-downtime-reason],[data-delete-cycle-time],[data-delete-shift]');
   if(!t)return;
   if(t.dataset.clientId){state.selectedClientId=t.dataset.clientId;ui.renderClients()}
-  if(t.dataset.runGroup){const ids=t.dataset.runGroup.split(',').filter(Boolean);state.selectedRunGroupIds=ids;state.selectedRunId=ids[0]||null;ui.renderRuns();applyLanguage()} else if(t.dataset.runId){state.selectedRunGroupIds=[t.dataset.runId];state.selectedRunId=t.dataset.runId;ui.renderRuns();applyLanguage()}
+  if(t.dataset.runId){state.selectedRunId=t.dataset.runId;ui.renderRuns();applyLanguage()}
   if(t.dataset.partId){state.selectedPartId=t.dataset.partId;ui.renderParts()}
   if(t.dataset.openPart){state.selectedPartId=t.dataset.openPart;setView('parts');ui.renderParts()}
   if(t.dataset.machineId){state.selectedMachineId=t.dataset.machineId;ui.renderMachines()}

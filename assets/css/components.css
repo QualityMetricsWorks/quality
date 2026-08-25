@@ -213,6 +213,3 @@ html[data-theme="dark"] .history-row:hover *,
 html[data-theme="dark"] .catalog-row:hover *{
   color:inherit!important;
 }
-
-.fg-toggle{display:inline-flex;align-items:center;gap:5px;font-size:10px;color:var(--color-text-secondary);white-space:nowrap}.fg-toggle input{accent-color:var(--guvel-cyan-deep)}.fg-badge{font-size:9px;color:var(--guvel-cyan-deep)}
-html[data-theme="dark"] .fg-toggle{color:var(--color-text-secondary)}

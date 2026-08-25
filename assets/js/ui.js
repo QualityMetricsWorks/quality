@@ -244,7 +244,7 @@ export function renderPartDetail(){
  updatePartMachineSelect();$('partMachineList').innerHTML=machinesForPart(p.id).map(m=>`<div class="entity-item"><span><strong>${esc(m.code)}</strong><small>${esc(m.name||'')}</small></span><button class="icon-btn" data-unlink-machine="${m.id}">×</button></div>`).join('')||'<div class="empty-state">Sin máquinas vinculadas.</div>';
 
  renderCycleTimes();
- $('partOperationList').innerHTML=operationsForPart(p.id).map(o=>`<div class="entity-item"><span><strong>${esc(o.code)}</strong><small>${esc(o.name)}${o.isFinishGood?' · <b class="fg-badge">FINISH GOOD</b>':''}</small></span><span class="entity-actions"><label class="fg-toggle"><input type="checkbox" data-toggle-fg="${o.id}" ${o.isFinishGood?'checked':''}> <span>Finish Good</span></label><button class="icon-btn" data-delete-operation="${o.id}">×</button></span></div>`).join('')||'<div class="empty-state">Sin operaciones.</div>';
+ $('partOperationList').innerHTML=operationsForPart(p.id).map(o=>`<div class="entity-item"><span><strong>${esc(o.code)}</strong><small>${esc(o.name)}</small></span><button class="icon-btn" data-delete-operation="${o.id}">×</button></div>`).join('')||'<div class="empty-state">Sin operaciones.</div>';
  $('partDefectList').innerHTML=defectsForPart(p.id).map(d=>`<div class="entity-item"><span><strong>${esc(d.code)} · ${esc(d.name)}</strong><small>${esc(getOperation(d.operationId)?.code||'General')} · ${esc(d.category||'')}</small></span></div>`).join('')||'<div class="empty-state">Sin defectos.</div>';
  $('partProductionList').innerHTML=rs.slice().sort((a,b)=>b.date.localeCompare(a.date)).slice(0,20).map(r=>`<div class="entity-item"><span><strong>${r.date} · ${esc(getOperation(r.operationId)?.code||'—')}</strong><small>${number(r.produced)} piezas · ${esc(r.machine||'Sin máquina')}</small></span><strong>${percent(metricsForRuns([r]).yieldRate)}</strong></div>`).join('')||'<div class="empty-state">Sin producción.</div>';
  const ev=state.scrapEvents.filter(e=>getRun(e.runId)?.partId===p.id);if(window.GUVEL_RENDER_BARCODE)window.GUVEL_RENDER_BARCODE();
@@ -282,48 +282,66 @@ const runCode=r=>`PR-${String(r.id||'').replaceAll('-','').slice(0,8).toUpperCas
 export function renderRuns(){
  const count=$('runCount'),list=$('runList');if(!count||!list)return;
  const sorted=[...state.runs].sort((a,b)=>String(b.createdAt||b.date||'').localeCompare(String(a.createdAt||a.date||'')));
- const q=($('runSearch')?.value||'').trim().toLowerCase();
- const filtered=sorted.filter(r=>{const p=getPart(r.partId),m=getMachine(r.machineId),op=getOperation(r.operationId),oper=getPersonnel(r.operatorId),sup=getPersonnel(r.supervisorId);return `${runCode(r)} ${r.lotNumber||''} ${p?.number||''} ${getClient(r.clientId)?.name||''} ${m?.code||''} ${op?.code||''} ${oper?.fullName||''} ${sup?.fullName||''}`.toLowerCase().includes(q)});
- const groups=new Map();
- filtered.forEach(r=>{
-   const key=`${r.partId}|${r.lotNumber||'__NO_LOT__'}`;
-   const arr=groups.get(key)||[];arr.push(r);groups.set(key,arr);
- });
- const allGroupIds=state.selectedRunGroupIds||[];
- const activeId=state.selectedRunId;
+ if(!state.selectedRunId&&sorted.length)state.selectedRunId=sorted[0].id;
+ if(state.selectedRunId&&!state.runs.some(x=>x.id===state.selectedRunId))state.selectedRunId=sorted[0]?.id||null;
  count.textContent=state.runs.length;
- if(!state.runs.length){list.innerHTML='<div class="run-zero-state"><strong>Sin corridas.</strong><small>No existen registros en production_runs para esta empresa.</small></div>';}
- else if(!filtered.length){list.innerHTML='<div class="run-zero-state"><strong>Sin resultados.</strong><small>Cambia el criterio de búsqueda.</small></div>';}
- else{
-  list.innerHTML=[...groups.values()].map(rs=>{
-   const r=rs[0],p=getPart(r.partId),machines=[...new Set(rs.map(x=>getMachine(x.machineId)?.code||x.machine).filter(Boolean))],ops=[...new Set(rs.map(x=>getOperation(x.operationId)?.code).filter(Boolean))];
-   const ids=rs.map(x=>x.id).join(',');
-   const active=rs.some(x=>allGroupIds.includes(x.id))||(rs.length===1&&r.id===activeId);
-   return `<button class="entity-item ${active?'active':''}" data-run-group="${esc(ids)}"><span><strong>${esc(r.lotNumber||'Sin lote')} · ${esc(p?.number||'—')}</strong><small>${rs.length} corrida${rs.length>1?'s':''} · Ops: ${esc(ops.join(', ')||'—')} · Máquinas: ${esc(machines.join(', ')||'—')}</small></span><span>›</span></button>`;
-  }).join('');
+ const q=($('runSearch')?.value||'').trim().toLowerCase();
+ const rows=sorted.filter(r=>{
+  const p=getPart(r.partId),m=getMachine(r.machineId),op=getOperation(r.operationId),oper=getPersonnel(r.operatorId),sup=getPersonnel(r.supervisorId);
+  return `${runCode(r)} ${r.lotNumber||''} ${p?.number||''} ${getClient(r.clientId)?.name||''} ${m?.code||''} ${op?.code||''} ${oper?.fullName||''} ${sup?.fullName||''}`.toLowerCase().includes(q);
+ });
+ if(!state.runs.length){
+  list.innerHTML='<div class="run-zero-state"><strong>Sin corridas.</strong><small>No existen registros en production_runs para esta empresa.</small></div>';
+ }else if(!rows.length){
+  list.innerHTML='<div class="run-zero-state"><strong>Sin resultados.</strong><small>Cambia el criterio de búsqueda.</small></div>';
+ }else{
+  list.innerHTML=rows.map(r=>`<button class="entity-item ${r.id===state.selectedRunId?'active':''}" data-run-id="${r.id}"><span><strong>${esc(runCode(r))} · ${esc(r.lotNumber||'Sin lote')}</strong><small>${esc(getPart(r.partId)?.number||'—')} · ${esc(getMachine(r.machineId)?.code||r.machine||'—')} · ${r.createdAt?new Date(r.createdAt).toLocaleString(document.documentElement.lang==='en'?'en-US':'es-MX'):r.date}</small></span><span>›</span></button>`).join('');
  }
  renderRunDetail();
 }
 export function renderRunDetail(){
- const first=getRun(state.selectedRunId),empty=$('runEmptyState'),detail=$('runDetail');
- const groupIds=(state.selectedRunGroupIds||[]).filter(id=>state.runs.some(r=>r.id===id));
- const rs=groupIds.length?groupIds.map(getRun).filter(Boolean):(first?[first]:[]);
- if(!rs.length){empty.hidden=false;detail.hidden=true;return}
- const r=rs[0];empty.hidden=true;detail.hidden=false;
- const p=getPart(r.partId),machines=[...new Set(rs.map(x=>getMachine(x.machineId)?.code||x.machine).filter(Boolean))],ops=[...new Set(rs.map(x=>getOperation(x.operationId)?.code).filter(Boolean))],met=metricsForRuns(rs);
- const ids=new Set(rs.map(x=>x.id)),quality=state.scrapEvents.filter(x=>ids.has(x.runId)),downtime=state.downtimeEvents.filter(x=>ids.has(x.runId));
+ const r=getRun(state.selectedRunId),empty=$('runEmptyState'),detail=$('runDetail');if(!r){empty.hidden=false;detail.hidden=true;return}
+ empty.hidden=true;detail.hidden=false;
+ const p=getPart(r.partId),m=getMachine(r.machineId),op=getOperation(r.operationId),met=metricsForRuns([r]);
+ const quality=state.scrapEvents.filter(x=>x.runId===r.id),downtime=state.downtimeEvents.filter(x=>x.runId===r.id);
  const mins=downtime.reduce((s,x)=>s+Number(x.minutes||0),0);
- const ct=rs.length===1?state.cycleTimes.find(x=>x.partId===r.partId&&x.operationId===r.operationId&&x.machineId===r.machineId):null;
+ const ct=state.cycleTimes.find(x=>x.partId===r.partId&&x.operationId===r.operationId&&x.machineId===r.machineId);
  const locale=document.documentElement.lang==='en'?'en-US':'es-MX';
- $('runDetailCode').textContent=rs.length>1?`${runCode(r)} · ${rs.length} corridas`:runCode(r);
- $('runDetailStatus').textContent=r.status||'completed';$('runDetailStatus').className=`run-status ${r.status||'completed'}`;$('runDetailMethod').textContent=rs.length>1?'Consolidado':(r.captureMethod||'—');$('runDetailLot').textContent=r.lotNumber||'—';
+ $('runDetailCode').textContent=runCode(r);$('runDetailStatus').textContent=r.status||'completed';$('runDetailStatus').className=`run-status ${r.status||'completed'}`;$('runDetailMethod').textContent=r.captureMethod||'—';$('runDetailLot').textContent=r.lotNumber||'—';
  $('runDetailProduction').textContent=number(met.produced);$('runDetailScrap').textContent=number(met.scrap);$('runDetailYield').textContent=percent(met.yieldRate);$('runDetailPpm').textContent=number(Math.round(met.ppm));$('runDetailCopq').textContent=money(met.copq,p?.currency||'USD');$('runDetailDowntime').textContent=`${number(mins)} min`;
- $('runDetailClient').textContent=getClient(r.clientId)?.name||'—';$('runDetailPart').textContent=p?.number||'—';$('runDetailOperation').textContent=ops.join(', ')||'—';$('runDetailMachine').textContent=machines.join(', ')||'—';$('runDetailCycle').textContent=ct?`${Number(ct.idealCycleSeconds).toFixed(2)} s`:(rs.length>1?'Varios':'No configurado');$('runDetailShift').textContent=[...new Set(rs.map(x=>x.shift).filter(Boolean))].join(', ')||'—';$('runDetailOperator').textContent=rs.length===1?(getPersonnel(r.operatorId)?.fullName||'—'):'Varios';$('runDetailSupervisor').textContent=rs.length===1?(getPersonnel(r.supervisorId)?.fullName||'—'):'Varios';$('runDetailCreated').textContent=rs.map(x=>x.createdAt?new Date(x.createdAt).toLocaleString(locale):x.date).join(' · ');
- renderRunScrapEvents();
+ $('runDetailClient').textContent=getClient(r.clientId)?.name||'—';$('runDetailPart').textContent=p?.number||'—';$('runDetailOperation').textContent=op?`${op.code} · ${op.name}`:'—';$('runDetailMachine').textContent=m?.code||r.machine||'—';$('runDetailCycle').textContent=ct?`${Number(ct.idealCycleSeconds).toFixed(2)} s`:'No configurado';$('runDetailShift').textContent=r.shift||'—';$('runDetailOperator').textContent=getPersonnel(r.operatorId)?.fullName||'—';$('runDetailSupervisor').textContent=getPersonnel(r.supervisorId)?.fullName||'—';$('runDetailCreated').textContent=r.createdAt?new Date(r.createdAt).toLocaleString(locale):'—';$('runDetailCompleted').textContent=r.completedAt?new Date(r.completedAt).toLocaleString(locale):'—';
+ $('runQualityList').innerHTML=quality.map(e=>`<div class="entity-item"><span><strong>${esc(getDefect(e.defectId)?.name||'—')}</strong><small>${esc(dispositionLabel(e.disposition))}</small></span><strong>${number(e.quantity)}</strong></div>`).join('')||'<div class="empty-state">Sin eventos de calidad.</div>';
+ $('runDowntimeList').innerHTML=downtime.map(e=>`<div class="entity-item"><span><strong>${esc(getDowntimeReason(e.reasonId)?.name||'—')}</strong><small>${e.eventType==='planned'?'Planned':'Unplanned'}</small></span><strong>${number(e.minutes)} min</strong></div>`).join('')||'<div class="empty-state">Sin tiempos muertos.</div>';
+}
+export function renderSettings(){
+ const el=$('shiftList');if(!el)return;
+ el.innerHTML=state.shiftSchedules.map(s=>`<div class="entity-item"><span><strong>${esc(s.code)} · ${esc(s.name)}</strong><small>${esc(String(s.startTime).slice(0,5))} → ${esc(String(s.endTime).slice(0,5))} · ${number(s.breakMinutes)} min excluidos</small></span><button class="icon-btn" data-delete-shift="${s.id}">×</button></div>`).join('')||'<div class="empty-state">Sin turnos configurados.</div>';
+}
+export function renderHistory(){
+ const newest=(a,b)=>String(b.createdAt||b.date||'').localeCompare(String(a.createdAt||a.date||''));
+ const qp=($('productionHistorySearch')?.value||'').toLowerCase();
+ const rs=[...state.runs].sort(newest).filter(r=>`${r.date} ${getClient(r.clientId)?.name} ${getPart(r.partId)?.number} ${getOperation(r.operationId)?.code} ${r.machine}`.toLowerCase().includes(qp));
+ $('productionHistoryBody').innerHTML=rs.map(r=>{const m=metricsForRuns([r]);return `<tr><td>${r.createdAt?new Date(r.createdAt).toLocaleString('es-MX'):r.date}</td><td>${esc(r.shift||'—')}</td><td>${esc(r.lotNumber||'—')}</td><td>${esc(getClient(r.clientId)?.name||'—')}</td><td>${esc(getPart(r.partId)?.number||'—')}</td><td>${esc(getOperation(r.operationId)?.code||'—')}</td><td>${esc(getMachine(r.machineId)?.code||r.machine||'—')}</td><td>${esc(getPersonnel(r.operatorId)?.fullName||'—')}</td><td>${esc(r.status||'completed')}</td><td>${number(r.produced)}</td><td class="${m.scrap?'metric-bad':''}">${number(m.scrap)}</td><td>${percent(m.yieldRate)}</td><td><button class="icon-btn" data-delete-run="${r.id}">×</button></td></tr>`}).join('')||'<tr><td colspan="13" class="empty-state">Sin producción.</td></tr>';
+
+ const qs=($('scrapHistorySearch')?.value||'').toLowerCase(), sf=$('scrapHistoryShift')?.value||'';
+ const es=[...state.scrapEvents].sort(newest).filter(e=>{
+   const r=getRun(e.runId);
+   return (!sf||r?.shift===sf)&&`${r?.date} ${r?.shift} ${getClient(r?.clientId)?.name} ${getPart(r?.partId)?.number} ${getDefect(e.defectId)?.name} ${e.disposition} ${e.reason||''} ${e.notes||''}`.toLowerCase().includes(qs)
+ });
+ $('scrapHistoryBody').innerHTML=es.map(e=>{
+   const r=getRun(e.runId),p=getPart(r?.partId);
+   return `<tr><td>${r?.date||'—'}</td><td>${esc(r?.shift||'—')}</td><td>${esc(getClient(r?.clientId)?.name||'—')}</td><td>${esc(p?.number||'—')}</td><td>${esc(getOperation(r?.operationId)?.code||'—')}</td><td>${esc(getDefect(e.defectId)?.name||'—')}</td><td>${number(e.quantity)}</td><td>${esc(dispositionLabel(e.disposition))}</td><td>${esc([e.reason,e.notes].filter(Boolean).join(' · ')||'—')}</td><td>${money(copqForEvent(e),p?.currency||'USD')}</td><td><button class="icon-btn" data-delete-scrap="${e.id}">×</button></td></tr>`
+ }).join('')||'<tr><td colspan="11" class="empty-state">Sin eventos.</td></tr>';
+
+ const df=$('downtimeHistoryShift')?.value||'',dh=$('downtimeHistoryBody');
+ if(dh)dh.innerHTML=[...state.downtimeEvents].sort(newest).filter(e=>{
+   const r=getRun(e.runId);
+   return !df||r?.shift===df;
+ }).map(e=>{
+   const r=getRun(e.runId),reason=getDowntimeReason(e.reasonId);
+   return `<tr><td>${r?.date||'—'}</td><td>${esc(r?.shift||'—')}</td><td>${esc(getClient(r?.clientId)?.name||'—')}</td><td>${esc(getPart(r?.partId)?.number||'—')}</td><td>${esc(getMachine(r?.machineId)?.code||'—')}</td><td>${esc(reason?.name||'—')}</td><td>${esc(e.eventType==='planned'?'Planned':'Unplanned')}</td><td>${esc(e.notes||'—')}</td><td>${number(e.minutes)}</td><td><button class="icon-btn" data-delete-downtime="${e.id}">×</button></td></tr>`
+ }).join('')||'<tr><td colspan="10" class="empty-state">Sin tiempos muertos.</td></tr>';
 }
 export function renderRunScrapEvents(){
- const runId=$('scrapRun')?.value,body=$('runScrapEventsBody');if(!body)return;
- const ids=new Set((state.selectedRunGroupIds||[]).length?state.selectedRunGroupIds:[runId]);
- const events=state.scrapEvents.filter(e=>ids.has(e.runId));
- body.innerHTML=events.map(e=>`<tr><td>${esc(getDefect(e.defectId)?.name||'—')}</td><td>${number(e.quantity)}</td><td>${esc(dispositionLabel(e.disposition))}</td><td>${money(copqForEvent(e),getPart(getRun(e.runId)?.partId)?.currency||'USD')}</td><td><button class="icon-btn" data-delete-scrap="${e.id}">×</button></td></tr>`).join('')||'<tr><td colspan="5" class="empty-state">Sin eventos para esta corrida.</td></tr>';
+ const runId=$('scrapRun')?.value,body=$('runScrapEventsBody');if(!body)return;body.innerHTML=eventsForRun(runId).map(e=>`<tr><td>${esc(getDefect(e.defectId)?.name||'—')}</td><td>${number(e.quantity)}</td><td>${esc(dispositionLabel(e.disposition))}</td><td>${money(copqForEvent(e),getPart(getRun(e.runId)?.partId)?.currency||'USD')}</td><td><button class="icon-btn" data-delete-scrap="${e.id}">×</button></td></tr>`).join('')||'<tr><td colspan="5" class="empty-state">Sin eventos para esta corrida.</td></tr>';
 }
