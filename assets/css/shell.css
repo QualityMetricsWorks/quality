@@ -300,3 +300,25 @@
   flex-direction:column;
   justify-content:center;
 }
+
+/* v1.5.0.5 — visual interaction consistency */
+.navigation-bar .nav-item:hover,
+.nav-item:hover{
+  color:var(--guvel-cyan-deep)!important;
+  background:var(--color-surface-subtle)!important;
+}
+.navigation-bar .nav-item.active:hover,
+.nav-item.active:hover{
+  color:var(--guvel-cyan-deep)!important;
+  background:var(--color-surface-subtle)!important;
+}
+html[data-theme="dark"] .navigation-bar .nav-item:hover,
+html[data-theme="dark"] .nav-item:hover{
+  color:var(--color-text)!important;
+  background:var(--color-surface-subtle)!important;
+}
+html[data-theme="dark"] .navigation-bar .nav-item.active:hover,
+html[data-theme="dark"] .nav-item.active:hover{
+  color:var(--color-text)!important;
+  background:var(--color-surface-subtle)!important;
+}
