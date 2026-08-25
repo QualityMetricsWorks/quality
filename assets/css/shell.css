@@ -300,13 +300,3 @@
   flex-direction:column;
   justify-content:center;
 }
-
-/* v1.5.0.1 Part 1A — readable navigation hover */
-.navigation-bar .nav-item:hover{
-  color:var(--guvel-cyan-deep)!important;
-  background:var(--color-surface-subtle)!important;
-}
-html[data-theme="dark"] .navigation-bar .nav-item:hover{
-  color:var(--color-text)!important;
-  background:var(--color-surface-subtle)!important;
-}

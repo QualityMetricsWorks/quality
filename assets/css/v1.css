@@ -683,26 +683,3 @@ html[data-theme="dark"] #topProductsGrid .top-product .metrics strong,
 html[data-theme="dark"] #topProductsGrid .top-product .entity-item strong{
   color:var(--color-text)!important;
 }
-
-/* v1.5.0.1 Part 1A — capture cancel + navigation hover */
-#resetTraceBtn{
-  color:#24313a!important;
-  background:#f3f6f8!important;
-  border:1px solid #b9c4cb!important;
-  box-shadow:none;
-}
-#resetTraceBtn:hover{
-  color:#111a20!important;
-  background:#e6ecef!important;
-  border-color:#8e9ba3!important;
-}
-html[data-theme="dark"] #resetTraceBtn{
-  color:var(--color-text)!important;
-  background:transparent!important;
-  border-color:var(--color-border)!important;
-}
-html[data-theme="dark"] #resetTraceBtn:hover{
-  background:var(--color-surface-subtle)!important;
-}
-
-.history-inline-filters{display:flex;align-items:center;gap:7px}.history-inline-filters select{min-width:130px}.history-panel .card-header>select{min-width:130px;margin-left:auto}@media(max-width:700px){.history-inline-filters{width:100%;flex-wrap:wrap}.history-inline-filters select{flex:1}.history-inline-filters input{flex:1}}
