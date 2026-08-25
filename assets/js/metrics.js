@@ -5,8 +5,13 @@ export function metricsForRuns(runs){
  const ids=new Set(runs.map(r=>r.id));const events=state.scrapEvents.filter(e=>ids.has(e.runId));
  const produced=runs.reduce((s,r)=>s+Number(r.produced||0),0);
  const scrap=events.filter(e=>e.disposition==='scrap').reduce((s,e)=>s+Number(e.quantity||0),0);
- const copq=events.reduce((s,e)=>s+copqForEvent(e),0);
- const productionValue=runs.reduce((s,r)=>{const p=getPart(r.partId);return s+Number(r.produced||0)*Number(p?.costPerPiece||0)},0);
+ const byPart=new Map();
+ runs.forEach(r=>{const a=byPart.get(r.partId)||[];a.push(r);byPart.set(r.partId,a)});
+ const fgRuns=runs.filter(r=>{const ops=state.operations.filter(o=>o.partId===r.partId);const fg=ops.filter(o=>o.isFinishGood);return fg.length?fg.some(o=>o.id===r.operationId):true});
+ const fgIds=new Set(fgRuns.map(r=>r.id));
+ const copqEvents=events.filter(e=>fgIds.has(e.runId));
+ const copq=copqEvents.reduce((s,e)=>s+copqForEvent(e),0);
+ const productionValue=fgRuns.reduce((s,r)=>{const p=getPart(r.partId);return s+Number(r.produced||0)*Number(p?.costPerPiece||0)},0);
  const copqPercent=productionValue?copq/productionValue*100:0;
  return {produced,scrap,scrapRate:produced?scrap/produced*100:0,ppm:produced?scrap/produced*1e6:0,yieldRate:produced?(produced-scrap)/produced*100:100,copq,copqPercent,productionValue};
 }
