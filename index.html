@@ -14,8 +14,8 @@
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.6/dist/JsBarcode.all.min.js"></script>
   <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
-  <script src="config.js?v=1.5.0.1-p1"></script>
-  <script type="module" src="assets/js/app.js?v=1.5.0.1-p1"></script>
+  <script src="config.js?v=1.1.1"></script>
+  <script type="module" src="assets/js/app.js?v=1.1.1"></script>
 </head>
 <body>
   <header class="guvel-shell">
@@ -30,7 +30,7 @@
 
       <div class="product-context">
         <span class="module-badge"><span class="module-dot"></span> Production & Quality</span>
-        <span class="version-badge">v1.4.8.9</span>
+        <span class="version-badge">v1.5.0.1 Part 1A</span>
         <div class="language-control">
           <button id="languageMenuBtn" class="language-trigger" type="button" aria-haspopup="true" aria-expanded="false" title="Idioma / Language">
             <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20Zm6.9 6h-3.1a15.7 15.7 0 0 0-1.4-3.5A8.1 8.1 0 0 1 18.9 8ZM12 4c.8 1 1.5 2.3 1.9 4h-3.8C10.5 6.3 11.2 5 12 4ZM4.3 14a8 8 0 0 1 0-4h3.4a16.7 16.7 0 0 0 0 4H4.3Zm.8 2h3.1a15.7 15.7 0 0 0 1.4 3.5A8.1 8.1 0 0 1 5.1 16Zm3.1-8H5.1a8.1 8.1 0 0 1 4.5-3.5A15.7 15.7 0 0 0 8.2 8ZM12 20c-.8-1-1.5-2.3-1.9-4h3.8c-.4 1.7-1.1 3-1.9 4Zm2.3-6H9.7a14.6 14.6 0 0 1 0-4h4.6a14.6 14.6 0 0 1 0 4Zm.1 5.5a15.7 15.7 0 0 0 1.4-3.5h3.1a8.1 8.1 0 0 1-4.5 3.5ZM16.3 14a16.7 16.7 0 0 0 0-4h3.4a8 8 0 0 1 0 4h-3.4Z"/></svg>
@@ -161,11 +161,11 @@
         </div>
         <div class="dashboard-grid general-six-charts">
           <article class="card chart-card"><div class="card-header dashboard-chart-header"><h3>OEE</h3><button class="dashboard-chart-settings" data-dashboard-settings="general" data-dashboard-metric="oee" title="Configurar meta" aria-label="Configurar meta">⚙</button></div><div class="chart-wrap"><canvas id="oeeTrendChart"></canvas></div></article>
-          <article class="card chart-card"><div class="card-header dashboard-chart-header"><h3>Producción</h3><button class="dashboard-chart-settings" data-dashboard-settings="general" data-dashboard-metric="production" title="Configurar meta" aria-label="Configurar meta">⚙</button></div><div class="chart-wrap"><canvas id="generalProductionTrendChart"></canvas></div></article>
-          <article class="card chart-card"><div class="card-header dashboard-chart-header"><h3>Scrap %</h3><button class="dashboard-chart-settings" data-dashboard-settings="general" data-dashboard-metric="scrap" title="Configurar meta" aria-label="Configurar meta">⚙</button></div><div class="chart-wrap"><canvas id="scrapTrendChart"></canvas></div></article>
-          <article class="card chart-card"><div class="card-header dashboard-chart-header"><h3>PPM</h3><button class="dashboard-chart-settings" data-dashboard-settings="general" data-dashboard-metric="ppm" title="Configurar meta" aria-label="Configurar meta">⚙</button></div><div class="chart-wrap"><canvas id="ppmTrendChart"></canvas></div></article>
-          <article class="card chart-card"><div class="card-header dashboard-chart-header"><h3>Yield</h3><button class="dashboard-chart-settings" data-dashboard-settings="general" data-dashboard-metric="yield" title="Configurar meta" aria-label="Configurar meta">⚙</button></div><div class="chart-wrap"><canvas id="yieldTrendChart"></canvas></div></article>
-          <article class="card chart-card"><div class="card-header dashboard-chart-header"><h3>COPQ %</h3><button class="dashboard-chart-settings" data-dashboard-settings="general" data-dashboard-metric="copq" title="Configurar meta" aria-label="Configurar meta">⚙</button></div><div class="chart-wrap"><canvas id="copqTrendChart"></canvas></div></article>
+          <article class="card chart-card"><div class="card-header dashboard-chart-header"><h3>Producción</h3><button class="dashboard-chart-settings" data-dashboard-settings="general" data-dashboard-metric="oee" title="Configurar meta" aria-label="Configurar meta">⚙</button></div><div class="chart-wrap"><canvas id="generalProductionTrendChart"></canvas></div></article>
+          <article class="card chart-card"><div class="card-header dashboard-chart-header"><h3>Scrap %</h3><button class="dashboard-chart-settings" data-dashboard-settings="general" data-dashboard-metric="production" title="Configurar meta" aria-label="Configurar meta">⚙</button></div><div class="chart-wrap"><canvas id="scrapTrendChart"></canvas></div></article>
+          <article class="card chart-card"><div class="card-header dashboard-chart-header"><h3>PPM</h3><button class="dashboard-chart-settings" data-dashboard-settings="general" data-dashboard-metric="scrap" title="Configurar meta" aria-label="Configurar meta">⚙</button></div><div class="chart-wrap"><canvas id="ppmTrendChart"></canvas></div></article>
+          <article class="card chart-card"><div class="card-header dashboard-chart-header"><h3>Yield</h3><button class="dashboard-chart-settings" data-dashboard-settings="general" data-dashboard-metric="ppm" title="Configurar meta" aria-label="Configurar meta">⚙</button></div><div class="chart-wrap"><canvas id="yieldTrendChart"></canvas></div></article>
+          <article class="card chart-card"><div class="card-header dashboard-chart-header"><h3>COPQ %</h3><button class="dashboard-chart-settings" data-dashboard-settings="general" data-dashboard-metric="yield" title="Configurar meta" aria-label="Configurar meta">⚙</button></div><div class="chart-wrap"><canvas id="copqTrendChart"></canvas></div></article>
         </div>
 
       </div>
@@ -184,10 +184,10 @@
         <div class="section-intro"><p class="eyebrow">Calidad</p><h2>Calidad</h2><p>Distribución y priorización de pérdidas por defecto y Número de Parte.</p></div>
         
         <article class="card section-card quality-top-scrap-card"><div class="card-header"><div><p class="eyebrow">Concentración de pérdida</p><h3 data-i18n="Top 3 productos con mayor scrap">Top 3 productos con mayor scrap</h3></div></div><div id="topProductsGrid" class="top-products-grid"></div></article><div class="dashboard-grid">
-          <article class="card chart-card"><div class="card-header dashboard-chart-header"><h3>Scrap por defecto</h3></div><div class="chart-wrap"><canvas id="scrapDefectPieChart"></canvas></div></article>
-          <article class="card chart-card"><div class="card-header dashboard-chart-header"><h3>Scrap por Número de Parte</h3></div><div class="chart-wrap"><canvas id="scrapPartPieChart"></canvas></div></article>
-          <article class="card chart-card"><div class="card-header dashboard-chart-header"><div><p class="eyebrow">80 / 20</p><h3>Pareto por defecto</h3></div></div><div class="chart-wrap"><canvas id="scrapDefectParetoChart"></canvas></div></article>
-          <article class="card chart-card"><div class="card-header dashboard-chart-header"><div><p class="eyebrow">80 / 20</p><h3>Pareto por Número de Parte</h3></div></div><div class="chart-wrap"><canvas id="scrapPartParetoChart"></canvas></div></article>
+          <article class="card chart-card"><div class="card-header dashboard-chart-header"><h3>Scrap por defecto</h3><button class="dashboard-chart-settings" data-dashboard-settings="scrap" data-dashboard-metric="scrap" title="Configurar meta" aria-label="Configurar meta">⚙</button></div><div class="chart-wrap"><canvas id="scrapDefectPieChart"></canvas></div></article>
+          <article class="card chart-card"><div class="card-header dashboard-chart-header"><h3>Scrap por Número de Parte</h3><button class="dashboard-chart-settings" data-dashboard-settings="scrap" data-dashboard-metric="scrap" title="Configurar meta" aria-label="Configurar meta">⚙</button></div><div class="chart-wrap"><canvas id="scrapPartPieChart"></canvas></div></article>
+          <article class="card chart-card"><div class="card-header dashboard-chart-header"><div><p class="eyebrow">80 / 20</p><h3>Pareto por defecto</h3><button class="dashboard-chart-settings" data-dashboard-settings="scrap" data-dashboard-metric="part_pie" title="Configurar meta" aria-label="Configurar meta">⚙</button></div></div><div class="chart-wrap"><canvas id="scrapDefectParetoChart"></canvas></div></article>
+          <article class="card chart-card"><div class="card-header dashboard-chart-header"><div><p class="eyebrow">80 / 20</p><h3>Pareto por Número de Parte</h3><button class="dashboard-chart-settings" data-dashboard-settings="scrap" data-dashboard-metric="defect_pareto" title="Configurar meta" aria-label="Configurar meta">⚙</button></div></div><div class="chart-wrap"><canvas id="scrapPartParetoChart"></canvas></div></article>
         </div>
       <div class="custom-dashboard-host" data-custom-dashboard-host="scrap"></div>
       </div>
@@ -195,10 +195,10 @@
         <div class="section-intro"><p class="eyebrow">Mantenimiento</p><h2>Tiempos Muertos</h2><p>Distribución y priorización de paros registrados durante producción.</p></div>
         <div class="kpi-grid"><article class="kpi-card warning"><span>Tiempo muerto</span><strong id="kpiDowntime">0 min</strong><small>Periodo seleccionado</small></article><article class="kpi-card"><span>Eventos</span><strong id="kpiDowntimeEvents">0</strong><small>Paros registrados</small></article></div>
         <div class="dashboard-grid">
-          <article class="card chart-card"><div class="card-header dashboard-chart-header"><h3>Paros por motivo</h3></div><div class="chart-wrap"><canvas id="downtimeReasonPieChart"></canvas></div></article>
-          <article class="card chart-card"><div class="card-header dashboard-chart-header"><h3>Paros por máquina</h3></div><div class="chart-wrap"><canvas id="downtimeMachinePieChart"></canvas></div></article>
-          <article class="card chart-card"><div class="card-header dashboard-chart-header"><div><p class="eyebrow">80 / 20</p><h3>Pareto de paros</h3></div></div><div class="chart-wrap"><canvas id="downtimeReasonParetoChart"></canvas></div></article>
-          <article class="card chart-card"><div class="card-header dashboard-chart-header"><div><p class="eyebrow">80 / 20</p><h3>Pareto por máquina</h3></div></div><div class="chart-wrap"><canvas id="downtimeMachineParetoChart"></canvas></div></article>
+          <article class="card chart-card"><div class="card-header dashboard-chart-header"><h3>Paros por motivo</h3><button class="dashboard-chart-settings" data-dashboard-settings="maintenance" data-dashboard-metric="reason_pie" title="Configurar meta" aria-label="Configurar meta">⚙</button></div><div class="chart-wrap"><canvas id="downtimeReasonPieChart"></canvas></div></article>
+          <article class="card chart-card"><div class="card-header dashboard-chart-header"><h3>Paros por máquina</h3><button class="dashboard-chart-settings" data-dashboard-settings="maintenance" data-dashboard-metric="reason_pie" title="Configurar meta" aria-label="Configurar meta">⚙</button></div><div class="chart-wrap"><canvas id="downtimeMachinePieChart"></canvas></div></article>
+          <article class="card chart-card"><div class="card-header dashboard-chart-header"><div><p class="eyebrow">80 / 20</p><h3>Pareto de paros</h3><button class="dashboard-chart-settings" data-dashboard-settings="maintenance" data-dashboard-metric="machine_pie" title="Configurar meta" aria-label="Configurar meta">⚙</button></div></div><div class="chart-wrap"><canvas id="downtimeReasonParetoChart"></canvas></div></article>
+          <article class="card chart-card"><div class="card-header dashboard-chart-header"><div><p class="eyebrow">80 / 20</p><h3>Pareto por máquina</h3><button class="dashboard-chart-settings" data-dashboard-settings="maintenance" data-dashboard-metric="reason_pareto" title="Configurar meta" aria-label="Configurar meta">⚙</button></div></div><div class="chart-wrap"><canvas id="downtimeMachineParetoChart"></canvas></div></article>
         </div>
       <div class="custom-dashboard-host" data-custom-dashboard-host="maintenance"></div>
       </div>
@@ -239,7 +239,7 @@
               <li data-step="5"><span>5</span><div><strong>Personal</strong><small>Supervisor y operador</small></div></li>
               <li data-step="6"><span>6</span><div><strong>Confirmar</strong><small>Preview y validación</small></div></li>
             </ol>
-            <button id="resetTraceBtn" class="btn btn-ghost btn-block capture-cancel-btn">Cancelar captura</button>
+            <button id="resetTraceBtn" class="btn btn-ghost btn-block">Cancelar captura</button>
           </aside>
 
           <div class="trace-workspace card">
@@ -292,7 +292,7 @@
               <div id="traceValidation" class="validation-stack"></div>
               <div id="tracePreview" class="trace-preview"></div>
               <div class="downtime-capture-box trace-scrap-capture-box"><div class="card-header"><div><p class="eyebrow">Opcional</p><h3>Calidad / Scrap de la corrida</h3><small>Registra uno o varios defectos durante la misma captura de producción.</small></div></div><div class="downtime-entry"><select id="traceScrapDefect"></select><input id="traceScrapQuantity" type="number" min="1" placeholder="Cantidad"><select id="traceScrapDisposition"><option value="scrap">Scrap</option><option value="rework">Retrabajo</option><option value="repair">Reparación</option><option value="use_as_is">Uso como está</option><option value="supplier_return">Devuelto a proveedor</option><option value="pending">Pendiente</option></select><input id="traceScrapExtraCost" type="number" min="0" step="0.01" value="0" placeholder="Costo adicional"><input id="traceScrapReason" placeholder="Motivo / causa"><button type="button" id="addTraceScrapBtn" class="btn btn-secondary">Agregar defecto</button></div><div id="traceScrapList" class="downtime-chip-list"></div><div class="info-strip">Scrap capturado: <strong id="traceScrapTotal">0 piezas</strong></div><textarea id="traceScrapNotes" rows="2" placeholder="Notas del evento (opcional)"></textarea></div>
-<div class="downtime-capture-box"><div class="card-header"><div><p class="eyebrow">Opcional</p><h3>Tiempos muertos de la corrida</h3></div></div><div class="downtime-entry"><select id="traceDowntimeReason"></select><select id="traceDowntimeType"><option value="unplanned">Unplanned</option><option value="planned">Planned</option></select><input id="traceDowntimeMinutes" type="number" min="1" placeholder="Minutos"><input id="traceDowntimeCause" placeholder="Razón / causa"><input id="traceDowntimeNotes" placeholder="Comentarios"><button type="button" id="addTraceDowntimeBtn" class="btn btn-secondary">Agregar paro</button></div><div id="traceDowntimeList" class="downtime-chip-list"></div></div><label class="confirm-check"><input type="checkbox" id="traceConfirmCheck"><span>Confirmo que la información mostrada corresponde al envío físico.</span></label>
+<div class="downtime-capture-box"><div class="card-header"><div><p class="eyebrow">Opcional</p><h3>Tiempos muertos de la corrida</h3></div></div><div class="downtime-entry"><select id="traceDowntimeReason"></select><select id="traceDowntimeType"><option value="unplanned">Unplanned</option><option value="planned">Planned</option></select><input id="traceDowntimeMinutes" type="number" min="1" placeholder="Minutos"><button type="button" id="addTraceDowntimeBtn" class="btn btn-secondary">Agregar paro</button></div><div id="traceDowntimeList" class="downtime-chip-list"></div></div><label class="confirm-check"><input type="checkbox" id="traceConfirmCheck"><span>Confirmo que la información mostrada corresponde al envío físico.</span></label>
               <div class="trace-footer-actions"><button class="btn btn-ghost trace-back" data-back-step="5">Atrás</button><button id="traceConfirmBtn" class="btn btn-primary">Confirmar producción</button></div>
             </div>
           </div>
@@ -342,8 +342,7 @@
             <div class="field"><label>Motivo de paro</label><select id="manualDowntimeReason" required></select></div>
             <div class="field"><label>Tipo</label><select id="manualDowntimeType"><option value="unplanned">Unplanned · Castiga OEE</option><option value="planned">Planned · No castiga OEE</option></select></div>
             <div class="field"><label>Minutos</label><input id="manualDowntimeMinutes" type="number" min="1" required></div>
-            <div class="field"><label>Razón / causa</label><input id="manualDowntimeCause" placeholder="Ej. Sensor de seguridad activado"></div>
-            <div class="field full"><label>Comentarios</label><textarea id="manualDowntimeNotes" rows="3" placeholder="Detalle adicional del paro"></textarea></div>
+            <div class="field full"><label>Notas</label><textarea id="manualDowntimeNotes" rows="3" placeholder="Opcional"></textarea></div>
             <div class="form-actions full"><button type="button" id="cancelDowntimeBtn" class="btn btn-ghost">Cancelar</button><button class="btn btn-primary">Registrar paro</button></div>
           </form>
         </div>
@@ -695,13 +694,10 @@
       </div>
     </section>
     <section id="dataView" class="view">
-      <div class="data-toolbar">
-        <div class="history-tabs"><button class="history-tab active" data-history-tab="production">Producción</button><button class="history-tab" data-history-tab="scrap">Scrap / Calidad</button><button class="history-tab" data-history-tab="downtime">Tiempos Muertos</button></div>
-        <label class="data-shift-filter"><span>Turno</span><select id="dataShiftFilter"><option value="">Todos los turnos</option></select></label>
-      </div>
+      <div class="history-tabs"><button class="history-tab active" data-history-tab="production">Producción</button><button class="history-tab" data-history-tab="scrap">Scrap / Calidad</button><button class="history-tab" data-history-tab="downtime">Tiempos Muertos</button></div>
       <article class="card table-card history-panel active" data-history-panel="production"><div class="card-header"><div><p class="eyebrow">Trazabilidad</p><h3>Historial de Producción</h3></div><input id="productionHistorySearch" class="search-input small" placeholder="Buscar…"></div><div class="table-scroll"><table><thead><tr><th>Fecha/Hora</th><th>Turno</th><th>Lote</th><th>Cliente</th><th>NP</th><th>Operación</th><th>Máquina</th><th>Operador</th><th>Estado</th><th>Producción</th><th>Scrap</th><th>Yield</th><th></th></tr></thead><tbody id="productionHistoryBody"></tbody></table></div></article>
-      <article class="card table-card history-panel" data-history-panel="scrap"><div class="card-header"><div><p class="eyebrow">Trazabilidad</p><h3>Historial de Scrap</h3></div><input id="scrapHistorySearch" class="search-input small" placeholder="Buscar…"></div><div class="table-scroll"><table><thead><tr><th>Fecha</th><th>Turno</th><th>Cliente</th><th>NP</th><th>Operación</th><th>Defecto</th><th>Cantidad</th><th>Disposición</th><th>Razón</th><th>Comentarios</th><th>COPQ</th><th></th></tr></thead><tbody id="scrapHistoryBody"></tbody></table></div></article>
-      <article class="card table-card history-panel" data-history-panel="downtime"><div class="card-header"><div><p class="eyebrow">Mantenimiento</p><h3>Historial de Tiempos Muertos</h3></div><input id="downtimeHistorySearch" class="search-input small" placeholder="Buscar…"></div><div class="table-scroll"><table><thead><tr><th>Fecha</th><th>Turno</th><th>Cliente</th><th>NP</th><th>Máquina</th><th>Paro</th><th>Tipo</th><th>Razón</th><th>Comentarios</th><th>Minutos</th><th></th></tr></thead><tbody id="downtimeHistoryBody"></tbody></table></div></article>
+      <article class="card table-card history-panel" data-history-panel="scrap"><div class="card-header"><div><p class="eyebrow">Trazabilidad</p><h3>Historial de Scrap</h3></div><input id="scrapHistorySearch" class="search-input small" placeholder="Buscar…"></div><div class="table-scroll"><table><thead><tr><th>Fecha</th><th>Cliente</th><th>NP</th><th>Operación</th><th>Defecto</th><th>Cantidad</th><th>Disposición</th><th>COPQ</th><th></th></tr></thead><tbody id="scrapHistoryBody"></tbody></table></div></article>
+    <article class="card table-card history-panel" data-history-panel="downtime"><div class="card-header"><div><p class="eyebrow">Mantenimiento</p><h3>Historial de Tiempos Muertos</h3></div></div><div class="table-scroll"><table><thead><tr><th>Fecha</th><th>Cliente</th><th>NP</th><th>Máquina</th><th>Paro</th><th>Tipo</th><th>Minutos</th></tr></thead><tbody id="downtimeHistoryBody"></tbody></table></div></article>
     </section>
   </main>
 
@@ -723,7 +719,7 @@
       <div class="field"><label>Contraseña</label><input type="password" id="loginPassword" required></div>
       <button class="btn btn-primary btn-block">Ingresar</button>
       <p id="authMessage" class="auth-message"></p>
-      <small class="version-note">GUVEL General System · v1.5.0.1 Part 1 · Sprint 1 · Multiempresa</small>
+      <small class="version-note">GUVEL General System · v1.5.0.1 Part 1A · Sprint 1 · Multiempresa</small>
     </form>
   </div>
 <div id="dashboardSettingsModal" class="modal-backdrop" hidden><div class="modal dashboard-settings-modal" role="dialog" aria-modal="true" aria-labelledby="dashboardSettingsTitle"><div class="modal-header"><div><p class="eyebrow">Dashboard</p><h2 id="dashboardSettingsTitle">Configuración de rango</h2></div><button id="closeDashboardSettingsBtn" class="icon-btn" type="button">×</button></div><form id="dashboardSettingsForm" class="form-grid"><div class="field"><label>Indicador</label><select id="dashboardMetricSelect"></select></div><div class="field"><label>Mínimo</label><input id="dashboardMin" type="number" step="any" required></div><div class="field"><label>Máximo</label><input id="dashboardMax" type="number" step="any" required></div><div class="field"><label>Meta</label><input id="dashboardTarget" type="number" step="any" required></div><div class="form-actions full"><button type="button" id="cancelDashboardSettingsBtn" class="btn btn-ghost">Cancelar</button><button class="btn btn-primary">Guardar configuración</button></div></form><small class="modal-help">La meta se muestra como una línea horizontal y la configuración se conserva por navegador y dashboard.</small></div></div><div id="customDashboardModal" class="modal-backdrop" hidden><article class="card custom-dashboard-modal"><div class="card-header"><div><p class="eyebrow">Dashboard adicional</p><h3 id="customDashboardModalTitle">Añadir dashboard</h3></div><button class="icon-btn" id="closeCustomDashboardModalBtn" type="button">×</button></div><form id="customDashboardForm" class="form-grid"><div class="field"><label>Cliente</label><select id="customDashboardClient" required></select></div><div class="field"><label>Número de Parte</label><select id="customDashboardPart"><option value="">Todos los números de parte</option></select></div><div class="field"><label>Nombre</label><input id="customDashboardName" maxlength="60" placeholder="Ej. Línea 1 / Cliente X" required></div><div class="field"><label>Visualización</label><select id="customDashboardMetric" required></select></div><div class="field"><label>Distribución</label><select id="customDashboardSpan"><option value="1">1 columna</option><option value="2">2 columnas</option><option value="3">3 columnas</option></select></div><input id="customDashboardId" type="hidden"><input id="customDashboardKind" type="hidden"><div class="form-actions full"><button type="button" class="btn btn-ghost" id="cancelCustomDashboardBtn">Cancelar</button><button class="btn btn-primary">Guardar dashboard</button></div></form></article></div></body>
