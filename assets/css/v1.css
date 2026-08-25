@@ -683,3 +683,21 @@ html[data-theme="dark"] #topProductsGrid .top-product .metrics strong,
 html[data-theme="dark"] #topProductsGrid .top-product .entity-item strong{
   color:var(--color-text)!important;
 }
+
+/* v1.5.0.1 Part 1 — usability / traceability polish */
+.capture-cancel-btn{color:var(--color-text)!important;border-color:var(--color-border)!important;background:var(--color-surface)!important}
+.capture-cancel-btn:hover{color:var(--color-text)!important;background:var(--color-surface-subtle)!important;border-color:var(--color-text-muted)!important}
+.navigation-bar .nav-item:hover{background:#EEF2F6!important;color:#143980!important;border-bottom-color:transparent!important}
+.navigation-bar .nav-item:hover .nav-icon svg{fill:#143980!important;stroke:#143980!important}
+.navigation-bar .nav-item.active{background:transparent!important;color:#143980!important;border-bottom-color:#EC6B1E!important}
+html[data-theme="dark"] .navigation-bar .nav-item:hover{background:#1B2732!important;color:#F4F7FA!important;border-bottom-color:transparent!important}
+html[data-theme="dark"] .navigation-bar .nav-item:hover .nav-icon svg{fill:#F4F7FA!important;stroke:#F4F7FA!important}
+html[data-theme="dark"] .navigation-bar .nav-item.active{background:transparent!important;color:#F4F7FA!important;border-bottom-color:#EC6B1E!important}
+.data-toolbar{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:12px;flex-wrap:wrap}
+.data-shift-filter{display:flex;align-items:center;gap:7px;font-size:10px;font-weight:700;color:var(--color-text-muted)}
+.data-shift-filter select{min-width:150px;height:32px;padding:0 9px}
+.person-picker-input{min-height:38px}
+.person-picker-option:hover,.person-picker-option:focus-visible{background:var(--color-surface-subtle);outline:none}
+html[data-theme="dark"] .capture-cancel-btn{color:var(--color-text)!important;background:var(--color-surface)!important;border-color:var(--color-border)!important}
+html[data-theme="dark"] .data-shift-filter{color:var(--color-text-muted)}
+@media(max-width:760px){.data-toolbar{align-items:stretch}.data-shift-filter{justify-content:space-between}.data-shift-filter select{flex:1}}
