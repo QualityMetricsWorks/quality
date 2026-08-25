@@ -92,9 +92,9 @@ function renderKpiComparisons(){
 }
 function renderGeneralCharts(runs){
  const d=daily(runs),labels=d.map(x=>x.date);
- chart('generalProductionTrendChart',rangedLineConfig(labels,d.map(x=>x.produced),'cyan',chartRange('production','production')));
+ chart('generalProductionTrendChart',rangedLineConfig(labels,d.map(x=>x.produced),'cyan',chartRange('general','production')));
  const oeeData=labels.map(date=>{const o=oeeMetrics(runs.filter(r=>r.date===date));return o.available?o.oee:null});
- chart('oeeTrendChart',rangedLineConfig(labels,oeeData,'blue',chartRange('production','oee')));
+ chart('oeeTrendChart',rangedLineConfig(labels,oeeData,'blue',chartRange('general','oee')));
 }
 export function renderDashboard(){
  const runs=activeRuns(),m=metricsForRuns(runs);$('kpiProduction').textContent=number(m.produced);$('kpiScrap').textContent=percent(m.scrapRate);$('kpiScrapQty').textContent=`${number(m.scrap)} piezas`;$('kpiPpm').textContent=number(Math.round(m.ppm));$('kpiYield').textContent=percent(m.yieldRate);$('kpiCopq').textContent=percent(m.copqPercent);$('kpiCopqUsd').textContent=`${money(m.copq,'USD')} USD`;
@@ -105,7 +105,7 @@ export function renderDashboard(){
  renderGeneralCharts(runs);renderCharts(runs,de);renderTopProducts(runs);renderKpiComparisons();renderCustomDashboard('production',runs,de);renderCustomDashboard('scrap',runs,de);renderCustomDashboard('maintenance',runs,de);
 }
 
-const dashboardSettingsKey='guvel.dashboard.settings.v146';
+const dashboardSettingsKey='guvel.dashboard.settings.v1504';
 const customDashboardsKey='guvel.custom.dashboards.v146';
 function readDashboardSettings(){try{return JSON.parse(localStorage.getItem(dashboardSettingsKey)||'{}')}catch{return {}}}
 function writeDashboardSettings(x){localStorage.setItem(dashboardSettingsKey,JSON.stringify(x))}
@@ -129,10 +129,10 @@ export function getDashboardSetting(kind,metric){return chartRange(kind,metric)}
 export function saveDashboardSetting(kind,metric,value){const all=readDashboardSettings();all[kind]=all[kind]||{};all[kind][metric]=value;writeDashboardSettings(all)}
 export function dashboardMetricOptions(kind){
  const map={
-  general:[['scrap','Scrap %'],['ppm','PPM'],['yield','Yield %'],['copq','COPQ'],['production','Production']],
-  production:[['production','Production'],['oee','OEE %'],['availability','Availability %'],['performance','Performance %'],['quality','Quality %']],
-  scrap:[['scrap','Scrap %'],['ppm','PPM'],['yield','Yield %'],['defect_pie','Pie · Defectos'],['part_pie','Pie · Números de Parte'],['defect_pareto','Pareto · Defectos'],['part_pareto','Pareto · Números de Parte']],
-  maintenance:[['downtime','Tiempo muerto'],['reason_pie','Pie · Motivos de paro'],['machine_pie','Pie · Máquinas'],['reason_pareto','Pareto · Motivos de paro'],['machine_pareto','Pareto · Máquinas']]
+  general:[['oee','OEE %'],['production','Production'],['scrap','Scrap %'],['ppm','PPM'],['yield','Yield %'],['copq','COPQ %']],
+  production:[['production','Production']],
+  scrap:[],
+  maintenance:[]
  };return map[kind]||map.general;
 }
 function getCustomDashboards(){try{return JSON.parse(localStorage.getItem(customDashboardsKey)||'{}')}catch{return {}}}
