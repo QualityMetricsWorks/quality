@@ -1,6 +1,6 @@
-import {$,number,money,percent,esc,dispositionLabel} from './utils.js?v=1.4.8.9';
-import {state,getClient,getPart,getOperation,getDefect,getRun,getMachine,getPersonnel,getDowntimeReason,cycleTimesForPart,partsForClient,operationsForPart,defectsForPart,eventsForRun,machinesForPart,partsForMachine} from './state.js?v=1.4.8.9';
-import {metricsForRuns,filteredRuns,defectPareto,topProducts,scrapQtyForRun,copqForEvent,oeeMetrics} from './metrics.js?v=1.4.8.9';
+import {$,number,money,percent,esc,dispositionLabel} from './utils.js';
+import {state,getClient,getPart,getOperation,getDefect,getRun,getMachine,getPersonnel,getDowntimeReason,cycleTimesForPart,partsForClient,operationsForPart,defectsForPart,eventsForRun,machinesForPart,partsForMachine} from './state.js';
+import {metricsForRuns,filteredRuns,defectPareto,topProducts,scrapQtyForRun,copqForEvent,oeeMetrics} from './metrics.js';
 let charts={};
 export function populateSelect(el,items,placeholder,label){if(!el)return;const v=el.value;el.innerHTML=`<option value="">${esc(placeholder)}</option>`+items.map(x=>`<option value="${x.id}">${esc(label(x))}</option>`).join('');if([...el.options].some(o=>o.value===v))el.value=v}
 export function renderAll(){renderSelects();renderDashboard();renderClients();renderParts();renderMachines();renderPersonnel();renderCatalog();renderDowntimeCatalog();renderRuns();renderSettings();renderHistory();renderRunScrapEvents()}

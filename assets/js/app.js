@@ -1,10 +1,10 @@
-import {$,toast,esc} from './utils.js?v=1.4.8.9';
-import {state,getClient,getPart,getRun} from './state.js?v=1.4.8.9';
-import * as api from './db.js?v=1.4.8.9';
-import * as ui from './ui.js?v=1.4.8.9';
-import {metricsForRuns,copqForEvent} from './metrics.js?v=1.4.8.9';
-import {initTraceability,renderBarcode,printBarcode} from './traceability.js?v=1.4.8.9';
-import {initI18n,applyLanguage,tr} from './i18n.js?v=1.4.8.9';
+import {$,toast,esc} from './utils.js';
+import {state,getClient,getPart,getRun} from './state.js';
+import * as api from './db.js';
+import * as ui from './ui.js';
+import {metricsForRuns,copqForEvent} from './metrics.js';
+import {initTraceability,renderBarcode,printBarcode} from './traceability.js';
+import {initI18n,applyLanguage,tr} from './i18n.js';
 
 let db;
 const canCapture=()=>['admin','manager','supervisor'].includes(state.role);

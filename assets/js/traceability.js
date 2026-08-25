@@ -1,7 +1,7 @@
-import {$,esc,number,toast} from './utils.js?v=1.4.8.9';
-import {state,getPart,getClient,getOperation,getMachine,getRun,operationsForPart,machinesForPart,activePersonnelByRole,getPersonnel,defectsForPart} from './state.js?v=1.4.8.9';
-import {populateSelect,renderAll,updateScrapDefects} from './ui.js?v=1.4.8.9';
-import * as api from './db.js?v=1.4.8.9';
+import {$,esc,number,toast} from './utils.js';
+import {state,getPart,getClient,getOperation,getMachine,getRun,operationsForPart,machinesForPart,activePersonnelByRole,getPersonnel,defectsForPart} from './state.js';
+import {populateSelect,renderAll,updateScrapDefects} from './ui.js';
+import * as api from './db.js';
 
 const trace={step:1,partId:'',lotNumber:'',quantity:0,operationId:'',machineId:'',runDate:'',shift:'',supervisorId:'',operatorId:''};
 let scanner=null,scanTarget=null,onRegistered=null;
