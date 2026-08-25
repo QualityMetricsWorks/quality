@@ -93,7 +93,7 @@ function renderKpiComparisons(){
 function renderGeneralCharts(runs){
  const d=daily(runs),labels=d.map(x=>x.date);
  chart('generalProductionTrendChart',rangedLineConfig(labels,d.map(x=>x.produced),'cyan',chartRange('general','production')));
- const oeeData=labels.map(date=>{const o=oeeMetrics(runs.filter(r=>r.date===date));return o.available?o.oee:null});
+ const oeeData=labels.map(date=>{const o=oeeMetrics(runs.filter(r=>r.date===date));return o.available?Number(o.oee)*100:null});
  chart('oeeTrendChart',rangedLineConfig(labels,oeeData,'blue',chartRange('general','oee')));
 }
 export function renderDashboard(){
@@ -110,6 +110,8 @@ const customDashboardsKey='guvel.custom.dashboards.v146';
 function readDashboardSettings(){try{return JSON.parse(localStorage.getItem(dashboardSettingsKey)||'{}')}catch{return {}}}
 function writeDashboardSettings(x){localStorage.setItem(dashboardSettingsKey,JSON.stringify(x))}
 function dashboardDefault(kind,metric){
+ if(kind==='general'&&metric==='oee')return {min:0,max:100,target:85};
+ if(kind==='general'&&metric==='production')return {min:0,max:1000,target:800};
  const d={min:0,max:100,target:50};
  if(metric==='scrap'||metric==='ppm'||metric==='copq'||metric==='production'||metric==='downtime')return {min:0,max:metric==='ppm'?1000:metric==='production'?1000:metric==='copq'?1000:metric==='downtime'?600:100,target:metric==='scrap'?5:metric==='ppm'?100:metric==='downtime'?60:50};
  return d;
@@ -123,7 +125,14 @@ function applyTargetLine(cfg,target){
  return cfg;
 }
 function rangedLineConfig(labels,data,tone,range){
- const cfg=lineConfig(labels,data,tone);cfg.options.scales.y.min=Number(range.min);cfg.options.scales.y.max=Number(range.max);return applyTargetLine(cfg,Number(range.target));
+ const cfg=lineConfig(labels,data,tone);
+ const min=Number(range.min),max=Number(range.max);
+ cfg.options.scales.y.beginAtZero=false;
+ cfg.options.scales.y.min=min;
+ cfg.options.scales.y.max=max;
+ cfg.options.scales.y.suggestedMin=min;
+ cfg.options.scales.y.suggestedMax=max;
+ return applyTargetLine(cfg,Number(range.target));
 }
 export function getDashboardSetting(kind,metric){return chartRange(kind,metric)}
 export function saveDashboardSetting(kind,metric,value){const all=readDashboardSettings();all[kind]=all[kind]||{};all[kind][metric]=value;writeDashboardSettings(all)}
