@@ -8,8 +8,7 @@ export function renderSelects(){
  const clientSelects=['filterClient','scrapClient','downtimeClient','partClient','defectClient'];clientSelects.forEach(id=>populateSelect($(id),state.clients,id==='filterClient'?'Todos los clientes':'Selecciona cliente',x=>x.code?`${x.code} · ${x.name}`:x.name));
  updateFilterParts();updateScrapParts();updateDowntimeParts();updateDefectParts();updatePartMachineSelect();populateSelect($('filterMachine'),state.machines,'Todas las máquinas',x=>x.code);
 }
- ['scrapHistoryShift','downtimeHistoryShift'].forEach(id=>{const el=$(id);if(!el)return;const old=el.value;el.innerHTML='<option value="">Todos los turnos</option>'+state.shiftSchedules.map(s=>`<option value="${esc(s.code)}">${esc(s.code)} · ${esc(s.name)}</option>`).join('');if([...el.options].some(o=>o.value===old))el.value=old;});
-function updateFilterParts(){populateSelect($('filterPartNumber'),partsForClient($('filterClient')?.value),'Todos los NP',x=>x.number)}
+export function updateFilterParts(){populateSelect($('filterPartNumber'),partsForClient($('filterClient')?.value),'Todos los NP',x=>x.number)}
 export function updateScrapParts(){populateSelect($('scrapPart'),partsForClient($('scrapClient')?.value),'Selecciona NP',x=>x.number);updateScrapOperations()}
 export function updateScrapOperations(){populateSelect($('scrapOperation'),operationsForPart($('scrapPart')?.value),'Selecciona operación',x=>`${x.code} · ${x.name}`);updateScrapMachines()}
 export function updateScrapMachines(){populateSelect($('scrapMachine'),machinesForPart($('scrapPart')?.value),'Selecciona máquina',x=>`${x.code}${x.name?' · '+x.name:''}`)}
@@ -92,13 +91,9 @@ function renderKpiComparisons(){
 }
 function renderGeneralCharts(runs){
  const d=daily(runs),labels=d.map(x=>x.date);
- // v1.5.0.7: keep General OEE and Production ranges tied directly to their
- // individual saved settings. OEE is already returned by oeeMetrics as 0–100.
- const productionRange=chartRange('general','production');
- const oeeRange=chartRange('general','oee');
- chart('generalProductionTrendChart',rangedLineConfig(labels,d.map(x=>Number(x.produced||0)),'cyan',productionRange));
- const oeeData=labels.map(date=>{const o=oeeMetrics(runs.filter(r=>r.date===date));return o.available?Number(o.oee):null});
- chart('oeeTrendChart',rangedLineConfig(labels,oeeData,'blue',oeeRange));
+ chart('generalProductionTrendChart',rangedLineConfig(labels,d.map(x=>x.produced),'cyan',chartRange('production','production')));
+ const oeeData=labels.map(date=>{const o=oeeMetrics(runs.filter(r=>r.date===date));return o.available?o.oee:null});
+ chart('oeeTrendChart',rangedLineConfig(labels,oeeData,'blue',chartRange('production','oee')));
 }
 export function renderDashboard(){
  const runs=activeRuns(),m=metricsForRuns(runs);$('kpiProduction').textContent=number(m.produced);$('kpiScrap').textContent=percent(m.scrapRate);$('kpiScrapQty').textContent=`${number(m.scrap)} piezas`;$('kpiPpm').textContent=number(Math.round(m.ppm));$('kpiYield').textContent=percent(m.yieldRate);$('kpiCopq').textContent=percent(m.copqPercent);$('kpiCopqUsd').textContent=`${money(m.copq,'USD')} USD`;
@@ -109,28 +104,17 @@ export function renderDashboard(){
  renderGeneralCharts(runs);renderCharts(runs,de);renderTopProducts(runs);renderKpiComparisons();renderCustomDashboard('production',runs,de);renderCustomDashboard('scrap',runs,de);renderCustomDashboard('maintenance',runs,de);
 }
 
-const dashboardSettingsKey='guvel.dashboard.settings.v1504';
+const dashboardSettingsKey='guvel.dashboard.settings.v146';
 const customDashboardsKey='guvel.custom.dashboards.v146';
 function readDashboardSettings(){try{return JSON.parse(localStorage.getItem(dashboardSettingsKey)||'{}')}catch{return {}}}
 function writeDashboardSettings(x){localStorage.setItem(dashboardSettingsKey,JSON.stringify(x))}
 function dashboardDefault(kind,metric){
- if(kind==='general'&&metric==='oee')return {min:0,max:100,target:85};
- if(kind==='general'&&metric==='production')return {min:0,max:1000,target:800};
  const d={min:0,max:100,target:50};
  if(metric==='scrap'||metric==='ppm'||metric==='copq'||metric==='production'||metric==='downtime')return {min:0,max:metric==='ppm'?1000:metric==='production'?1000:metric==='copq'?1000:metric==='downtime'?600:100,target:metric==='scrap'?5:metric==='ppm'?100:metric==='downtime'?60:50};
  return d;
 }
 function chartRange(kind,metric){
- const all=readDashboardSettings();
- const saved=all?.[kind]?.[metric];
- const base=dashboardDefault(kind,metric);
- if(!saved)return base;
- const min=Number(saved.min),max=Number(saved.max),target=Number(saved.target);
- return {
-   min:Number.isFinite(min)?min:base.min,
-   max:Number.isFinite(max)?max:base.max,
-   target:Number.isFinite(target)?target:base.target
- };
+ const all=readDashboardSettings();return all?.[kind]?.[metric]||dashboardDefault(kind,metric);
 }
 function applyTargetLine(cfg,target){
  const labels=cfg.data?.labels||[];
@@ -138,26 +122,16 @@ function applyTargetLine(cfg,target){
  return cfg;
 }
 function rangedLineConfig(labels,data,tone,range){
- const cfg=lineConfig(labels,data,tone);
- let min=Number(range.min),max=Number(range.max),target=Number(range.target);
- if(!Number.isFinite(min))min=0;if(!Number.isFinite(max))max=100;if(!Number.isFinite(target))target=(min+max)/2;
- if(max<min){const t=min;min=max;max=t;}
- target=Math.max(min,Math.min(max,target));
- cfg.options.scales.y.beginAtZero=false;
- cfg.options.scales.y.min=min;
- cfg.options.scales.y.max=max;
- cfg.options.scales.y.suggestedMin=min;
- cfg.options.scales.y.suggestedMax=max;
- return applyTargetLine(cfg,target);
+ const cfg=lineConfig(labels,data,tone);cfg.options.scales.y.min=Number(range.min);cfg.options.scales.y.max=Number(range.max);return applyTargetLine(cfg,Number(range.target));
 }
 export function getDashboardSetting(kind,metric){return chartRange(kind,metric)}
 export function saveDashboardSetting(kind,metric,value){const all=readDashboardSettings();all[kind]=all[kind]||{};all[kind][metric]=value;writeDashboardSettings(all)}
 export function dashboardMetricOptions(kind){
  const map={
-  general:[['oee','OEE %'],['production','Production'],['scrap','Scrap %'],['ppm','PPM'],['yield','Yield %'],['copq','COPQ %']],
-  production:[['production','Production']],
-  scrap:[],
-  maintenance:[]
+  general:[['scrap','Scrap %'],['ppm','PPM'],['yield','Yield %'],['copq','COPQ'],['production','Production']],
+  production:[['production','Production'],['oee','OEE %'],['availability','Availability %'],['performance','Performance %'],['quality','Quality %']],
+  scrap:[['scrap','Scrap %'],['ppm','PPM'],['yield','Yield %'],['defect_pie','Pie · Defectos'],['part_pie','Pie · Números de Parte'],['defect_pareto','Pareto · Defectos'],['part_pareto','Pareto · Números de Parte']],
+  maintenance:[['downtime','Tiempo muerto'],['reason_pie','Pie · Motivos de paro'],['machine_pie','Pie · Máquinas'],['reason_pareto','Pareto · Motivos de paro'],['machine_pareto','Pareto · Máquinas']]
  };return map[kind]||map.general;
 }
 function getCustomDashboards(){try{return JSON.parse(localStorage.getItem(customDashboardsKey)||'{}')}catch{return {}}}
@@ -238,9 +212,7 @@ function renderCharts(runs,downtime){const d=daily(runs),labels=d.map(x=>x.date)
  chart('ppmTrendChart',rangedLineConfig(labels,d.map(x=>x.ppm),'red',chartRange('general','ppm')));
  chart('yieldTrendChart',rangedLineConfig(labels,d.map(x=>x.yieldRate),'cyan',chartRange('general','yield')));
  chart('copqTrendChart',rangedLineConfig(labels,d.map(x=>x.copqPercent),'red',chartRange('general','copq')));
- // Production dashboard has its own independent range/meta.
- const productionRange=chartRange('production','production');
- chart('productionTrendChart',rangedLineConfig(labels,d.map(x=>Number(x.produced||0)),'cyan',productionRange));
+ chart('productionTrendChart',rangedLineConfig(labels,d.map(x=>x.produced),'cyan',chartRange('production','production')));
  const ev=state.scrapEvents.filter(e=>runs.some(r=>r.id===e.runId)),byDef={},byPart={};ev.forEach(e=>{const n=getDefect(e.defectId)?.name||'Otro';byDef[n]=(byDef[n]||0)+e.quantity;const pn=getPart(getRun(e.runId)?.partId)?.number||'Otro';byPart[pn]=(byPart[pn]||0)+e.quantity});chart('scrapDefectPieChart',pieConfig(Object.keys(byDef),Object.values(byDef)));chart('scrapPartPieChart',pieConfig(Object.keys(byPart),Object.values(byPart)));const defSorted=Object.entries(byDef).sort((a,b)=>b[1]-a[1]),partSorted=Object.entries(byPart).sort((a,b)=>b[1]-a[1]);chart('scrapDefectParetoChart',paretoConfig(defSorted.map(x=>x[0]),defSorted.map(x=>x[1])));chart('scrapPartParetoChart',paretoConfig(partSorted.map(x=>x[0]),partSorted.map(x=>x[1])));
  const byReason={},byMachine={};downtime.forEach(e=>{const n=getDowntimeReason(e.reasonId)?.name||'Otro';byReason[n]=(byReason[n]||0)+e.minutes;const r=getRun(e.runId),mc=getMachine(r?.machineId)?.code||'Sin máquina';byMachine[mc]=(byMachine[mc]||0)+e.minutes});chart('downtimeReasonPieChart',pieConfig(Object.keys(byReason),Object.values(byReason)));chart('downtimeMachinePieChart',pieConfig(Object.keys(byMachine),Object.values(byMachine)));const reasonSorted=Object.entries(byReason).sort((a,b)=>b[1]-a[1]),machineSorted=Object.entries(byMachine).sort((a,b)=>b[1]-a[1]);chart('downtimeReasonParetoChart',paretoConfig(reasonSorted.map(x=>x[0]),reasonSorted.map(x=>x[1])));chart('downtimeMachineParetoChart',paretoConfig(machineSorted.map(x=>x[0]),machineSorted.map(x=>x[1])));}
 function renderTopProducts(runs){const el=$('topProductsGrid');if(!el)return;const tops=topProducts(runs);el.innerHTML=tops.length?tops.map((t,i)=>{const p=getPart(t.partId),pr=defectPareto(t.runs).slice(0,3);return `<div class="top-product"><span class="rank">RANK ${i+1}</span><h4>${esc(p?.number||'—')}</h4><small>${esc(getClient(p?.clientId)?.name||'—')}</small><div class="metrics"><div><span>SCRAP</span><strong>${number(t.scrap)}</strong></div><div><span>YIELD</span><strong>${percent(t.yieldRate)}</strong></div><div><span>COPQ</span><strong>${percent(t.copqPercent)}</strong><small>${money(t.copq,p?.currency||'USD')}</small></div></div>${pr.map((x,j)=>`<div class="entity-item"><small>${j+1}. ${esc(x.name)}</small><strong>${number(x.qty)}</strong></div>`).join('')}</div>`}).join(''):'<div class="empty-state">Sin datos para el periodo seleccionado.</div>'}
@@ -262,7 +234,7 @@ export function renderPartDetail(){
  updatePartMachineSelect();$('partMachineList').innerHTML=machinesForPart(p.id).map(m=>`<div class="entity-item"><span><strong>${esc(m.code)}</strong><small>${esc(m.name||'')}</small></span><button class="icon-btn" data-unlink-machine="${m.id}">×</button></div>`).join('')||'<div class="empty-state">Sin máquinas vinculadas.</div>';
 
  renderCycleTimes();
- $('partOperationList').innerHTML=operationsForPart(p.id).map(o=>`<div class="entity-item"><span><strong>${esc(o.code)}</strong><small>${esc(o.name)}${o.isFinishGood?' · <b class="fg-badge">FINISH GOOD</b>':''}</small></span><span class="entity-actions"><label class="fg-toggle"><input type="checkbox" data-toggle-fg="${o.id}" ${o.isFinishGood?'checked':''}> <span>Finish Good</span></label><button class="icon-btn" data-delete-operation="${o.id}">×</button></span></div>`).join('')||'<div class="empty-state">Sin operaciones.</div>';
+ $('partOperationList').innerHTML=operationsForPart(p.id).map(o=>`<div class="entity-item"><span><strong>${esc(o.code)}</strong><small>${esc(o.name)}</small></span><button class="icon-btn" data-delete-operation="${o.id}">×</button></div>`).join('')||'<div class="empty-state">Sin operaciones.</div>';
  $('partDefectList').innerHTML=defectsForPart(p.id).map(d=>`<div class="entity-item"><span><strong>${esc(d.code)} · ${esc(d.name)}</strong><small>${esc(getOperation(d.operationId)?.code||'General')} · ${esc(d.category||'')}</small></span></div>`).join('')||'<div class="empty-state">Sin defectos.</div>';
  $('partProductionList').innerHTML=rs.slice().sort((a,b)=>b.date.localeCompare(a.date)).slice(0,20).map(r=>`<div class="entity-item"><span><strong>${r.date} · ${esc(getOperation(r.operationId)?.code||'—')}</strong><small>${number(r.produced)} piezas · ${esc(r.machine||'Sin máquina')}</small></span><strong>${percent(metricsForRuns([r]).yieldRate)}</strong></div>`).join('')||'<div class="empty-state">Sin producción.</div>';
  const ev=state.scrapEvents.filter(e=>getRun(e.runId)?.partId===p.id);if(window.GUVEL_RENDER_BARCODE)window.GUVEL_RENDER_BARCODE();
@@ -300,48 +272,47 @@ const runCode=r=>`PR-${String(r.id||'').replaceAll('-','').slice(0,8).toUpperCas
 export function renderRuns(){
  const count=$('runCount'),list=$('runList');if(!count||!list)return;
  const sorted=[...state.runs].sort((a,b)=>String(b.createdAt||b.date||'').localeCompare(String(a.createdAt||a.date||'')));
- const q=($('runSearch')?.value||'').trim().toLowerCase();
- const filtered=sorted.filter(r=>{const p=getPart(r.partId),m=getMachine(r.machineId),op=getOperation(r.operationId),oper=getPersonnel(r.operatorId),sup=getPersonnel(r.supervisorId);return `${runCode(r)} ${r.lotNumber||''} ${p?.number||''} ${getClient(r.clientId)?.name||''} ${m?.code||''} ${op?.code||''} ${oper?.fullName||''} ${sup?.fullName||''}`.toLowerCase().includes(q)});
- const groups=new Map();
- filtered.forEach(r=>{
-   const key=`${r.partId}|${r.lotNumber||'__NO_LOT__'}`;
-   const arr=groups.get(key)||[];arr.push(r);groups.set(key,arr);
- });
- const allGroupIds=state.selectedRunGroupIds||[];
- const activeId=state.selectedRunId;
+ if(!state.selectedRunId&&sorted.length)state.selectedRunId=sorted[0].id;
+ if(state.selectedRunId&&!state.runs.some(x=>x.id===state.selectedRunId))state.selectedRunId=sorted[0]?.id||null;
  count.textContent=state.runs.length;
- if(!state.runs.length){list.innerHTML='<div class="run-zero-state"><strong>Sin corridas.</strong><small>No existen registros en production_runs para esta empresa.</small></div>';}
- else if(!filtered.length){list.innerHTML='<div class="run-zero-state"><strong>Sin resultados.</strong><small>Cambia el criterio de búsqueda.</small></div>';}
- else{
-  list.innerHTML=[...groups.values()].map(rs=>{
-   const r=rs[0],p=getPart(r.partId),machines=[...new Set(rs.map(x=>getMachine(x.machineId)?.code||x.machine).filter(Boolean))],ops=[...new Set(rs.map(x=>getOperation(x.operationId)?.code).filter(Boolean))];
-   const ids=rs.map(x=>x.id).join(',');
-   const active=rs.some(x=>allGroupIds.includes(x.id))||(rs.length===1&&r.id===activeId);
-   return `<button class="entity-item ${active?'active':''}" data-run-group="${esc(ids)}"><span><strong>${esc(r.lotNumber||'Sin lote')} · ${esc(p?.number||'—')}</strong><small>${rs.length} corrida${rs.length>1?'s':''} · Ops: ${esc(ops.join(', ')||'—')} · Máquinas: ${esc(machines.join(', ')||'—')}</small></span><span>›</span></button>`;
-  }).join('');
+ const q=($('runSearch')?.value||'').trim().toLowerCase();
+ const rows=sorted.filter(r=>{
+  const p=getPart(r.partId),m=getMachine(r.machineId),op=getOperation(r.operationId),oper=getPersonnel(r.operatorId),sup=getPersonnel(r.supervisorId);
+  return `${runCode(r)} ${r.lotNumber||''} ${p?.number||''} ${getClient(r.clientId)?.name||''} ${m?.code||''} ${op?.code||''} ${oper?.fullName||''} ${sup?.fullName||''}`.toLowerCase().includes(q);
+ });
+ if(!state.runs.length){
+  list.innerHTML='<div class="run-zero-state"><strong>Sin corridas.</strong><small>No existen registros en production_runs para esta empresa.</small></div>';
+ }else if(!rows.length){
+  list.innerHTML='<div class="run-zero-state"><strong>Sin resultados.</strong><small>Cambia el criterio de búsqueda.</small></div>';
+ }else{
+  list.innerHTML=rows.map(r=>`<button class="entity-item ${r.id===state.selectedRunId?'active':''}" data-run-id="${r.id}"><span><strong>${esc(runCode(r))} · ${esc(r.lotNumber||'Sin lote')}</strong><small>${esc(getPart(r.partId)?.number||'—')} · ${esc(getMachine(r.machineId)?.code||r.machine||'—')} · ${r.createdAt?new Date(r.createdAt).toLocaleString(document.documentElement.lang==='en'?'en-US':'es-MX'):r.date}</small></span><span>›</span></button>`).join('');
  }
  renderRunDetail();
 }
 export function renderRunDetail(){
- const first=getRun(state.selectedRunId),empty=$('runEmptyState'),detail=$('runDetail');
- const groupIds=(state.selectedRunGroupIds||[]).filter(id=>state.runs.some(r=>r.id===id));
- const rs=groupIds.length?groupIds.map(getRun).filter(Boolean):(first?[first]:[]);
- if(!rs.length){empty.hidden=false;detail.hidden=true;return}
- const r=rs[0];empty.hidden=true;detail.hidden=false;
- const p=getPart(r.partId),machines=[...new Set(rs.map(x=>getMachine(x.machineId)?.code||x.machine).filter(Boolean))],ops=[...new Set(rs.map(x=>getOperation(x.operationId)?.code).filter(Boolean))],met=metricsForRuns(rs);
- const ids=new Set(rs.map(x=>x.id)),quality=state.scrapEvents.filter(x=>ids.has(x.runId)),downtime=state.downtimeEvents.filter(x=>ids.has(x.runId));
+ const r=getRun(state.selectedRunId),empty=$('runEmptyState'),detail=$('runDetail');if(!r){empty.hidden=false;detail.hidden=true;return}
+ empty.hidden=true;detail.hidden=false;
+ const p=getPart(r.partId),m=getMachine(r.machineId),op=getOperation(r.operationId),met=metricsForRuns([r]);
+ const quality=state.scrapEvents.filter(x=>x.runId===r.id),downtime=state.downtimeEvents.filter(x=>x.runId===r.id);
  const mins=downtime.reduce((s,x)=>s+Number(x.minutes||0),0);
- const ct=rs.length===1?state.cycleTimes.find(x=>x.partId===r.partId&&x.operationId===r.operationId&&x.machineId===r.machineId):null;
+ const ct=state.cycleTimes.find(x=>x.partId===r.partId&&x.operationId===r.operationId&&x.machineId===r.machineId);
  const locale=document.documentElement.lang==='en'?'en-US':'es-MX';
- $('runDetailCode').textContent=rs.length>1?`${runCode(r)} · ${rs.length} corridas`:runCode(r);
- $('runDetailStatus').textContent=r.status||'completed';$('runDetailStatus').className=`run-status ${r.status||'completed'}`;$('runDetailMethod').textContent=rs.length>1?'Consolidado':(r.captureMethod||'—');$('runDetailLot').textContent=r.lotNumber||'—';
+ $('runDetailCode').textContent=runCode(r);$('runDetailStatus').textContent=r.status||'completed';$('runDetailStatus').className=`run-status ${r.status||'completed'}`;$('runDetailMethod').textContent=r.captureMethod||'—';$('runDetailLot').textContent=r.lotNumber||'—';
  $('runDetailProduction').textContent=number(met.produced);$('runDetailScrap').textContent=number(met.scrap);$('runDetailYield').textContent=percent(met.yieldRate);$('runDetailPpm').textContent=number(Math.round(met.ppm));$('runDetailCopq').textContent=money(met.copq,p?.currency||'USD');$('runDetailDowntime').textContent=`${number(mins)} min`;
- $('runDetailClient').textContent=getClient(r.clientId)?.name||'—';$('runDetailPart').textContent=p?.number||'—';$('runDetailOperation').textContent=ops.join(', ')||'—';$('runDetailMachine').textContent=machines.join(', ')||'—';$('runDetailCycle').textContent=ct?`${Number(ct.idealCycleSeconds).toFixed(2)} s`:(rs.length>1?'Varios':'No configurado');$('runDetailShift').textContent=[...new Set(rs.map(x=>x.shift).filter(Boolean))].join(', ')||'—';$('runDetailOperator').textContent=rs.length===1?(getPersonnel(r.operatorId)?.fullName||'—'):'Varios';$('runDetailSupervisor').textContent=rs.length===1?(getPersonnel(r.supervisorId)?.fullName||'—'):'Varios';$('runDetailCreated').textContent=rs.map(x=>x.createdAt?new Date(x.createdAt).toLocaleString(locale):x.date).join(' · ');
- renderRunScrapEvents();
+ $('runDetailClient').textContent=getClient(r.clientId)?.name||'—';$('runDetailPart').textContent=p?.number||'—';$('runDetailOperation').textContent=op?`${op.code} · ${op.name}`:'—';$('runDetailMachine').textContent=m?.code||r.machine||'—';$('runDetailCycle').textContent=ct?`${Number(ct.idealCycleSeconds).toFixed(2)} s`:'No configurado';$('runDetailShift').textContent=r.shift||'—';$('runDetailOperator').textContent=getPersonnel(r.operatorId)?.fullName||'—';$('runDetailSupervisor').textContent=getPersonnel(r.supervisorId)?.fullName||'—';$('runDetailCreated').textContent=r.createdAt?new Date(r.createdAt).toLocaleString(locale):'—';$('runDetailCompleted').textContent=r.completedAt?new Date(r.completedAt).toLocaleString(locale):'—';
+ $('runQualityList').innerHTML=quality.map(e=>`<div class="entity-item"><span><strong>${esc(getDefect(e.defectId)?.name||'—')}</strong><small>${esc(dispositionLabel(e.disposition))}</small></span><strong>${number(e.quantity)}</strong></div>`).join('')||'<div class="empty-state">Sin eventos de calidad.</div>';
+ $('runDowntimeList').innerHTML=downtime.map(e=>`<div class="entity-item"><span><strong>${esc(getDowntimeReason(e.reasonId)?.name||'—')}</strong><small>${e.eventType==='planned'?'Planned':'Unplanned'}</small></span><strong>${number(e.minutes)} min</strong></div>`).join('')||'<div class="empty-state">Sin tiempos muertos.</div>';
+}
+export function renderSettings(){
+ const el=$('shiftList');if(!el)return;
+ el.innerHTML=state.shiftSchedules.map(s=>`<div class="entity-item"><span><strong>${esc(s.code)} · ${esc(s.name)}</strong><small>${esc(String(s.startTime).slice(0,5))} → ${esc(String(s.endTime).slice(0,5))} · ${number(s.breakMinutes)} min excluidos</small></span><button class="icon-btn" data-delete-shift="${s.id}">×</button></div>`).join('')||'<div class="empty-state">Sin turnos configurados.</div>';
+}
+export function renderHistory(){
+ const newest=(a,b)=>String(b.createdAt||b.date||'').localeCompare(String(a.createdAt||a.date||''));
+ const qp=($('productionHistorySearch')?.value||'').toLowerCase();const rs=[...state.runs].sort(newest).filter(r=>`${r.date} ${getClient(r.clientId)?.name} ${getPart(r.partId)?.number} ${getOperation(r.operationId)?.code} ${r.machine}`.toLowerCase().includes(qp));$('productionHistoryBody').innerHTML=rs.map(r=>{const m=metricsForRuns([r]);return `<tr><td>${r.createdAt?new Date(r.createdAt).toLocaleString('es-MX'):r.date}</td><td>${esc(r.shift)}</td><td>${esc(r.lotNumber||'—')}</td><td>${esc(getClient(r.clientId)?.name||'—')}</td><td>${esc(getPart(r.partId)?.number||'—')}</td><td>${esc(getOperation(r.operationId)?.code||'—')}</td><td>${esc(getMachine(r.machineId)?.code||r.machine||'—')}</td><td>${esc(getPersonnel(r.operatorId)?.fullName||'—')}</td><td>${esc(r.status||'completed')}</td><td>${number(r.produced)}</td><td class="${m.scrap?'metric-bad':''}">${number(m.scrap)}</td><td>${percent(m.yieldRate)}</td><td><button class="icon-btn" data-delete-run="${r.id}">×</button></td></tr>`}).join('')||'<tr><td colspan="13" class="empty-state">Sin producción.</td></tr>';
+ const qs=($('scrapHistorySearch')?.value||'').toLowerCase();const es=[...state.scrapEvents].sort(newest).filter(e=>{const r=getRun(e.runId);return `${r?.date} ${getClient(r?.clientId)?.name} ${getPart(r?.partId)?.number} ${getDefect(e.defectId)?.name} ${e.disposition}`.toLowerCase().includes(qs)});$('scrapHistoryBody').innerHTML=es.map(e=>{const r=getRun(e.runId),p=getPart(r?.partId);return `<tr><td>${r?.date||'—'}</td><td>${esc(getClient(r?.clientId)?.name||'—')}</td><td>${esc(p?.number||'—')}</td><td>${esc(getOperation(r?.operationId)?.code||'—')}</td><td>${esc(getDefect(e.defectId)?.name||'—')}</td><td>${number(e.quantity)}</td><td>${esc(dispositionLabel(e.disposition))}</td><td>${money(copqForEvent(e),p?.currency||'USD')}</td><td><button class="icon-btn" data-delete-scrap="${e.id}">×</button></td></tr>`}).join('')||'<tr><td colspan="9" class="empty-state">Sin eventos.</td></tr>';
+ const dh=$('downtimeHistoryBody');if(dh)dh.innerHTML=[...state.downtimeEvents].sort(newest).map(e=>{const r=getRun(e.runId),p=getPart(r?.partId);return `<tr><td>${r?.date||'—'}</td><td>${esc(getClient(r?.clientId)?.name||'—')}</td><td>${esc(p?.number||'—')}</td><td>${esc(getMachine(r?.machineId)?.code||'—')}</td><td>${esc(getDowntimeReason(e.reasonId)?.name||'—')}</td><td>${esc(e.eventType==='planned'?'Planned':'Unplanned')}</td><td>${number(e.minutes)}</td></tr>`}).join('')||'<tr><td colspan="6" class="empty-state">Sin tiempos muertos.</td></tr>';
 }
 export function renderRunScrapEvents(){
- const runId=$('scrapRun')?.value,body=$('runScrapEventsBody');if(!body)return;
- const ids=new Set((state.selectedRunGroupIds||[]).length?state.selectedRunGroupIds:[runId]);
- const events=state.scrapEvents.filter(e=>ids.has(e.runId));
- body.innerHTML=events.map(e=>`<tr><td>${esc(getDefect(e.defectId)?.name||'—')}</td><td>${number(e.quantity)}</td><td>${esc(dispositionLabel(e.disposition))}</td><td>${money(copqForEvent(e),getPart(getRun(e.runId)?.partId)?.currency||'USD')}</td><td><button class="icon-btn" data-delete-scrap="${e.id}">×</button></td></tr>`).join('')||'<tr><td colspan="5" class="empty-state">Sin eventos para esta corrida.</td></tr>';
+ const runId=$('scrapRun')?.value,body=$('runScrapEventsBody');if(!body)return;body.innerHTML=eventsForRun(runId).map(e=>`<tr><td>${esc(getDefect(e.defectId)?.name||'—')}</td><td>${number(e.quantity)}</td><td>${esc(dispositionLabel(e.disposition))}</td><td>${money(copqForEvent(e),getPart(getRun(e.runId)?.partId)?.currency||'USD')}</td><td><button class="icon-btn" data-delete-scrap="${e.id}">×</button></td></tr>`).join('')||'<tr><td colspan="5" class="empty-state">Sin eventos para esta corrida.</td></tr>';
 }
