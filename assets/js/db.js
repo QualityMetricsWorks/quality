@@ -1,4 +1,4 @@
-import {state} from './state.js';
+import {state} from './state.js?v=1.4.8.9';
 let db=null;
 export function client(){return db}
 export function initDb(){
