@@ -70,6 +70,11 @@ export async function deleteDowntimeReason(id){const row=check(await db.from('do
 export async function insertDowntimeEvents(runId,items){if(!items?.length)return [];const rows=check(await db.from('downtime_events').insert(items.map(x=>({...common(),run_id:runId,reason_id:x.reasonId,minutes:x.minutes,event_type:x.eventType||'unplanned',notes:x.notes||null}))).select());state.downtimeEvents=[...rows.map(x=>({id:x.id,runId:x.run_id,reasonId:x.reason_id,minutes:Number(x.minutes||0),eventType:x.event_type||'unplanned',notes:x.notes||'',createdAt:x.created_at||new Date().toISOString()})),...state.downtimeEvents];return rows}
 
 
+export async function deleteDowntimeEvent(id){
+ const r=await db.from('downtime_events').delete().eq('id',id);check(r);
+ state.downtimeEvents=state.downtimeEvents.filter(x=>x.id!==id);
+ return {id};
+}
 export async function upsertCycleTime(x){const row=check(await db.from('part_cycle_times').upsert({...common(),part_id:x.partId,operation_id:x.operationId,machine_id:x.machineId,ideal_cycle_seconds:x.idealCycleSeconds},{onConflict:'part_id,operation_id,machine_id'}).select().single());localReplace('cycleTimes',row.id,row);return row}
 export async function deleteCycleTime(id){const r=await db.from('part_cycle_times').delete().eq('id',id);check(r);localRemove('cycleTimes',id)}
 
