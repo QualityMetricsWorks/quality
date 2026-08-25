@@ -1,4 +1,4 @@
-export const state={clients:[],parts:[],operations:[],defects:[],machines:[],partMachines:[],personnel:[],downtimeReasons:[],downtimeEvents:[],cycleTimes:[],shiftSchedules:[],runs:[],scrapEvents:[],companyId:null,companyName:'',role:'viewer',user:null,selectedClientId:null,selectedPartId:null,selectedMachineId:null,selectedPersonnelId:null,selectedRunId:null,auditLogs:[]};
+export const state={clients:[],parts:[],operations:[],defects:[],machines:[],partMachines:[],personnel:[],downtimeReasons:[],downtimeEvents:[],cycleTimes:[],shiftSchedules:[],runs:[],scrapEvents:[],companyId:null,companyName:'',role:'viewer',user:null,selectedClientId:null,selectedPartId:null,selectedMachineId:null,selectedPersonnelId:null,selectedRunId:null,selectedRunGroupIds:[],auditLogs:[]};
 export const getClient=id=>state.clients.find(x=>x.id===id);
 export const getPart=id=>state.parts.find(x=>x.id===id);
 export const getOperation=id=>state.operations.find(x=>x.id===id);
