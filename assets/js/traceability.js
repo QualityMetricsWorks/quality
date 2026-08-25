@@ -79,7 +79,7 @@ function renderPeople(){
  closePersonPickers();
 }
 function previewRow(label,value,highlight=false){return `<div class="preview-item ${highlight?'highlight':''}"><span>${esc(label)}</span><strong>${esc(value||'—')}</strong></div>`}
-function renderDowntime(){populateSelect($('traceDowntimeReason'),state.downtimeReasons,'Selecciona motivo',x=>`${x.code} · ${x.name} · ${x.downtimeType==='planned'?'Planeado':'No planeado'}`);$('traceDowntimeList').innerHTML=pendingDowntime.map((x,i)=>`<span class="downtime-chip">${esc(state.downtimeReasons.find(r=>r.id===x.reasonId)?.name||'Paro')} · ${number(x.minutes)} min${x.notes?` · ${esc(x.notes)}`:''} <button type="button" data-remove-downtime="${i}">×</button></span>`).join('')}
+function renderDowntime(){populateSelect($('traceDowntimeReason'),state.downtimeReasons,'Selecciona motivo',x=>`${x.code} · ${x.name} · ${x.downtimeType==='planned'?'Planeado':'No planeado'}`);$('traceDowntimeList').innerHTML=pendingDowntime.map((x,i)=>`<span class="downtime-chip">${esc(state.downtimeReasons.find(r=>r.id===x.reasonId)?.name||'Paro')} · ${number(x.minutes)} min <button type="button" data-remove-downtime="${i}">×</button></span>`).join('')}
 function renderInlineScrap(){
  const defs=defectsForPart(trace.partId,trace.operationId);
  populateSelect($('traceScrapDefect'),defs,'Selecciona defecto',x=>`${x.code} · ${x.name}`);
@@ -166,21 +166,10 @@ export function initTraceability(callback){
  ['supervisor','operator'].forEach(role=>{
    const prefix=role==='supervisor'?'traceSupervisor':'traceOperator';
    const input=$(prefix+'Search'),options=$(prefix+'Options');
-   input?.addEventListener('focus',()=>{
-     if($(prefix).value){$(prefix).value='';input.value='';}
-     renderPersonPicker(role);
-     input.select();
-   });
+   input?.addEventListener('focus',()=>renderPersonPicker(role));
    input?.addEventListener('input',()=>{
      $(prefix).value='';
      renderPersonPicker(role);
-   });
-   input?.addEventListener('keydown',e=>{
-     if(e.key==='Escape'){closePersonPickers();input.blur();}
-     if(e.key==='Enter'){
-       const first=$(prefix+'Options')?.querySelector('[data-person-id]');
-       if(first){e.preventDefault();selectPerson(role,first.dataset.personId);}
-     }
    });
    options?.addEventListener('click',e=>{const b=e.target.closest('[data-person-id]');if(b)selectPerson(role,b.dataset.personId)});
  });
@@ -194,7 +183,7 @@ export function initTraceability(callback){
  pendingScrap.push({defectId,quantity,disposition,extraCost:Number($('traceScrapExtraCost').value||0),reason:$('traceScrapReason').value||'',notes:$('traceScrapNotes').value||''});
  $('traceScrapQuantity').value='';$('traceScrapExtraCost').value='0';$('traceScrapReason').value='';$('traceScrapNotes').value='';renderInlineScrap();
 });
-$('addTraceDowntimeBtn').addEventListener('click',()=>{const reasonId=$('traceDowntimeReason').value,minutes=Number($('traceDowntimeMinutes').value);if(!reasonId||minutes<=0)return toast('Selecciona motivo y minutos.');pendingDowntime.push({reasonId,minutes,eventType:$('traceDowntimeType').value,notes:$('traceDowntimeNotes').value||''});$('traceDowntimeMinutes').value='';$('traceDowntimeNotes').value='';renderDowntime()});
+$('addTraceDowntimeBtn').addEventListener('click',()=>{const reasonId=$('traceDowntimeReason').value,minutes=Number($('traceDowntimeMinutes').value);if(!reasonId||minutes<=0)return toast('Selecciona motivo y minutos.');pendingDowntime.push({reasonId,minutes,eventType:$('traceDowntimeType').value});$('traceDowntimeMinutes').value='';renderDowntime()});
  document.body.addEventListener('click',e=>{
  const b=e.target.closest('[data-remove-downtime]');if(b){pendingDowntime.splice(Number(b.dataset.removeDowntime),1);renderDowntime()}
  const s=e.target.closest('[data-remove-trace-scrap]');if(s){pendingScrap.splice(Number(s.dataset.removeTraceScrap),1);renderInlineScrap()}
