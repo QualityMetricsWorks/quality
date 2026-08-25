@@ -92,9 +92,13 @@ function renderKpiComparisons(){
 }
 function renderGeneralCharts(runs){
  const d=daily(runs),labels=d.map(x=>x.date);
- chart('generalProductionTrendChart',rangedLineConfig(labels,d.map(x=>x.produced),'cyan',chartRange('general','production')));
+ // v1.5.0.7: keep General OEE and Production ranges tied directly to their
+ // individual saved settings. OEE is already returned by oeeMetrics as 0–100.
+ const productionRange=chartRange('general','production');
+ const oeeRange=chartRange('general','oee');
+ chart('generalProductionTrendChart',rangedLineConfig(labels,d.map(x=>Number(x.produced||0)),'cyan',productionRange));
  const oeeData=labels.map(date=>{const o=oeeMetrics(runs.filter(r=>r.date===date));return o.available?Number(o.oee):null});
- chart('oeeTrendChart',rangedLineConfig(labels,oeeData,'blue',chartRange('general','oee')));
+ chart('oeeTrendChart',rangedLineConfig(labels,oeeData,'blue',oeeRange));
 }
 export function renderDashboard(){
  const runs=activeRuns(),m=metricsForRuns(runs);$('kpiProduction').textContent=number(m.produced);$('kpiScrap').textContent=percent(m.scrapRate);$('kpiScrapQty').textContent=`${number(m.scrap)} piezas`;$('kpiPpm').textContent=number(Math.round(m.ppm));$('kpiYield').textContent=percent(m.yieldRate);$('kpiCopq').textContent=percent(m.copqPercent);$('kpiCopqUsd').textContent=`${money(m.copq,'USD')} USD`;
@@ -117,7 +121,16 @@ function dashboardDefault(kind,metric){
  return d;
 }
 function chartRange(kind,metric){
- const all=readDashboardSettings();return all?.[kind]?.[metric]||dashboardDefault(kind,metric);
+ const all=readDashboardSettings();
+ const saved=all?.[kind]?.[metric];
+ const base=dashboardDefault(kind,metric);
+ if(!saved)return base;
+ const min=Number(saved.min),max=Number(saved.max),target=Number(saved.target);
+ return {
+   min:Number.isFinite(min)?min:base.min,
+   max:Number.isFinite(max)?max:base.max,
+   target:Number.isFinite(target)?target:base.target
+ };
 }
 function applyTargetLine(cfg,target){
  const labels=cfg.data?.labels||[];
@@ -126,13 +139,16 @@ function applyTargetLine(cfg,target){
 }
 function rangedLineConfig(labels,data,tone,range){
  const cfg=lineConfig(labels,data,tone);
- const min=Number(range.min),max=Number(range.max);
+ let min=Number(range.min),max=Number(range.max),target=Number(range.target);
+ if(!Number.isFinite(min))min=0;if(!Number.isFinite(max))max=100;if(!Number.isFinite(target))target=(min+max)/2;
+ if(max<min){const t=min;min=max;max=t;}
+ target=Math.max(min,Math.min(max,target));
  cfg.options.scales.y.beginAtZero=false;
  cfg.options.scales.y.min=min;
  cfg.options.scales.y.max=max;
  cfg.options.scales.y.suggestedMin=min;
  cfg.options.scales.y.suggestedMax=max;
- return applyTargetLine(cfg,Number(range.target));
+ return applyTargetLine(cfg,target);
 }
 export function getDashboardSetting(kind,metric){return chartRange(kind,metric)}
 export function saveDashboardSetting(kind,metric,value){const all=readDashboardSettings();all[kind]=all[kind]||{};all[kind][metric]=value;writeDashboardSettings(all)}
@@ -222,7 +238,9 @@ function renderCharts(runs,downtime){const d=daily(runs),labels=d.map(x=>x.date)
  chart('ppmTrendChart',rangedLineConfig(labels,d.map(x=>x.ppm),'red',chartRange('general','ppm')));
  chart('yieldTrendChart',rangedLineConfig(labels,d.map(x=>x.yieldRate),'cyan',chartRange('general','yield')));
  chart('copqTrendChart',rangedLineConfig(labels,d.map(x=>x.copqPercent),'red',chartRange('general','copq')));
- chart('productionTrendChart',rangedLineConfig(labels,d.map(x=>x.produced),'cyan',chartRange('production','production')));
+ // Production dashboard has its own independent range/meta.
+ const productionRange=chartRange('production','production');
+ chart('productionTrendChart',rangedLineConfig(labels,d.map(x=>Number(x.produced||0)),'cyan',productionRange));
  const ev=state.scrapEvents.filter(e=>runs.some(r=>r.id===e.runId)),byDef={},byPart={};ev.forEach(e=>{const n=getDefect(e.defectId)?.name||'Otro';byDef[n]=(byDef[n]||0)+e.quantity;const pn=getPart(getRun(e.runId)?.partId)?.number||'Otro';byPart[pn]=(byPart[pn]||0)+e.quantity});chart('scrapDefectPieChart',pieConfig(Object.keys(byDef),Object.values(byDef)));chart('scrapPartPieChart',pieConfig(Object.keys(byPart),Object.values(byPart)));const defSorted=Object.entries(byDef).sort((a,b)=>b[1]-a[1]),partSorted=Object.entries(byPart).sort((a,b)=>b[1]-a[1]);chart('scrapDefectParetoChart',paretoConfig(defSorted.map(x=>x[0]),defSorted.map(x=>x[1])));chart('scrapPartParetoChart',paretoConfig(partSorted.map(x=>x[0]),partSorted.map(x=>x[1])));
  const byReason={},byMachine={};downtime.forEach(e=>{const n=getDowntimeReason(e.reasonId)?.name||'Otro';byReason[n]=(byReason[n]||0)+e.minutes;const r=getRun(e.runId),mc=getMachine(r?.machineId)?.code||'Sin máquina';byMachine[mc]=(byMachine[mc]||0)+e.minutes});chart('downtimeReasonPieChart',pieConfig(Object.keys(byReason),Object.values(byReason)));chart('downtimeMachinePieChart',pieConfig(Object.keys(byMachine),Object.values(byMachine)));const reasonSorted=Object.entries(byReason).sort((a,b)=>b[1]-a[1]),machineSorted=Object.entries(byMachine).sort((a,b)=>b[1]-a[1]);chart('downtimeReasonParetoChart',paretoConfig(reasonSorted.map(x=>x[0]),reasonSorted.map(x=>x[1])));chart('downtimeMachineParetoChart',paretoConfig(machineSorted.map(x=>x[0]),machineSorted.map(x=>x[1])));}
 function renderTopProducts(runs){const el=$('topProductsGrid');if(!el)return;const tops=topProducts(runs);el.innerHTML=tops.length?tops.map((t,i)=>{const p=getPart(t.partId),pr=defectPareto(t.runs).slice(0,3);return `<div class="top-product"><span class="rank">RANK ${i+1}</span><h4>${esc(p?.number||'—')}</h4><small>${esc(getClient(p?.clientId)?.name||'—')}</small><div class="metrics"><div><span>SCRAP</span><strong>${number(t.scrap)}</strong></div><div><span>YIELD</span><strong>${percent(t.yieldRate)}</strong></div><div><span>COPQ</span><strong>${percent(t.copqPercent)}</strong><small>${money(t.copq,p?.currency||'USD')}</small></div></div>${pr.map((x,j)=>`<div class="entity-item"><small>${j+1}. ${esc(x.name)}</small><strong>${number(x.qty)}</strong></div>`).join('')}</div>`}).join(''):'<div class="empty-state">Sin datos para el periodo seleccionado.</div>'}
